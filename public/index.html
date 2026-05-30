@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>APEX · 모닝 클러스터 오버나잇 엔진</title>
+  <style>
+    :root {
+      --bg: #09090d;
+      --bg2: #0a0e12;
+      --card: #0d1419;
+      --card2: #121c22;
+      --card-hover: #162028;
+      --border: #1a2a35;
+      --border2: #153045;
+      --text: #e8e8ec;
+      --dim: #9a9aa5;
+      --dim2: #5a5a65;
+      --accent: #22d3ee;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --orange: #fb923c;
+      --shadow: 0 2px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, 'SF Pro Display', 'Pretendard', system-ui, sans-serif;
+      font-size: 13px; -webkit-font-smoothing: antialiased;
+    }
+    .mono { font-family: 'SF Mono', 'JetBrains Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 헤더 */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: linear-gradient(180deg, #071018 0%, #050c14 100%);
+      border-bottom: 1px solid var(--border2);
+      gap: 16px; box-shadow: var(--shadow);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .header-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1 1 auto; }
+    .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+    .brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; color: var(--accent); }
+    .brand-sub {
+      font-weight: 500; font-size: 11px; color: var(--dim);
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .brand-sub::before {
+      content: ''; display: inline-block; width: 1px; height: 11px;
+      background: var(--border2); margin-right: 10px; vertical-align: -1px;
+    }
+
+    .mode-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px;
+      margin-left: 8px; text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+    .mode-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor;
+    }
+    body.mode-paper-self .mode-badge {
+      color: #fbbf24; background: rgba(251,191,36,0.10);
+      border-color: rgba(251,191,36,0.30);
+    }
+    body.mode-real .mode-badge {
+      color: var(--accent); background: rgba(34,211,238,0.10);
+      border-color: rgba(34,211,238,0.30);
+    }
+
+    .nav-tabs {
+      display: flex; gap: 2px; background: rgba(0,0,0,0.3);
+      padding: 3px; border-radius: 8px; border: 1px solid var(--border);
+    }
+    .nav-tab {
+      padding: 6px 12px; border: none; border-radius: 6px;
+      background: transparent; color: var(--dim);
+      font-family: inherit; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .nav-tab .nav-ico { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.55; transition: opacity 0.15s; }
+    .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-tab:hover .nav-ico { opacity: 0.9; }
+    .nav-tab.active {
+      background: rgba(34,211,238,0.12); color: var(--accent);
+      border: 1px solid rgba(34,211,238,0.25); padding: 5px 11px;
+    }
+    .nav-tab.active .nav-ico { opacity: 1; }
+    .nav-tab .nav-live {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+      flex-shrink: 0; animation: blink 1.3s ease-in-out infinite;
+      margin-left: 2px;
+    }
+    .nav-tab:not(.active) .nav-live { display: none; }
+
+    .header-right { display: flex; gap: 8px; align-items: center; }
+
+    .auto-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 600; letter-spacing: 0.2px;
+      border: 1px solid var(--border); background: rgba(0,0,0,0.25);
+      color: var(--dim); cursor: pointer; transition: all 0.15s;
+    }
+    .auto-status:hover { background: rgba(0,0,0,0.4); }
+    .auto-status strong { font-weight: 800; letter-spacing: 0.4px; }
+    .auto-status.on {
+      color: var(--accent); border-color: rgba(34,211,238,0.4);
+      background: rgba(34,211,238,0.1);
+    }
+    .auto-status.on strong { color: #fff; }
+    .auto-status .live {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--dim2); box-shadow: none; animation: none;
+    }
+    .auto-status.on .live {
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+      animation: blink 1.3s ease-in-out infinite;
+    }
+
+    .refresh-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; color: var(--dim);
+      border: 1px solid var(--border); background: rgba(0,0,0,0.3);
+      font-family: 'SF Mono', monospace;
+    }
+    .refresh-pill .rf-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 5px rgba(34,211,238,0.6);
+    }
+    .refresh-pill strong { color: var(--accent); font-weight: 700; }
+
+    .clock {
+      font-family: 'SF Mono', monospace; font-size: 11.5px;
+      color: var(--dim); padding: 6px 10px;
+      background: rgba(0,0,0,0.3); border-radius: 6px;
+      border: 1px solid var(--border); letter-spacing: 0.3px;
+    }
+    .clock .date { color: var(--dim2); margin-right: 6px; }
+    .clock .sec { color: var(--accent); }
+
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      color: var(--dim); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.15s; position: relative;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--accent); background: rgba(34,211,238,0.08); }
+
+    .container { padding: 8px 14px; max-width: 100%; }
+
+    /* KPI 스트립 (6칸) */
+    .kpi-strip {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .kpi {
+      background: var(--bg2); padding: 9px 14px;
+      display: flex; flex-direction: column; gap: 3px;
+      min-width: 0; transition: background 0.15s;
+    }
+    .kpi:hover { background: var(--card); }
+    .kpi-label {
+      font-size: 10.5px; color: var(--dim);
+      font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .kpi-value {
+      font-size: 18px; font-weight: 700; line-height: 1.1;
+      letter-spacing: -0.4px;
+      font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
+    }
+    .kpi-value small { font-size: 11px; font-weight: 600; color: var(--dim); margin-left: 3px; }
+    .kpi-value.positive, .kpi-value.pos { color: var(--green); }
+    .kpi-value.negative, .kpi-value.neg { color: var(--accent); }
+    .kpi-value.accent { color: var(--accent); }
+    .kpi-value.warn { color: var(--yellow); }
+    .kpi-sub {
+      font-size: 10.5px; color: var(--dim);
+      display: flex; align-items: center; gap: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .kpi-sub .mini.pos { color: var(--green); font-weight: 700; }
+    .kpi-sub .mini.neg { color: var(--accent); font-weight: 700; }
+    .kpi-sub .mini.dim { color: var(--dim2); }
+    .kpi-sub .sep { color: var(--dim2); opacity: 0.5; }
+
+    /* 누적 지표 스트립 */
+    .stat-strip {
+      display: grid; grid-template-columns: repeat(8, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: var(--bg2); padding: 7px 12px;
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    .stat-label {
+      font-size: 9.5px; color: var(--dim); text-transform: uppercase;
+      letter-spacing: 0.4px; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .stat-value {
+      font-size: 13.5px; font-weight: 700;
+      font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px; line-height: 1.2;
+    }
+    .stat-value.positive, .stat-value.pos { color: var(--green); }
+    .stat-value.negative, .stat-value.neg { color: var(--accent); }
+    .stat-value.warn { color: var(--yellow); }
+    .stat-sub { font-size: 9.5px; color: var(--dim2); white-space: nowrap; }
+
+    /* 섹션 타이틀 */
+    .section-title-h {
+      font-size: 11px; font-weight: 700;
+      color: var(--dim); letter-spacing: 0.5px;
+      text-transform: uppercase; margin: 10px 4px 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title-h::before {
+      content: ''; width: 3px; height: 12px;
+      background: var(--accent); border-radius: 2px;
+    }
+
+    /* 메인 그리드 */
+    .main-grid {
+      display: grid; grid-template-columns: 1fr 1.2fr 1.8fr;
+      gap: 10px; margin-bottom: 12px;
+    }
+    #positionsTable td { padding: 5px 7px; }
+    .split-grid {
+      display: grid; grid-template-columns: 1.3fr 1fr;
+      gap: 12px; margin-bottom: 12px;
+    }
+    @media (max-width: 1400px) {
+      .main-grid { grid-template-columns: 1fr 1fr; }
+      .main-grid #p-sold { grid-column: span 2; }
+    }
+    @media (max-width: 1100px) {
+      .main-grid, .split-grid { grid-template-columns: 1fr; }
+      .main-grid #p-sold { grid-column: auto; }
+      .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+      .stat-strip { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* 패널 */
+    .panel {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 16px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      flex-wrap: wrap; gap: 8px;
+    }
+    .panel-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .panel-title .count {
+      font-size: 10.5px; color: var(--dim); font-weight: 500;
+      background: rgba(255,255,255,0.04); padding: 2px 7px; border-radius: 999px;
+      font-family: 'SF Mono', monospace;
+    }
+    .panel-title .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+      animation: blink 1.3s ease-in-out infinite;
+    }
+    .panel-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .panel-meta { font-size: 11px; color: var(--dim); font-family: 'SF Mono', monospace; }
+    .panel-meta strong { color: var(--text); font-weight: 700; }
+    .panel-body {
+      flex: 1 1 auto;
+      min-height: 180px; max-height: 280px;
+      overflow-y: auto; overflow-x: auto;
+    }
+    .panel-body.tall { min-height: 260px; max-height: 520px; }
+    .panel-body.no-scroll { max-height: none; padding: 12px 16px; }
+    .panel-body::-webkit-scrollbar, *::-webkit-scrollbar { width: 8px; height: 8px; }
+    .panel-body::-webkit-scrollbar-track, *::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+    }
+    .panel-body::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,0,0,0.6); border-color: rgba(255,255,255,0.12);
+    }
+
+    /* 버튼 */
+    .btn-sm {
+      padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+      background: transparent; color: var(--dim);
+      font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.active { background: var(--accent); color: #05131a; border-color: var(--accent); }
+    .btn-sm.danger { border-color: rgba(34,211,238,0.3); color: var(--accent); }
+    .btn-sm.danger:hover { background: rgba(34,211,238,0.1); border-color: var(--accent); }
+    .btn-sm:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    .btn-sm.loading { position: relative; color: transparent; }
+    .btn-sm.loading::after {
+      content: ''; position: absolute; left: 50%; top: 50%;
+      width: 12px; height: 12px; margin: -6px 0 0 -6px;
+      border: 2px solid var(--dim); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    /* 테이블 */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      position: sticky; top: 0; z-index: 2;
+      background: var(--bg2);
+      padding: 7px 10px; text-align: left;
+      color: var(--dim); font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+      vertical-align: middle;
+    }
+    thead th.num { text-align: right; }
+    thead th.center, tbody td.center { text-align: center; }
+    tbody td {
+      padding: 6px 10px; font-size: 11.5px;
+      border-bottom: 1px solid rgba(26,42,53,0.5); white-space: nowrap;
+      font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
+      vertical-align: middle;
+    }
+    tbody td.stock-name { font-family: 'Inter', sans-serif; font-weight: 600; }
+    tbody tr { transition: background 0.1s; }
+    tbody tr:hover { background: rgba(34,211,238,0.04); }
+    tbody tr:last-child td { border-bottom: none; }
+    .num { text-align: right; }
+    .pos, .pnl-pos { color: var(--green); }
+    .neg, .pnl-neg { color: var(--accent); }
+    .dim { color: var(--dim); }
+    .dim2 { color: var(--dim2); }
+    .warn { color: var(--yellow); }
+
+    /* 배지 */
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.2px;
+      font-family: 'Inter', sans-serif;
+    }
+    .badge-wait { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+    .badge-filled { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+    .badge-sold { background: rgba(34,211,238,0.12); color: var(--accent); border: 1px solid rgba(34,211,238,0.2); }
+    .badge-manual { background: rgba(251,191,36,0.1); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+    .badge-reject { background: rgba(150,150,150,0.08); color: var(--dim); border: 1px solid rgba(150,150,150,0.15); }
+    .badge-pending { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+    .badge-stopLoss { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+    .badge-overnight { background: rgba(34,211,238,0.12); color: var(--accent); border: 1px solid rgba(34,211,238,0.2); }
+
+    /* 로그 */
+    .log-box {
+      background: #040c12; border: 0; padding: 10px 14px;
+      font-family: 'SF Mono', monospace; font-size: 11px; line-height: 1.7;
+      max-height: 380px; overflow-y: auto;
+    }
+    .log-info { color: var(--dim); }
+    .log-warn { color: var(--yellow); }
+    .log-error { color: var(--red); }
+
+    /* 당일 손익 요약 스트립 */
+    .today-summary {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--border);
+      padding: 0; margin: 0 0 2px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .today-summary:empty { display: none; }
+    .today-summary .sum-kpi {
+      background: var(--bg2); padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .today-summary .sum-kpi .k {
+      font-size: 10px; color: var(--dim);
+      font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase;
+    }
+    .today-summary .sum-kpi .v {
+      font-size: 14px; font-weight: 700;
+      font-family: 'SF Mono', monospace;
+      font-variant-numeric: tabular-nums; letter-spacing: -0.2px; line-height: 1.2;
+    }
+    .today-summary .sum-kpi .v.pnl-pos { color: var(--green); }
+    .today-summary .sum-kpi .v.pnl-neg { color: var(--accent); }
+    .today-summary .sum-kpi .v.dim { color: var(--dim); }
+
+    /* 종목 링크 */
+    .stock-link { cursor: pointer; border-bottom: 1px dashed var(--dim2); transition: color 0.15s; }
+    .stock-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* 토스트 */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+      background: var(--card); border: 1px solid var(--border2); border-radius: 8px;
+      font-size: 12px; z-index: 999; animation: fadeIn 0.2s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    }
+    .empty-msg { padding: 20px; text-align: center; color: var(--dim); font-size: 12px; }
+
+    /* 차트 모달 */
+    .chart-modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75); z-index: 1000;
+      justify-content: center; align-items: center;
+    }
+    .chart-modal-overlay.active { display: flex; }
+    .chart-modal {
+      background: var(--card); border: 1px solid var(--border2); border-radius: 12px;
+      width: 94vw; max-width: 1000px; height: 85vh; max-height: 800px;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .chart-modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+    }
+    .chart-modal-header h3 { font-size: 15px; font-weight: 700; }
+    .chart-modal-header h3 span { color: var(--dim); font-size: 12px; font-weight: 400; margin-left: 8px; }
+    .chart-modal-close {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--dim); font-size: 18px; width: 32px; height: 32px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .chart-modal-close:hover { border-color: var(--accent); color: var(--accent); }
+    .chart-modal-body { flex: 1; position: relative; background: #040c12; overflow: hidden; display: flex; flex-direction: column; }
+    .chart-modal-body .chart-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--dim); font-size: 13px; }
+    #chartVolumeWrap { height: 80px; }
+    .chart-modal-links {
+      display: flex; gap: 8px; padding: 10px 20px;
+      border-top: 1px solid var(--border); font-size: 11px;
+      align-items: center;
+    }
+    .chart-modal-links a {
+      color: var(--accent); text-decoration: none; padding: 4px 10px;
+      border: 1px solid var(--border); border-radius: 4px; transition: all 0.2s;
+    }
+    .chart-modal-links a:hover { border-color: var(--accent); background: rgba(34,211,238,0.08); }
+
+    /* 설정 모달 */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 1100;
+      backdrop-filter: blur(2px);
+      justify-content: center; align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border2);
+      border-radius: 12px; width: 94vw; max-width: 520px;
+      max-height: 85vh; overflow: hidden;
+      display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    }
+    .modal-header h3 { font-size: 15px; font-weight: 700; }
+    .modal-close {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--dim); font-size: 18px; width: 30px; height: 30px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 12px 20px; border-top: 1px solid var(--border);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+    .setting-group { margin-bottom: 18px; }
+    .setting-group-title {
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; margin-bottom: 6px;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-info { display: flex; flex-direction: column; gap: 2px; }
+    .setting-name { font-size: 12.5px; font-weight: 600; }
+    .setting-desc { font-size: 10.5px; color: var(--dim); }
+    .setting-control { display: flex; align-items: center; gap: 6px; width: 108px; justify-content: flex-end; }
+    .setting-input {
+      width: 70px; padding: 5px 8px; text-align: center;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text); font-size: 12px;
+      font-family: 'SF Mono', monospace;
+    }
+    .setting-input:focus { border-color: var(--accent); outline: none; }
+    .setting-unit { font-size: 11px; color: var(--dim); width: 32px; text-align: left; }
+
+    .mode-toggle {
+      display: inline-flex; padding: 2px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    }
+    .mode-btn {
+      padding: 5px 10px; font-size: 11.5px; font-weight: 600;
+      background: transparent; border: 0; color: var(--dim);
+      cursor: pointer; border-radius: 4px; transition: all 0.15s;
+      font-family: inherit;
+    }
+    .mode-btn:hover { color: var(--text); }
+    .mode-btn.active { background: var(--accent); color: #05131a; }
+
+    .auto-toggle {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 12px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.15s;
+      font-size: 12px; font-weight: 700; color: var(--dim);
+    }
+    .auto-toggle .sw {
+      width: 32px; height: 18px; border-radius: 999px;
+      background: var(--border2); position: relative; transition: background 0.2s;
+    }
+    .auto-toggle .sw::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; transition: transform 0.2s;
+    }
+    .auto-toggle.on .sw { background: var(--accent); }
+    .auto-toggle.on .sw::after { transform: translateX(14px); }
+    .auto-toggle.on { color: var(--accent); border-color: rgba(34,211,238,0.3); }
+
+    .btn {
+      padding: 7px 16px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--bg2); color: var(--text); font-family: inherit;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent); border-color: var(--accent); color: #05131a;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-danger {
+      background: transparent; border-color: rgba(248,113,113,0.3); color: var(--red);
+    }
+    .btn-danger:hover { background: rgba(248,113,113,0.1); border-color: var(--red); }
+
+    /* 반응형 */
+    @media (max-width: 1024px) {
+      .header { padding: 10px 16px; gap: 10px; flex-wrap: wrap; }
+      .header-left { flex-wrap: wrap; gap: 10px 16px; width: 100%; }
+      .nav-tabs {
+        order: 3; flex-basis: 100%; width: 100%; justify-content: space-between;
+        overflow-x: auto; scrollbar-width: none;
+      }
+      .nav-tabs::-webkit-scrollbar { display: none; }
+      .nav-tab { flex: 1 1 0; min-width: 0; justify-content: center; padding: 6px 10px; font-size: 12px; }
+      .nav-tab.active { padding: 5px 9px; }
+    }
+    @media (max-width: 900px) {
+      .brand-name { font-size: 16px; }
+      .brand-sub { display: none; }
+      .clock { padding: 5px 8px; font-size: 11px; }
+      .clock .date { display: none; }
+      .refresh-pill { display: none; }
+      .container { padding: 8px; }
+      thead th { font-size: 9.5px; padding: 6px 8px; letter-spacing: 0.3px; }
+      tbody td { font-size: 11px; padding: 6px 8px; }
+    }
+    @media (max-width: 640px) {
+      .nav-tabs { gap: 1px; padding: 2px; }
+      .nav-tab { gap: 4px; padding: 5px 8px; font-size: 11.5px; }
+      .nav-tab .nav-ico { display: none; }
+      .nav-tab .nav-live { margin-left: 0; }
+      .nav-tab.active { padding: 4px 7px; }
+    }
+    @media (max-width: 480px) {
+      .auto-status strong { display: none; }
+      .header { padding: 8px 12px; gap: 8px; }
+      .nav-tab { padding: 5px 6px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body class="mode-real">
+
+<header class="header">
+  <div class="header-left">
+    <div class="brand">
+      <span class="brand-name">APEX</span>
+      <span class="brand-sub">모닝 클러스터 오버나잇 엔진</span>
+      <span id="modeBadge" class="mode-badge" title="현재 운영 모드">--</span>
+    </div>
+    <nav class="nav-tabs">
+      <a class="nav-tab active" href="index.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3" opacity="0.6"/></svg>
+        모니터링
+        <span class="nav-live"></span>
+      </a>
+      <a class="nav-tab" href="stats.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-5M11 20V9M16 20v-7"/></svg>
+        일별손익
+      </a>
+      <a class="nav-tab" href="engine.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+        엔진설명
+      </a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <div id="realTradingStatus" class="auto-status" onclick="document.getElementById('settingsModal').classList.add('active')" title="자동매매 상태 (설정 모달에서 토글)">
+      <span class="live"></span>자동매매 <strong id="realTradingStatusText">OFF</strong>
+    </div>
+    <div class="refresh-pill"><span class="rf-dot"></span>새로고침 <strong id="refreshTimer">30s</strong></div>
+    <div class="clock"><span class="date">--</span>--:--<span class="sec">:--</span></div>
+    <button class="icon-btn" title="알림">🔔</button>
+    <button class="icon-btn" title="설정" onclick="document.getElementById('settingsModal').classList.add('active')">⚙</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- KPI 스트립 (6칸) -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">최근 실현손익</div>
+      <div class="kpi-value" id="todayRealized">--</div>
+      <div class="kpi-sub" id="todayRealizedSub">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">최근 매도 결과</div>
+      <div class="kpi-value" id="todaySoldCount">--</div>
+      <div class="kpi-sub" id="todaySoldSub">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">현재 보유</div>
+      <div class="kpi-value accent" id="positionCount">0종목</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">투자가능금액</div>
+      <div class="kpi-value" id="deposit">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">스캔 현황</div>
+      <div class="kpi-value warn" id="scanSummaryCount">--</div>
+      <div class="kpi-sub" id="scanSummarySub">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">누적 손익</div>
+      <div class="kpi-value" id="totalPnl">0원</div>
+      <div class="kpi-sub" id="totalPnlSub">--</div>
+      <div id="sparkPnl" style="margin-top:4px;height:24px;"></div>
+    </div>
+  </div>
+
+  <!-- 누적 지표 스트립 (8칸) -->
+  <div class="stat-strip">
+    <div class="stat">
+      <div class="stat-label">일평균 손익</div>
+      <div class="stat-value" id="avgPnl">--</div>
+      <div class="stat-sub">일평균 수익률 <span id="avgDailyReturn">--%</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">평균 수익률</div>
+      <div class="stat-value" id="avgReturn">--%</div>
+      <div class="stat-sub" id="avgReturnSub">종목 평균</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">누적 수익률 (복리)</div>
+      <div class="stat-value positive" id="cumReturnCompound">--%</div>
+      <div class="stat-sub">전액 재투자 가정</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">최대 손실</div>
+      <div class="stat-value negative" id="maxLoss">--%</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">손익비</div>
+      <div class="stat-value" id="profitFactor">--</div>
+      <div class="stat-sub" id="profitFactorSub">이익÷손실</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">최대 낙폭 (MDD)</div>
+      <div class="stat-value" id="maxDD">--원</div>
+      <div class="stat-sub">고점 대비</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">연속 손실</div>
+      <div class="stat-value" id="lossStreak">--</div>
+      <div class="stat-sub" id="lossStreakSub">--</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">일평균 매수</div>
+      <div class="stat-value" id="avgStocks">--</div>
+      <div class="stat-sub">거래 <span id="tradingDays">--</span> · <span id="winRate">--</span></div>
+    </div>
+  </div>
+
+  <span id="presetDesc" style="display:none;"></span>
+
+  <!-- 실제 증권 잔고 -->
+  <section class="panel" id="realHoldingsSection" style="display:none;margin-bottom:12px;">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span class="live-dot"></span>실제 증권 잔고
+        <span class="count" id="realHoldingsCount">--</span>
+      </div>
+      <span class="panel-meta" id="realTotalEval">--</span>
+    </div>
+    <div class="panel-body no-scroll">
+      <table>
+        <thead><tr>
+          <th>종목</th><th class="num">수량</th><th class="num">평균매수가</th>
+          <th class="num">현재가</th><th class="num">평가금액</th><th class="num">수익률</th>
+        </tr></thead>
+        <tbody id="realHoldingsTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="section-title-h">실시간 모니터링</div>
+
+  <!-- 메인 그리드 -->
+  <div class="main-grid">
+    <section class="panel" id="p-orders">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="live-dot"></span>체결 대기
+          <span class="count" id="ordersLiveCount">--</span>
+        </div>
+        <div class="panel-actions">
+          <button class="btn-sm" id="btnScan" onclick="manualScan(this)">스캔</button>
+          <button class="btn-sm" onclick="refreshAll()">새로고침</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr>
+            <th>시각</th>
+            <th>종목</th>
+            <th>구분</th>
+            <th>현재가</th>
+            <th>주문</th>
+            <th>총주문금액</th>
+          </tr></thead>
+          <tbody id="ordersLiveTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="p-positions">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="live-dot"></span>보유 종목
+        </div>
+        <span class="panel-meta" id="holdingsMeta"></span>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr>
+            <th>종목</th>
+            <th>구분</th>
+            <th>수량</th>
+            <th>매수가</th>
+            <th>매수금액</th>
+            <th>수익률</th>
+          </tr></thead>
+          <tbody id="positionsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="p-sold">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="live-dot"></span>당일 손익
+          <span class="count" id="todayDateLabel">--</span>
+        </div>
+        <span class="panel-meta" id="todayTotalMeta">--</span>
+      </div>
+      <div id="todaySummary" class="today-summary"></div>
+      <div class="panel-body">
+        <table>
+          <thead><tr>
+            <th>종목</th>
+            <th>구분</th>
+            <th class="num">수량</th>
+            <th class="num">매수가</th>
+            <th class="num">매수금액</th>
+            <th class="num">매도가</th>
+            <th class="num">매도금액</th>
+            <th class="num">등락률</th>
+            <th class="num">손익</th>
+            <th class="num">수익률</th>
+          </tr></thead>
+          <tbody id="todayTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- 당일 스캔 흐름 + 엔진 로그 -->
+  <div class="split-grid">
+    <section class="panel" id="p-signals">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="live-dot"></span>당일 스캔 흐름
+          <span class="count" id="signalsCount">--</span>
+        </div>
+        <span class="panel-meta">모닝 스냅샷(9:31) → 14:30 스캔 → 14:50 매수. 라이브 누적.</span>
+      </div>
+      <div class="panel-body tall">
+        <table>
+          <thead><tr>
+            <th>시각</th>
+            <th>종목</th>
+            <th class="num">클러스터강도</th>
+            <th class="num">등락률</th>
+            <th class="num">진입가</th>
+            <th>상태</th>
+          </tr></thead>
+          <tbody id="signalsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel log-panel" id="p-log">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="live-dot"></span>엔진 로그
+        </div>
+        <span class="panel-meta">최근 활동</span>
+      </div>
+      <div class="log-box panel-body" id="logBox"></div>
+    </section>
+  </div>
+
+  <div id="scanTable" style="display:none;"></div>
+  <span id="scanTiming" style="display:none;"></span>
+  <div id="infoPanel" style="display:none;"></div>
+
+</div>
+
+<!-- 차트 모달 -->
+<div class="chart-modal-overlay" id="chartOverlay" onclick="closeChart(event)">
+  <div class="chart-modal">
+    <div class="chart-modal-header">
+      <h3 id="chartTitle">종목명</h3>
+      <button class="chart-modal-close" onclick="closeChart()">&times;</button>
+    </div>
+    <div class="chart-modal-body" id="chartBody">
+      <div id="chartCandleWrap" style="flex:1;min-height:0;"></div>
+      <div id="chartVolumeWrap"></div>
+      <div class="chart-loading" id="chartLoading">차트 로딩 중...</div>
+    </div>
+    <div class="chart-modal-links">
+      <span id="chartLegend" style="color:var(--dim);font-size:11px;">
+        <span style="color:#ef5350;">●</span> 양봉
+        <span style="color:#2962FF;margin-left:6px;">●</span> 음봉
+        <span style="color:#4a9eff;margin-left:6px;">─</span> MA20
+        <span style="color:#e040fb;margin-left:6px;">─</span> MA60
+      </span>
+      <span style="flex:1;"></span>
+      <a id="chartLinkNaver" href="#" target="_blank">네이버 증권</a>
+      <a id="chartLinkMobile" href="#" target="_blank">모바일 차트</a>
+    </div>
+  </div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚙ APEX 매매 설정</h3>
+      <button class="modal-close" onclick="document.getElementById('settingsModal').classList.remove('active')">×</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="setting-group">
+        <div class="setting-group-title">⚡ 운영 모드</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:10px;line-height:1.6;">
+          전환 시 서버 자동 재시작 (약 5초). <code style="color:#fbbf24;">paper-self</code>는 자체 simulate.
+          <code style="color:var(--accent);">real</code>은 KIS 실전 매매 — 전환 시 자금 영향 확인 창 거침.
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">현재 모드 <span id="currentModeBadge" style="margin-left:8px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;background:rgba(154,154,165,0.15);color:var(--dim);">--</span></div>
+            <div class="setting-desc">paper-self(시뮬레이션) → real(실전 매매)</div>
+          </div>
+          <div class="setting-control" style="display:flex;gap:6px;">
+            <button class="mode-btn" data-mode="paper-self" onclick="changeMode('paper-self', this)" style="padding:6px 12px;border:1px solid var(--border2);border-radius:6px;background:var(--card2);color:var(--text);font-size:11.5px;font-weight:600;cursor:pointer;">paper-self</button>
+            <button class="mode-btn" data-mode="real" onclick="changeMode('real', this)" style="padding:6px 12px;border:1px solid var(--border2);border-radius:6px;background:var(--card2);color:var(--accent);font-size:11.5px;font-weight:600;cursor:pointer;">real</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">🔌 실전 연결 테스트</div>
+            <div class="setting-desc">KIS 잔고 조회 1회 — 매매 영향 0. 토큰·키·계좌 응답 파싱·예수금 미리 확인.</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn" onclick="testKisHealth(this)">테스트</button>
+          </div>
+        </div>
+        <div id="kisHealthResult" style="margin-top:8px;padding:10px;border-radius:6px;font-size:11.5px;font-family:monospace;line-height:1.7;display:none;"></div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">포지션 · 예산 (APEX 전략)</div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">총 자본 (매매일에 Top2 50:50 분할)</div>
+            <div class="setting-desc">14:50에 top1·2 두 종목에 50:50 분할 매수. <code style="color:var(--accent);">.env</code>의 <code style="color:var(--accent);">TOTAL_CAPITAL</code> 수정 후 서버 재시작.</div>
+          </div>
+          <div class="setting-control">
+            <span id="cfgBudgetValue" class="mono" style="font-size:14px;font-weight:700;color:var(--text);">--</span>
+            <span class="setting-unit">원</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">최대 포지션 수</div>
+            <div class="setting-desc">cluster_strength &gt; 1.10 OR 등락률 &gt; 25% 상위 2종목 매수 (50:50 분할).</div>
+          </div>
+          <div class="setting-control">
+            <span class="mono" style="font-size:14px;font-weight:700;color:var(--text);">2</span>
+            <span class="setting-unit">개</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">매수 시각</div>
+            <div class="setting-desc">14:30 스캔 → 14:50 시장가 매수 → T+1 09:01 전량 매도</div>
+          </div>
+          <div class="setting-control">
+            <span class="mono" style="font-size:13px;font-weight:700;color:var(--accent);">14:50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">🔐 비밀번호 / API 키</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:10px;line-height:1.6;">
+          ⚠️ 채팅으로 보내지 말고 여기서 직접 입력하세요. 입력값은 <code style="color:var(--accent);">data/config.json</code>에 저장되며 git에 포함되지 않습니다.
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Gmail 앱 비밀번호 <span id="secStatusEmail" style="color:var(--dim2);margin-left:6px;">○</span></div>
+            <div class="setting-desc">16자리. <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--accent);">발급</a></div>
+          </div>
+          <div class="setting-control">
+            <input type="password" id="secEmailPw" placeholder="abcd efgh ijkl mnop" style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">KIS App Key <span id="secStatusKisKey" style="color:var(--dim2);margin-left:6px;">○</span></div>
+            <div class="setting-desc">한국투자증권 OpenAPI 앱 키</div>
+          </div>
+          <div class="setting-control">
+            <input type="password" id="secKisAppKey" placeholder="PSKDA8XR..." style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">KIS App Secret <span id="secStatusKisSecret" style="color:var(--dim2);margin-left:6px;">○</span></div>
+          </div>
+          <div class="setting-control">
+            <input type="password" id="secKisAppSecret" placeholder="3MsJG/lV..." style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">KIS 계좌번호 <span id="secStatusKisCano" style="color:var(--dim2);margin-left:6px;">○</span></div>
+            <div class="setting-desc">8자리 실전 계좌번호</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" id="secKisCano" placeholder="68870931" maxlength="8" style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
+          </div>
+        </div>
+        <div class="setting-row" style="border-top:1px dashed var(--border);padding-top:12px;margin-top:8px;">
+          <div class="setting-info">
+            <div class="setting-name">저장 즉시 반영</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-primary" onclick="saveSecrets(this)">🔐 저장</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">세션</div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">로그아웃</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-danger" onclick="doLogout()">로그아웃</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('settingsModal').classList.remove('active')">취소</button>
+      <button class="btn btn-primary" onclick="document.getElementById('settingsModal').classList.remove('active');">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- hidden toggle for app.js compatibility -->
+<div id="realTradingBtn" class="auto-toggle" style="display:none;">
+  <div class="sw"></div><span id="realTradingBtnLabel">OFF</span>
+</div>
+
+<script>
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('active'); });
+  });
+
+  function updateClock() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    const el = document.querySelector('.clock');
+    if (el) el.innerHTML = `<span class="date">${yyyy}-${MM}-${dd}</span>${hh}:${mm}<span class="sec">:${ss}</span>`;
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  async function doLogout() {
+    try { await fetch('/logout', { method: 'POST' }); } catch (_) {}
+    location.href = '/login';
+  }
+
+  const realBtn = document.getElementById('realTradingBtn');
+  const headerStatus = document.getElementById('realTradingStatus');
+  const headerStatusText = document.getElementById('realTradingStatusText');
+  const realBtnLabel = document.getElementById('realTradingBtnLabel');
+  function syncAutoStatus() {
+    const isOn = realBtn.classList.contains('on');
+    headerStatus.classList.toggle('on', isOn);
+    headerStatusText.textContent = isOn ? 'ON' : 'OFF';
+    if (realBtnLabel) realBtnLabel.textContent = isOn ? 'ON' : 'OFF';
+  }
+  syncAutoStatus();
+  new MutationObserver(syncAutoStatus).observe(realBtn, { attributes: true, attributeFilter: ['class'] });
+</script>
+
+<script src="https://unpkg.com/lightweight-charts@4/dist/lightweight-charts.standalone.production.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
