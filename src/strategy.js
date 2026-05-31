@@ -507,10 +507,11 @@ async function selectGapupPicks(scanned, signalDate) {
       });
     }
 
-    // 5. 상위 N=2 선택 (편차 음수 큰 순)
-    //   현재 scanned에 편차가 없으므로, 등락률 낮은 순(cluster 내 laggard)으로 정렬
-    candidates.sort((a, b) => a.changeRate - b.changeRate);
-
+    // 5. 상위 N=2 선택
+    //   ★ 백테(h7_gapup_cluster_both.py)와 일치: cluster members 순서 앞 N개 (정렬 없음).
+    //   백테는 `selected_members = members[:N_PICKS]` 로 서랍 cluster builder 순서를 그대로 사용.
+    //   운영도 동일 순서를 유지해야 백테(검증 +635%)를 재현 (글로벌 CLAUDE.md §8.4 백테-운영 일치).
+    //   참고: changeRate 낮은 순(laggard) 정렬 버전은 알파 논리상 더 맞을 수 있으나 미검증 → 향후 백테 비교 후보.
     const picked = candidates.slice(0, H7_N_PICKS);
     for (const p of picked) {
       allPicks.push({

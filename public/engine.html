@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APEX · h7 엔진설명</title>
+  <title>APEX · 엔진설명</title>
   <style>
     :root {
       --bg: #09090d;
@@ -17,7 +17,6 @@
       --dim2: #5a5a65;
       --green: #4ade80;
       --accent: #22d3ee;
-      --red: #ef4444;
       --red2: #f87171;
       --yellow: #fbbf24;
       --orange: #fb923c;
@@ -31,6 +30,8 @@
       font-family: 'Inter', -apple-system, 'SF Pro Display', 'Pretendard', system-ui, sans-serif;
       font-size: 13px; -webkit-font-smoothing: antialiased;
     }
+
+    /* 헤더 */
     .header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 24px;
@@ -39,7 +40,7 @@
       gap: 16px; box-shadow: var(--shadow);
       position: sticky; top: 0; z-index: 40;
     }
-    .header-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1; }
+    .header-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1 1 auto; }
     .brand { display: flex; align-items: baseline; gap: 10px; }
     .brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; }
     .brand-sub {
@@ -50,277 +51,814 @@
       content: ''; display: inline-block; width: 1px; height: 11px;
       background: var(--border2); margin-right: 10px; vertical-align: -1px;
     }
-    .container {
-      max-width: 1200px; margin: 0 auto; padding: 32px 24px;
+    .nav-tabs {
+      display: flex; gap: 2px; background: rgba(0,0,0,0.3);
+      padding: 3px; border-radius: 8px; border: 1px solid var(--border);
     }
+    .nav-tab {
+      padding: 6px 12px; border: none; border-radius: 6px;
+      background: transparent; color: var(--dim);
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .nav-tab .nav-ico {
+      width: 13px; height: 13px; flex-shrink: 0;
+      opacity: 0.55; transition: opacity 0.15s;
+    }
+    .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-tab:hover .nav-ico { opacity: 0.9; }
+    .nav-tab.active {
+      background: rgba(239,68,68,0.12);
+      color: #fca5a5;
+      border: 1px solid rgba(239,68,68,0.25);
+      padding: 5px 11px;
+    }
+    .nav-tab.active .nav-ico { opacity: 1; }
+    .nav-tab .nav-live {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+      flex-shrink: 0; animation: blink 1.3s ease-in-out infinite;
+      margin-left: 2px;
+    }
+    .nav-tab:not(.active) .nav-live { display: none; }
+    .header-right { display: flex; gap: 8px; align-items: center; }
+    .auto-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 600;
+      color: #fca5a5; border: 1px solid rgba(239,68,68,0.4);
+      background: rgba(239,68,68,0.1);
+    }
+    .auto-status strong { font-weight: 800; color: #fff; }
+    .auto-status .live {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+      animation: blink 1.3s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .clock {
+      font-family: 'SF Mono', monospace; font-size: 11.5px;
+      color: var(--dim); padding: 6px 10px;
+      background: rgba(0,0,0,0.3); border-radius: 6px;
+      border: 1px solid var(--border);
+      letter-spacing: 0.3px;
+    }
+    .clock .date { color: var(--dim2); margin-right: 6px; }
+    .clock .sec { color: var(--accent); }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      color: var(--dim); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.15s;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--red2); }
 
-    /* Hero */
+    /* 컨테이너 */
+    .container { padding: 16px 20px; max-width: 100%; }
+
+    /* 히어로 */
     .hero-strategy {
-      margin-bottom: 48px;
+      background: linear-gradient(135deg, #1a0e14 0%, #221016 50%, #1a0e14 100%);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 14px; padding: 24px 28px;
+      margin-bottom: 14px; position: relative; overflow: hidden;
+    }
+    .hero-strategy::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(239,68,68,0.12), transparent 70%);
+      pointer-events: none;
     }
     .hero-kicker {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-      text-transform: uppercase; color: var(--dim);
-      margin-bottom: 8px; display: block;
+      display: inline-block; font-size: 10.5px; font-weight: 700;
+      color: #fca5a5; letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 999px;
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
+      margin-bottom: 12px;
     }
     .hero-title {
-      font-size: 32px; font-weight: 800; line-height: 1.4;
-      letter-spacing: -0.5px; margin-bottom: 12px;
+      font-size: 22px; font-weight: 800; line-height: 1.35;
+      letter-spacing: -0.5px; margin-bottom: 10px;
     }
     .hero-title .hl { color: var(--accent); }
     .hero-desc {
-      font-size: 14px; line-height: 1.65; color: var(--dim);
-      margin-bottom: 20px; max-width: 900px;
+      font-size: 13px; color: var(--dim); line-height: 1.85;
+      max-width: none;
     }
-    .hero-desc p { margin-bottom: 8px; }
+    .hero-desc p { margin: 0 0 10px; }
+    .hero-desc p:last-child { margin-bottom: 0; }
     .hero-desc strong { color: var(--text); font-weight: 700; }
+    .hero-desc em { color: var(--accent); font-style: normal; font-weight: 600; }
 
+    /* 구조 해설 서브카드 (①②③④) */
     .why-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px; margin: 20px 0;
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 10px; margin-top: 18px;
     }
     .why {
-      padding: 16px 14px; border-radius: 8px; border: 1px solid var(--border);
-      background: rgba(0,0,0,0.2); transition: all 0.15s;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+      border-left: 3px solid var(--dim2);
+      border-radius: 10px; padding: 14px 16px;
     }
-    .why:hover { border-color: var(--border2); background: rgba(0,0,0,0.35); }
-    .why.ok { border-color: rgba(52,211,153,0.3); background: rgba(16,185,129,0.05); }
-    .why.accent { border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.05); }
-    .why.warn { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
-    .why.orange { border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.05); }
-    .why-head {
-      font-weight: 700; font-size: 13px; margin-bottom: 8px;
-      display: flex; align-items: center; gap: 6px;
+    .why.ok { border-left-color: var(--green); }
+    .why.warn { border-left-color: var(--yellow); }
+    .why.accent { border-left-color: var(--accent); }
+    .why.orange { border-left-color: var(--orange); }
+    .why-head { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .why-head .no { color: var(--dim); margin-right: 4px; font-family: 'SF Mono', monospace; }
+    .why-body { font-size: 12px; color: var(--dim); line-height: 1.75; }
+    .why-body strong { color: var(--text); font-weight: 700; }
+    .why-body em { color: var(--accent); font-style: normal; font-weight: 600; }
+    .why-body .g { color: var(--green); font-weight: 600; }
+    .why-body .r { color: var(--red2); font-weight: 600; }
+    @media (max-width: 900px) {
+      .why-grid { grid-template-columns: 1fr; }
     }
-    .why .no {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: rgba(255,255,255,0.08); display: flex; align-items: center;
-      justify-content: center; font-weight: 800; font-size: 11px;
-    }
-    .why-body {
-      font-size: 12px; line-height: 1.6; color: var(--dim);
-    }
-    .why-body strong { color: var(--text); }
-
     .hero-metrics {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px; margin: 24px 0;
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 1px; background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-top: 18px;
     }
+    .freq-bar {
+      margin-top: 10px; padding: 10px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: rgba(255,255,255,0.02);
+      display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center;
+      font-size: 11.5px; color: var(--dim2);
+    }
+    .freq-bar strong { color: var(--text); font-weight: 700; }
+    .freq-bar .freq-title {
+      font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--dim); font-weight: 700;
+    }
+    .month-spark { display: flex; gap: 3px; align-items: flex-end; height: 28px; padding-bottom: 14px; }
+    .month-spark .bar {
+      width: 14px; background: rgba(34,211,238,0.4); border-radius: 2px 2px 0 0;
+      position: relative; cursor: pointer; transition: background 0.15s;
+    }
+    .month-spark .bar:hover { background: var(--accent); }
+    .month-spark .bar.hi { background: rgba(251,191,36,0.7); }
+    .month-spark .bar.hi:hover { background: var(--yellow); }
+    .month-spark .bar-label {
+      position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+      font-size: 8px; color: var(--dim); white-space: nowrap;
+    }
+    .month-spark .bar::after {
+      content: attr(data-tip);
+      position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: rgba(15,15,20,0.98); color: var(--text);
+      font-size: 11px; font-weight: 600; font-family: 'SF Mono', monospace;
+      padding: 5px 9px; border-radius: 5px; white-space: nowrap;
+      border: 1px solid var(--border);
+      opacity: 0; pointer-events: none; transition: opacity 0.12s;
+      z-index: 20;
+    }
+    .month-spark .bar::before {
+      content: ''; position: absolute; bottom: calc(100% + 1px); left: 50%; transform: translateX(-50%);
+      border: 4px solid transparent; border-top-color: var(--border);
+      opacity: 0; pointer-events: none; transition: opacity 0.12s;
+      z-index: 20;
+    }
+    .month-spark .bar:hover::after,
+    .month-spark .bar:hover::before { opacity: 1; }
     .hm {
-      padding: 16px; border-radius: 8px; border: 1px solid var(--border);
-      background: rgba(0,0,0,0.2);
+      padding: 12px 16px; background: rgba(0,0,0,0.25);
+      display: flex; flex-direction: column; gap: 3px;
     }
-    .hm-label { font-size: 11px; color: var(--dim); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
-    .hm-value { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
+    .hm-label { font-size: 10px; color: var(--dim); letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
+    .hm-value {
+      font-size: 20px; font-weight: 800; line-height: 1;
+      font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
+    }
     .hm-value.pos { color: var(--green); }
-    .hm-sub { font-size: 11px; color: var(--dim2); line-height: 1.5; }
+    .hm-value.neg { color: var(--red2); }
+    .hm-value.warn { color: var(--yellow); }
+    .hm-sub { font-size: 10.5px; color: var(--dim2); }
 
-    /* Section */
+    /* 섹션 */
     .section {
-      margin-bottom: 32px; padding: 24px; border-radius: 12px;
-      border: 1px solid var(--border); background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.15));
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
+      margin-bottom: 14px;
     }
     .section-header {
-      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      display: flex; align-items: center; justify-content: space-between;
     }
     .section-title {
-      font-size: 18px; font-weight: 800; letter-spacing: -0.3px;
-      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+      font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
     }
-    .num-pill {
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 14px; border: 1px solid currentColor;
+    .section-title .num-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px;
+      background: rgba(239,68,68,0.12);
+      color: #fca5a5; font-size: 11px; font-weight: 800;
+      border: 1px solid rgba(239,68,68,0.25);
     }
-    .section-meta {
-      font-size: 12px; color: var(--dim); letter-spacing: 0.3px;
-    }
-    .section-body { color: var(--text); }
+    .section-meta { font-size: 11px; color: var(--dim); }
+    .section-body { padding: 18px; }
 
-    /* Table */
-    .data-table {
-      width: 100%; border-collapse: collapse; font-size: 12.5px;
-      margin: 12px 0;
+    /* 파이프라인 단계 */
+    .pipeline {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
     }
-    .data-table thead { background: rgba(0,0,0,0.4); }
-    .data-table th, .data-table td {
-      padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border);
+    .step {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; position: relative;
+      transition: all 0.15s;
     }
-    .data-table th {
-      font-weight: 700; color: var(--dim);
-      text-transform: uppercase; font-size: 11px; letter-spacing: 0.3px;
+    .step:hover { border-color: rgba(239,68,68,0.3); transform: translateY(-1px); }
+    .step::after {
+      content: '→'; position: absolute; right: -13px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--dim2); font-size: 14px; font-weight: 800;
+      z-index: 2; pointer-events: none;
     }
-    .data-table tr:hover { background: rgba(255,255,255,0.02); }
-    .data-table tr.key-row { background: rgba(34,211,238,0.05); }
-    .data-table .pos { color: var(--green); font-weight: 700; }
-    .data-table .warn { color: var(--orange); font-weight: 700; }
+    .step:last-child::after { display: none; }
+    .step-num {
+      display: inline-block; font-size: 10px; font-weight: 800;
+      color: #fca5a5; padding: 2px 7px; border-radius: 999px;
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.2);
+      letter-spacing: 0.3px; margin-bottom: 8px;
+    }
+    .step-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .step-time { font-size: 10.5px; color: var(--accent); font-family: 'SF Mono', monospace; margin-bottom: 8px; font-weight: 700; }
+    .step-desc { font-size: 11.5px; color: var(--dim); line-height: 1.55; }
 
-    /* Note box */
-    .note-box {
-      margin-top: 12px; padding: 12px 14px; border-radius: 6px;
-      background: rgba(0,0,0,0.25); border-left: 3px solid var(--border);
-      font-size: 12px; line-height: 1.6; color: var(--dim);
+    /* 테이블 (룰 / 통계 / 타임라인) */
+    .filter-table, .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .filter-table th, .data-table th {
+      text-align: left; padding: 10px 12px; color: var(--dim); font-weight: 500;
+      border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .note-box strong { color: var(--text); }
-    .note-box ul { margin: 6px 0 0 18px; padding: 0; line-height: 1.7; }
-    .note-box li { margin-bottom: 4px; }
-
-    /* Theme flow */
-    .theme-flow {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px; margin: 16px 0;
+    .filter-table td, .data-table td {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
     }
-    .tf-box {
-      padding: 16px 14px; border-radius: 8px; border: 1px solid var(--border);
-      background: rgba(0,0,0,0.2); text-align: center;
+    .filter-table tr:last-child td, .data-table tr:last-child td { border-bottom: none; }
+    .filter-table tr:hover, .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .filter-table code, .data-table code, .timeline-table code, .note-box code {
+      background: rgba(34, 211, 238, 0.08); padding: 2px 6px; border-radius: 4px;
+      font-family: 'SF Mono', 'Menlo', monospace; font-size: 11.5px; color: var(--accent);
     }
-    .tf-box.accent { border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.05); }
-    .tf-box.pick { border-color: rgba(52,211,153,0.3); background: rgba(16,185,129,0.08); }
-    .tf-label { font-size: 10.5px; color: var(--dim); text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
-    .tf-value { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
-    .tf-sub { font-size: 11px; color: var(--dim2); line-height: 1.4; }
-
-    /* Timeline */
-    .timeline-table { overflow-x: auto; }
-    .timeline-table table {
-      width: 100%; border-collapse: collapse; font-size: 12.5px;
+    .filter-table tr.key-rule { background: rgba(34, 211, 238, 0.05); }
+    .data-table tr.key-row { background: rgba(34, 211, 238, 0.05); }
+    .data-table tr.highlight { background: rgba(34, 211, 238, 0.08); }
+    .timeline-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .timeline-table th { text-align: left; padding: 10px 12px; color: var(--dim); border-bottom: 1px solid var(--border); }
+    .timeline-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .timeline-table tr.highlight td { background: rgba(34, 211, 238, 0.08); }
+    .rule-id {
+      display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center;
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      color: white; font-weight: 700; font-size: 12px; border-radius: 4px;
     }
-    .timeline-table th, .timeline-table td {
-      padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border);
+    .stage-id {
+      display: inline-block; min-width: 32px; height: 26px; line-height: 26px; text-align: center;
+      background: rgba(239,68,68,0.18); color: #fca5a5;
+      border: 1px solid rgba(239,68,68,0.35);
+      font-weight: 700; font-size: 11px; border-radius: 4px;
     }
-    .timeline-table th {
-      background: rgba(0,0,0,0.4); font-weight: 700; color: var(--dim);
-      text-transform: uppercase; font-size: 11px;
-    }
-    .timeline-table tr.highlight { background: rgba(34,211,238,0.05); }
-    .timeline-table tr:hover { background: rgba(255,255,255,0.02); }
-    .timeline-table strong { color: var(--accent); font-weight: 700; }
-
-    /* Sub heading */
-    .sub-h3 {
-      font-size: 15px; font-weight: 800; margin: 16px 0 8px 0;
-      letter-spacing: -0.2px;
-    }
-    .sub-h3.mt { margin-top: 24px; }
+    .pos { color: var(--green); }
+    .neg { color: var(--red2); }
+    .warn { color: var(--yellow); }
     .dim { color: var(--dim); }
     .dim2 { color: var(--dim2); }
+
+    .sub-h3 {
+      font-size: 13px; color: var(--accent);
+      margin: 0 0 8px; padding-left: 4px;
+      border-left: 3px solid var(--accent);
+      font-weight: 700;
+    }
+    .sub-h3.mt { margin-top: 24px; }
+    .note-box {
+      margin-top: 14px; padding: 12px 14px; border-radius: 6px;
+      background: rgba(34, 211, 238, 0.05); border-left: 3px solid var(--accent);
+      font-size: 12.5px; line-height: 1.7;
+    }
+    .note-box.dim { background: rgba(255,255,255,0.02); border-left-color: var(--dim); color: var(--dim); }
+    .note-box strong { color: var(--text); font-weight: 700; }
+    .step.accent-step { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(34,211,238,0.3); }
+    .step.accent-step .step-num { color: var(--accent); background: rgba(34,211,238,0.12); border-color: rgba(34,211,238,0.3); }
+
+    /* 라이브 시그널 카드 그리드 */
+    .theme-live-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px;
+    }
+    @media (max-width: 900px) {
+      .theme-live-grid { grid-template-columns: 1fr; }
+    }
+
+    /* 테마 흐름 다이어그램 (시그널 룰 위) */
+    .theme-flow {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; margin-bottom: 16px;
+    }
+    .tf-box {
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; position: relative;
+    }
+    .tf-box.accent { border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.06); }
+    .tf-box.pick { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.05); }
+    .tf-box::after {
+      content: '→'; position: absolute; right: -10px; top: 50%;
+      transform: translateY(-50%); color: var(--dim2); font-size: 13px; font-weight: 800;
+      z-index: 2; pointer-events: none;
+    }
+    .tf-box:last-child::after { display: none; }
+    .tf-label { font-size: 10px; color: var(--dim); letter-spacing: 0.4px; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
+    .tf-value { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.25; }
+    .tf-value .accent { color: var(--accent); }
+    .tf-sub { font-size: 10.5px; color: var(--dim); margin-top: 3px; font-family: 'SF Mono', monospace; }
+    .tf-mini-bars {
+      display: flex; gap: 2px; margin-top: 6px;
+    }
+    .tf-mini-bars .b {
+      flex: 1; height: 14px; background: rgba(255,255,255,0.06); border-radius: 2px;
+    }
+    .tf-mini-bars .b.on { background: linear-gradient(180deg, var(--accent), #a855f7); }
+    @media (max-width: 768px) {
+      .theme-flow { grid-template-columns: repeat(2, 1fr); }
+      .tf-box:nth-child(2)::after { display: none; }
+    }
+
+    /* 모바일 */
+    @media (max-width: 1100px) {
+      .pipeline { grid-template-columns: repeat(3, 1fr); }
+      .step:nth-child(3)::after { display: none; }
+      .hero-metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .header { padding: 10px 14px; flex-wrap: wrap; }
+      .header-left { flex-wrap: wrap; gap: 10px 16px; width: 100%; }
+      .nav-tabs { order: 3; flex-basis: 100%; width: 100%; overflow-x: auto; }
+      .nav-tab { flex: 1; font-size: 11.5px; padding: 6px 10px; }
+      .nav-tab.active { padding: 5px 9px; }
+      .clock { font-size: 11px; padding: 5px 8px; }
+      .clock .date { display: none; }
+      .brand-sub { display: none; }
+      .container { padding: 10px; }
+      .hero-strategy { padding: 18px 16px; }
+      .hero-title { font-size: 17px; }
+      .pipeline { grid-template-columns: repeat(2, 1fr); }
+      .step::after { display: none; }
+      .filter-table th, .data-table th { font-size: 9.5px; padding: 7px 8px; }
+      .filter-table td, .data-table td { font-size: 11px; padding: 8px 8px; }
+    }
   </style>
 </head>
 <body>
 
-<div class="header">
+<header class="header">
   <div class="header-left">
     <div class="brand">
-      <div class="brand-name">APEX</div>
-      <div class="brand-sub">h7 갭업 모드</div>
+      <span class="brand-name">APEX</span>
+      <span class="brand-sub">h7 갭업 · 자동매매</span>
     </div>
+    <nav class="nav-tabs">
+      <a class="nav-tab" href="index.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3" opacity="0.6"/></svg>
+        모니터링
+        <span class="nav-live"></span>
+      </a>
+      <a class="nav-tab" href="stats.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-5M11 20V9M16 20v-7"/></svg>
+        일별손익
+      </a>
+      <a class="nav-tab active" href="engine.html">
+        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+        엔진설명
+      </a>
+    </nav>
   </div>
   <div class="header-right">
-    <div class="auto-status">
-      <span class="live"></span>
-      <strong>자동매매 활성</strong>
-    </div>
+    <div id="autoStatusBadge" class="auto-status"><span class="live"></span>모드 <strong id="modeLabel">--</strong></div>
+    <div class="clock"><span class="date">--</span>--:--<span class="sec">:--</span></div>
+    <button class="icon-btn" title="알림">🔔</button>
+    <button class="icon-btn" title="설정" onclick="location.href='index.html'">⚙</button>
   </div>
-</div>
+</header>
 
 <div class="container">
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="hero-strategy">
-    <span class="hero-kicker">APEX (h7) v0.1.0 · 자동매매 엔진</span>
+    <span class="hero-kicker">에이펙스(APEX) h7 v0.1.0 · 자동매매 엔진</span>
     <div class="hero-title">
-      아침 <span class="hl">갭업 종목의 강한 동조 그룹에서 가장 약한 2종목</span>을 사고 (50:50 분할),<br>
-      <span class="hl">다음날 아침 또는 당일 +5%</span>에 판다. <span style="font-size:0.55em;color:#a855f7;font-weight:700;">⚡ 고수익 보조 엔진</span>
+      아침에 <span class="hl">갭업한 종목의 강한 동조 그룹에서 가장 약한 2종목</span>을 사고 (50:50 분할),<br>
+      <span class="hl">당일 +5% 또는 다음날 아침</span>에 판다. <span style="font-size:0.55em;color:#f59e0b;font-weight:700;">⚡ 갭업 모멘텀 + 평균회귀</span>
       <span style="font-size:0.65em;color:var(--dim);font-weight:600;line-height:1.5;display:block;margin-top:6px;">
-        갭업 + 클러스터 동조도로 단기 모멘텀 포착 (매매당 +3.01% 평균, MDD -2.16% 극도로 안전)
+        갭업(10%↑·거래량 5배↑)은 테마 강세 신호 → 같은 클러스터의 덜 오른 멤버가 따라 오름 (매매당 +4.14%, 당일 +5% 익절 66.9% + MDD -4.99%)
       </span>
     </div>
     <div class="hero-desc">
       <p style="font-size:14px;line-height:1.65;">
-        매일 아침 한국 <strong>KOSDAQ</strong>이 열리면 <strong>전일대비 10% 이상, 거래량 5배 이상 오른 종목</strong>을 찾고,
-        그 종목이 속한 <strong>같은 테마(spectral cluster, 동조도 ≥0.42, 멤버 ≥8)</strong>의 다른 멤버들을 조사합니다.
-        테마 안에서 <strong>가장 약하게 오른 2종목</strong>을 매매하면, <strong>다음날 평균회귀</strong>로 수익이 나는 패턴을 활용합니다.
-        <strong>매매일에 2종목 50:50 분할 매수</strong> (자본 분산으로 MDD 극소화).
-        <strong style="color:#f59e0b;">★ 당일 익절 옵션</strong>: 매수 후 +5% 달성하면 즉시 매도 (20.4%, 강한 모멘텀). 나머지는 D+1 09:00 시초가 매도.
+        매일 아침 한국 <strong>KOSPI+KOSDAQ 전종목</strong>이 열리면 <strong>전일대비 10% 이상 갭업 + 거래량 5배 이상</strong> 터진 종목을 찾습니다.
+        그 종목이 속한 <strong>같은 테마로 강하게 묶이는 그룹</strong>(spectral cluster, 동조도 ≥ 0.42, 멤버 ≥ 8명)을 확인하고,
+        그 클러스터 안에서 <strong>아직 덜 오른 멤버 2종목</strong>을 사두면 다음날 따라 올라올 확률이 높다는 통계를 활용합니다.
+        <strong>09:01 정적 매수 (2종목 50:50 분할)</strong> — 갭업은 09:00에 이미 확정되므로 빠르게 진입.
+        <strong style="color:#f59e0b;">★ 당일 +5% 익절</strong>: 매수가 대비 +5% 도달하면 즉시 매도 (강한 모멘텀, 백테 66.9%가 당일 익절·승률 100%). 미달 시 <strong>D+1 09:00 시초가</strong> 매도 (33.1%).
       </p>
     </div>
 
     <!-- 4가지 작동 원칙 -->
     <div class="why-grid">
       <div class="why ok">
-        <div class="why-head"><span class="no">①</span>왜 갭업 감지?</div>
+        <div class="why-head"><span class="no">①</span>왜 갭업 + 거래량?</div>
         <div class="why-body">
-          <strong>전일대비 10%↑ + 거래량 5배↑</strong> = 시장 관심 급증 신호.
-          거짓 상한가가 아닌 진짜 모멘텀만 포착.
+          전일대비 <strong>10% 이상 갭업 + 거래량 5배</strong> = 시장 자금이 그 테마로 몰리는 진짜 신호.
+          거래량 조건으로 가짜 상한가 편향을 자동 차단.
         </div>
       </div>
       <div class="why accent">
-        <div class="why-head"><span class="no">②</span>왜 spectral cluster?</div>
+        <div class="why-head"><span class="no">②</span>왜 클러스터 멤버?</div>
         <div class="why-body">
-          갭업 종목이 속한 <strong>같은 동조도 그룹</strong>에서 약한 종목을 찾음.
-          갭업은 테마 강세의 신호, 약한 멤버는 다음날 따라올 확률 ↑.
+          갭업 종목이 속한 <strong>강한 동조 그룹(spectral cluster)</strong>은 같은 테마.
+          한 종목이 터지면 같은 그룹의 다른 멤버도 따라 오를 가능성이 높음.
         </div>
       </div>
       <div class="why warn">
-        <div class="why-head"><span class="no">③</span>왜 약한 2종목?</div>
+        <div class="why-head"><span class="no">③</span>왜 덜 오른 종목?</div>
         <div class="why-body">
-          같은 테마인데 <strong>혼자 약하게 오른 종목</strong>은
-          다음날 평균으로 회귀할 가능성이 높음 (mean reversion).
+          같은 테마인데 <strong>아직 덜 오른 멤버</strong>는
+          다음날 테마 평균으로 회귀할 가능성이 높습니다 (mean reversion).
         </div>
       </div>
       <div class="why orange">
-        <div class="why-head"><span class="no">④</span>왜 당일/D+1 이중 청산?</div>
+        <div class="why-head"><span class="no">④</span>왜 당일 +5% / D+1 이중 청산?</div>
         <div class="why-body">
-          강한 모멘텀은 <strong>당일 +5%에서 즉시 매도</strong> (20.4%, 빨리 빠져나감).
-          약한 흐름은 <strong>D+1 시초가 보유</strong> (79.6%, 평균회귀 완성).
+          강한 모멘텀은 <strong>당일 +5%에서 즉시 익절</strong> (66.9%, 승률 100%).
+          약한 흐름은 <strong>D+1 시초가 보유</strong> (33.1%)로 평균회귀 완성. 손절 없음.
         </div>
       </div>
     </div>
 
-    <!-- 핵심 지표 (h7, 2년 백테, N=2) -->
+    <!-- 핵심 지표 (h7 BOTH = KOSPI+KOSDAQ, 2년 백테, N=2 50:50, 2026-06-01) -->
     <div class="hero-metrics">
       <div class="hm">
         <div class="hm-label">매매당 평균 수익</div>
-        <div class="hm-value pos">+3.01<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">2년 (2종목 50:50 분할) / 수수료·세금 차감</div>
+        <div class="hm-value pos">+4.14<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2년 166매매 (2종목 50:50) / 수수료·세금 차감 / 중앙값 +4.93%</div>
       </div>
       <div class="hm">
-        <div class="hm-label">매매별 승률</div>
-        <div class="hm-value pos">64.8<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">2년 250 매매 / 162건 수익</div>
+        <div class="hm-label">매매 승률</div>
+        <div class="hm-value pos">87.3<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2년 166매매 (KOSPI 136 / KOSDAQ 30, 71 갭업 종목)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">당일 익절</div>
-        <div class="hm-value" style="color:var(--accent);">20.4<small style="font-size:13px;font-weight:600;color:var(--accent);margin-left:2px">%</small></div>
-        <div class="hm-sub">51건 / 나머지 79.6%는 D+1 보유</div>
+        <div class="hm-label">당일 +5% 익절률</div>
+        <div class="hm-value" style="color:var(--accent);">66.9<small style="font-size:13px;font-weight:600;color:var(--accent);margin-left:2px">%</small></div>
+        <div class="hm-sub">111건 당일 익절 (승률 100%) / 55건 D+1 (33.1%)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">3개월 누적</div>
-        <div class="hm-value pos">+29.5<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">21개 3M 윈도우 / 손실 0 (100% 양수)</div>
+        <div class="hm-label">2년 수익 (시드 50만 풀배분)</div>
+        <div class="hm-value pos">+635<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">50만 → 367만 (7.35배)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">최대 손실 (MDD)</div>
-        <div class="hm-value" style="color:var(--green)">−2.16<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">★ NEMESIS -10.77%대비 극도로 안전</div>
+        <div class="hm-label">최대 손실 구간 (MDD)</div>
+        <div class="hm-value" style="color:var(--green)">−4.99<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">★ 2년 누적 최대 낙폭 (매우 안전)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">2년 누적 (시드 50만)</div>
-        <div class="hm-value pos">+460<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">50만 → 280만 (5.6배)</div>
+        <div class="hm-label">3M 누적 (sliding 평균)</div>
+        <div class="hm-value pos">+30.9<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">448개 3M 윈도우 / 손실 0 (100% 양수)</div>
       </div>
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(34,211,238,0.06);border-left:3px solid var(--accent);font-size:11.5px;color:var(--dim2);">
-      💡 <strong style="color:var(--accent);">h7의 강점</strong>: 매매 빈도 250건(NEMESIS 127건 대비 2배) × 매매당 알파 +3.01% (NEMESIS +2.14% 대비 +40% 우수) → 포트폴리오 보조엔진으로 고수익. MDD -2.16%로 가장 안전.
+      💡 <strong style="color:var(--accent);">시장 범위 = KOSPI+KOSDAQ (BOTH)</strong>: 공정 비교 결과 BOTH 누적 +635% (166매매) ≫ KOSDAQ only +97% (24매매). 갭업 클러스터 멤버에 KOSPI 대형주가 많이 포함되어 빈도·수익 모두 우월 → BOTH 채택.
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(245,158,11,0.06);border-left:3px solid var(--orange);font-size:11.5px;color:var(--dim2);">
-      ⚠️ <strong style="color:var(--orange);">주의</strong>: 당일 익절 20.4% + D+1 매도 79.6% 분산. 당일 익절 시 강한 모멘텀만 포착, D+1은 평균회귀 완성 가정. 실전 슬리피지 아직 미측정.
+      ⚠️ <strong style="color:var(--orange);">주의</strong>: 백테는 실전 슬리피지 모델 미반영. 당일 익절(66.9%, 승률 100%)은 분봉 close 기준 — 실전 체결가 격차는 paper-self에서 실측·캘리브레이션 필요. 시드 일부로 시작 권장.
     </div>
+
+    <!-- 한 줄 비유 (h7 갭업 + 클러스터) -->
     <div style="margin-top:10px;padding:10px 14px;border-radius:6px;background:rgba(34,211,238,0.05);border-left:3px solid var(--accent);font-size:12.5px;line-height:1.7;">
       <strong style="color:var(--accent);">💡 쉽게 비유하면:</strong>
-      "오늘 K-팝 그룹 중에 <strong>갭업(급상승)한 멤버가 있으면, 같은 그룹의 다른 멤버들을 본다</strong>.
-      그룹 평균 대비 약하게 오른 멤버 1·2등이 <strong>다음날 따라올 거다</strong>"는 패턴.
-      종목판으로 옮기면 = 갭업 종목의 클러스터 약한 멤버 2개 분산 매수 → 평균회귀 알파.
+      "오늘 K-팝 그룹 중 <strong>한 멤버가 갭업(급등)하면, 같은 그룹의 아직 덜 오른 멤버 2명을 산다</strong>. 같은 그룹이라 다음날 따라 오를 가능성 ↑"는 패턴.
+      종목판으로 옮기면 = 갭업 종목의 강한 동조 cluster 안에서 덜 오른 멤버 2종목 분산 매수 → 당일 +5% 또는 D+1 시초가 회귀 알파.
+    </div>
+  </section>
+
+  <!-- ─────────────── 📊 시장 흐름 (주별 96주, 3단 막대) ─────────────── -->
+  <style>
+    .market-flow-section .mf-row-label {
+      font-size: 10px; color: var(--dim); letter-spacing: 0.5px; text-transform: uppercase;
+      font-weight: 700; min-width: 90px; padding-right: 8px;
+      display: flex; align-items: center;
+    }
+    .market-flow-section .mf-row { display: flex; align-items: stretch; margin-bottom: 1px; }
+    .market-flow-section .mf-bars {
+      display: grid; grid-template-columns: repeat(96, 1fr); gap: 1px;
+      flex: 1; background: rgba(0,0,0,0.25); padding: 1px; border-radius: 3px;
+      position: relative;
+    }
+    /* 수익률 sparkline */
+    .market-flow-section .mf-r41-cell {
+      height: 30px; position: relative; background: rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .market-flow-section .mf-r41-cell:hover { background: rgba(34,211,238,0.15); }
+    .market-flow-section .mf-r41-bar {
+      width: 100%; background: var(--accent); position: absolute;
+    }
+    .market-flow-section .mf-r41-bar.pos {
+      bottom: 50%; background: linear-gradient(180deg, var(--accent), rgba(34,211,238,0.5));
+    }
+    .market-flow-section .mf-r41-bar.neg {
+      top: 50%; background: linear-gradient(0deg, var(--red), rgba(239,68,68,0.5));
+    }
+    /* 시장 분위기 */
+    .market-flow-section .mf-regime-cell {
+      height: 28px; cursor: pointer; transition: filter 0.12s; position: relative;
+    }
+    .market-flow-section .mf-regime-cell:hover { filter: brightness(1.5); z-index: 3; }
+    .market-flow-section .mf-regime-cell.current {
+      outline: 2px solid var(--accent); outline-offset: -1px; z-index: 2;
+    }
+    /* 마커 */
+    .market-flow-section .mf-marker-cell {
+      height: 22px; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; line-height: 1; position: relative; cursor: pointer;
+    }
+    /* 월 라벨 행 */
+    .market-flow-section .mf-month-row {
+      height: 18px; position: relative;
+    }
+    .market-flow-section .mf-month-tick {
+      position: absolute; top: 0; bottom: 0;
+      display: flex; align-items: center; font-size: 9px; color: var(--dim);
+      font-family: 'SF Mono', monospace; padding-left: 2px;
+      border-left: 1px solid rgba(255,255,255,0.08);
+    }
+    /* 분위기 색상 */
+    .market-flow-section .bg-강세 { background: #16a34a; }
+    .market-flow-section .bg-약강세 { background: #4ade80; }
+    .market-flow-section .bg-횡보 { background: #6b7280; }
+    .market-flow-section .bg-약약세 { background: #f87171; }
+    .market-flow-section .bg-약세 { background: #dc2626; }
+    /* tooltip */
+    .market-flow-section .mf-tip {
+      position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: rgba(15,15,20,0.98); color: var(--text);
+      font-size: 11px; font-family: 'SF Mono', monospace; padding: 7px 10px;
+      border-radius: 5px; white-space: nowrap; border: 1px solid var(--border);
+      opacity: 0; pointer-events: none; transition: opacity 0.12s; z-index: 30;
+      line-height: 1.6;
+    }
+    .market-flow-section .mf-regime-cell:hover .mf-tip,
+    .market-flow-section .mf-r41-cell:hover .mf-tip,
+    .market-flow-section .mf-marker-cell:hover .mf-tip { opacity: 1; }
+    .market-flow-section .mf-legend {
+      display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+      font-size: 11px; color: var(--dim2); margin-top: 12px;
+    }
+    .market-flow-section .mf-legend-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px;
+      vertical-align: middle;
+    }
+    .market-flow-section .mf-current-pill {
+      display: inline-block; padding: 4px 10px; border-radius: 4px;
+      background: rgba(239,68,68,0.15); color: #fca5a5; font-weight: 700; font-size: 12px;
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+    @media (max-width: 900px) {
+      .market-flow-section .mf-row-label { min-width: 60px; font-size: 9px; }
+    }
+  </style>
+  <section class="section market-flow-section">
+    <div class="section-header">
+      <div class="section-title"><span class="num-pill" style="background:rgba(251,191,36,0.18);color:var(--yellow);border-color:rgba(251,191,36,0.35);">📊</span>시장 흐름 — 과거 96주 (주별) + 현재</div>
+      <div class="section-meta">KOSDAQ 주간 등락률 · 엔진 성과 · 주요 이벤트 · 호버 시 상세</div>
+    </div>
+    <div class="section-body">
+
+      <!-- 차트 -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:12px; background:rgba(0,0,0,0.15); overflow-x:auto;">
+        <div style="min-width: 880px;">
+
+          <!-- 1단: 엔진 주간 수익률 sparkline -->
+          <div class="mf-row">
+            <div class="mf-row-label">h7 수익률</div>
+            <div class="mf-bars" id="mfR41Bars"></div>
+          </div>
+
+          <!-- 2단: 시장 분위기 메인 막대 -->
+          <div class="mf-row">
+            <div class="mf-row-label">시장 분위기</div>
+            <div class="mf-bars" id="mfRegimeBars"></div>
+          </div>
+
+          <!-- 3단: 글로벌 이벤트 + G1e 가드 마커 -->
+          <div class="mf-row">
+            <div class="mf-row-label">이벤트·가드</div>
+            <div class="mf-bars" id="mfMarkerBars"></div>
+          </div>
+
+          <!-- 4단: 월 라벨 (월 시작 주에만) -->
+          <div class="mf-row">
+            <div class="mf-row-label"></div>
+            <div class="mf-month-row" id="mfMonthRow" style="flex:1; position:relative;"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 현재 상태 + 범례 -->
+      <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:18px; align-items:center; justify-content:space-between;">
+        <div>
+          <span style="font-size:10.5px; color:var(--dim); margin-right:6px;">현재 (최근 주):</span>
+          <span class="mf-current-pill" id="mfCurrentPill">로딩 중...</span>
+        </div>
+        <div class="mf-legend">
+          <span><span class="mf-legend-dot" style="background:#16a34a;"></span>강세 (+3%↑)</span>
+          <span><span class="mf-legend-dot" style="background:#4ade80;"></span>약강세 (+1~3%)</span>
+          <span><span class="mf-legend-dot" style="background:#6b7280;"></span>횡보 (±1%)</span>
+          <span><span class="mf-legend-dot" style="background:#f87171;"></span>약약세 (-1~-3%)</span>
+          <span><span class="mf-legend-dot" style="background:#dc2626;"></span>약세 (-3%↓)</span>
+        </div>
+      </div>
+
+      <!-- 요약 텍스트 -->
+      <div class="note-box" style="margin-top:12px;">
+        <strong>📌 96주(2년) 한눈에:</strong>
+        강세 13주(14%) · 약강세 20주(21%) · 횡보 <strong>33주(34%, 가장 흔함)</strong> · 약약세 20주(21%) · 약세 10주(10%).
+        h7은 <strong>모든 시장 분위기에서 누적 플러스</strong> — 갭업 자체가 강세 신호라 베타≈0 알파 전략.
+        <br><br>
+        ⚡ 매매 발생 주는 48/96주. 갭업+클러스터 조건이 까다로워 신호가 선택적 (평균 1.7매매/매매일, 57 매매일).
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // ──────── 시장 흐름 (주별, 2024-06 ~ 2026-05, 96주) ────────
+    // 데이터는 public/market-flow-weekly.json 에서 fetch
+    (function renderMarketFlow() {
+      const r41El = document.getElementById('mfR41Bars');
+      const regimeEl = document.getElementById('mfRegimeBars');
+      const markerEl = document.getElementById('mfMarkerBars');
+      const monthEl = document.getElementById('mfMonthRow');
+      const currentPill = document.getElementById('mfCurrentPill');
+      if (!r41El || !regimeEl || !markerEl) return;
+
+      fetch('/market-flow-weekly.json')
+        .then(r => r.json())
+        .then(weeks => {
+          if (!Array.isArray(weeks) || weeks.length === 0) return;
+
+          const maxR41 = Math.max(...weeks.map(d => Math.abs(d.r41)), 1);
+          const total = weeks.length;
+
+          weeks.forEach((d, i) => {
+            const dateRange = `${d.sd} ~ ${d.ed}`;
+
+            // ── 엔진 sparkline (위/아래 양방향) ──
+            const r41Cell = document.createElement('div');
+            r41Cell.className = 'mf-r41-cell';
+            const heightPct = Math.max(6, (Math.abs(d.r41) / maxR41) * 50);
+            const bar = document.createElement('div');
+            bar.className = 'mf-r41-bar ' + (d.r41 < 0 ? 'neg' : 'pos');
+            bar.style.height = heightPct + '%';
+            r41Cell.appendChild(bar);
+            const tip1 = document.createElement('div');
+            tip1.className = 'mf-tip';
+            tip1.innerHTML = `<strong>${dateRange}</strong><br>엔진 ${d.r41>=0?'+':''}${d.r41}% (${d.n}건)`;
+            r41Cell.appendChild(tip1);
+            r41El.appendChild(r41Cell);
+
+            // ── 시장 분위기 (텍스트 없이 색상만) ──
+            const regCell = document.createElement('div');
+            regCell.className = 'mf-regime-cell bg-' + d.regime + (d.current ? ' current' : '');
+            const tip2 = document.createElement('div');
+            tip2.className = 'mf-tip';
+            tip2.innerHTML = `
+              <strong>${dateRange}</strong> · ${d.regime}<br>
+              시장 ${d.mkt>=0?'+':''}${d.mkt}% · 엔진 ${d.r41>=0?'+':''}${d.r41}% (${d.n}건)
+              ${d.current ? '<br><span style="color:var(--accent);">★ 현재 주</span>' : ''}
+            `;
+            regCell.appendChild(tip2);
+            regimeEl.appendChild(regCell);
+
+            // ── 마커 (이벤트 + 가드) ──
+            const mkCell = document.createElement('div');
+            mkCell.className = 'mf-marker-cell';
+            let markerHtml = '';
+            const tipLines = [];
+            if (d.events && d.events.length) {
+              d.events.forEach(ev => {
+                markerHtml += `<span>${ev.icon}</span>`;
+                tipLines.push(`${ev.icon} ${ev.desc}`);
+              });
+            }
+            if (d.guard) {
+              markerHtml += `<span style="color:#a855f7;">🛡️</span>`;
+              tipLines.push('🛡️ G1e 가드 발동');
+            }
+            if (markerHtml) {
+              mkCell.innerHTML = markerHtml +
+                `<div class="mf-tip"><strong>${dateRange}</strong><br>${tipLines.join('<br>')}</div>`;
+            }
+            markerEl.appendChild(mkCell);
+
+            // ── 월 라벨 (월 시작 주에만, 절대 위치) ──
+            if (d.ms && monthEl) {
+              const tick = document.createElement('div');
+              tick.className = 'mf-month-tick';
+              tick.style.left = (i / total * 100) + '%';
+              tick.textContent = d.ym.slice(2);
+              monthEl.appendChild(tick);
+            }
+          });
+
+          // 현재 pill 갱신
+          const last = weeks[weeks.length - 1];
+          if (currentPill && last) {
+            const icon = {강세:'🔥', 약강세:'📈', 횡보:'↔️', 약약세:'📉', 약세:'❄️'}[last.regime] || '';
+            currentPill.textContent = `${icon} ${last.regime} ${last.mkt>=0?'+':''}${last.mkt}%`;
+            currentPill.style.background = last.mkt < -1 ? 'rgba(239,68,68,0.15)' :
+                                            last.mkt > 1 ? 'rgba(34,197,94,0.15)' : 'rgba(107,114,128,0.15)';
+            currentPill.style.color = last.mkt < -1 ? '#fca5a5' :
+                                       last.mkt > 1 ? '#86efac' : 'var(--text)';
+            currentPill.style.borderColor = last.mkt < -1 ? 'rgba(239,68,68,0.4)' :
+                                             last.mkt > 1 ? 'rgba(34,197,94,0.4)' : 'rgba(107,114,128,0.4)';
+          }
+        })
+        .catch(err => {
+          console.error('market-flow-weekly.json 로드 실패:', err);
+          if (currentPill) currentPill.textContent = '데이터 로드 실패';
+        });
+    })();
+  </script>
+
+  <!-- ─────────────── ★ 라이브 시그널 ─────────────── -->
+  <section class="section" style="background:linear-gradient(135deg, rgba(34,211,238,0.06), rgba(168,85,247,0.04));border-color:rgba(34,211,238,0.3);">
+    <div class="section-header" style="background:linear-gradient(180deg, rgba(34,211,238,0.06), transparent);">
+      <div class="section-title">
+        <span class="num-pill" style="background:rgba(34,211,238,0.18);color:var(--accent);border-color:rgba(34,211,238,0.35);">★</span>
+        최근 시그널 — 매수 후보 종목
+      </div>
+      <div class="section-meta" id="sigLiveMeta">--</div>
+    </div>
+    <div class="section-body">
+      <div class="theme-live-grid">
+        <!-- 매수 픽 (큰 카드) -->
+        <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(34,211,238,0.25);border-radius:10px;padding:18px 22px;">
+          <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">매수 픽 (갭업 종목 클러스터의 덜 오른 멤버 top2, 50:50 분할)</div>
+          <div style="font-size:26px;font-weight:800;color:var(--accent);margin-top:6px;line-height:1.25;letter-spacing:-0.5px;" id="sigTop1Theme">—</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <div style="font-size:13px;color:var(--text);font-weight:700;font-family:'SF Mono',monospace;"><span id="sigTop1Count">—</span> / <span id="sigN20">10</span></div>
+            <span class="dim" style="font-size:11.5px;">Top10 중 이 cluster에 속함</span>
+          </div>
+          <!-- 비율 막대 -->
+          <div style="margin-top:10px;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
+            <div id="sigTop1Bar" style="height:100%;background:linear-gradient(90deg, var(--accent), #a855f7);width:0%;transition:width 0.4s ease;"></div>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:11.5px;color:var(--dim);">
+            매수 종목 → <strong style="color:var(--text);font-size:13px;" id="sigPickName">—</strong>
+            <span class="dim2" id="sigPickCode" style="margin-left:4px;"></span>
+            <span style="color:var(--green);font-weight:700;margin-left:8px;" id="sigPickChg"></span>
+            <span id="sigPickExcluded" style="color:var(--yellow);margin-left:8px;font-size:10.5px;font-weight:700;"></span>
+          </div>
+        </div>
+        <!-- 시그널 소스 (참고) -->
+        <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">시그널 소스 (우선순위)</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:6px;line-height:1.3;" id="sigTop2Theme">갭업 10%↑ + 거래량 5배↑ → spectral cluster</div>
+          <div style="font-size:11.5px;color:var(--dim);margin-top:6px;font-family:'SF Mono',monospace;">avg_corr≥0.42, size≥8 / 클러스터 멤버 상위 top2</div>
+          <div style="margin-top:8px;height:4px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;">
+            <div id="sigTop2Bar" style="height:100%;background:rgba(154,154,165,0.5);width:0%;transition:width 0.4s ease;"></div>
+          </div>
+          <div style="margin-top:10px;font-size:10.5px;color:var(--dim2);line-height:1.5;">
+            KOSPI+KOSDAQ 전종목에서 갭업(전일대비 10%↑) + 거래량(평균 5배↑) 종목 감지 → 그 종목의 서랍 spectral cluster (avg_corr≥0.42, 멤버≥8) 조회 → 클러스터 멤버 상위 2종목 매수. NEMESIS(0.34)보다 보수적인 0.42 동조도 컷.
+          </div>
+        </div>
+        <!-- 스캔 메타 -->
+        <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">스캔 메타</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:6px;font-family:'SF Mono',monospace;" id="sigAt">—</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.7;">
+            갭업 종목: <strong style="color:var(--text);" id="sigN20Live">—</strong>개<br>
+            활성 cluster: <strong style="color:var(--text);" id="sigNThemes">—</strong>개<br>
+            스캔 종목수: <strong style="color:var(--text);" id="sigNScanned">—</strong>
+          </div>
+        </div>
+      </div>
+      <div class="note-box" style="margin-top:14px;">
+        <strong>매수 종목 정하는 법 (h7):</strong> 09:00 <strong>KOSPI+KOSDAQ 전종목</strong>에서 전일대비 10%↑ 갭업 + 거래량 5배↑ 종목을 찾고, 그 종목이 속한 서랍 spectral cluster를 조회.
+        <strong style="color:var(--accent);">활성 cluster (avg_corr ≥ 0.42, 멤버 ≥ 8)</strong>의 멤버 중 <strong>아직 덜 오른 상위 2종목</strong>을 50:50 분할 매수.
+        <strong>09:01 정적 매수 → 당일 +5% 익절 또는 D+1 09:00 시초가 매도</strong>.
+      </div>
     </div>
   </section>
 
@@ -335,23 +873,23 @@
         <table>
           <thead><tr><th style="width:90px">시각</th><th style="width:150px">하는 일</th><th>설명</th></tr></thead>
           <tbody>
-            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날 매수한 종목을 9시 시초가로 자동 매도 (어제 거래 정산)</td></tr>
+            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날 매수 후 당일 미익절한 종목을 9시 시초가로 자동 매도 (D+1 청산)</td></tr>
             <tr class="highlight"><td><strong>09:00</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
-              ① 전종목(KOSDAQ+KOSPI) 갭업(10%↑) + 거래량(5배↑) 스캔<br>
-              ② 그 종목의 spectral cluster(동조도≥0.42, 멤버≥8) 확인<br>
-              ③ 클러스터 멤버 중 09:00 등락률 가장 낮은 2종목 선정<br>
-              ④ 상한가 가드(28.5%) 적용<br>
-              → pending_buy 2건 생성
+              ① <strong>KOSPI+KOSDAQ 전종목</strong>에서 갭업(10%↑) + 거래량(5배↑) 종목 감지<br>
+              ② 그 종목의 spectral cluster(avg_corr≥0.42, 멤버≥8) 조회<br>
+              ③ 클러스터 멤버 중 아직 덜 오른 <strong>상위 2종목</strong> 선정 + 상한가 가드(28.5%)<br>
+              (pending_buy 2건 저장)
             </td></tr>
             <tr class="highlight"><td><strong>09:01</strong></td><td><strong style="color:#f59e0b">★ 정적 매수 (즉시)</strong></td><td>
-              09:00 day_open 가격에 선택한 2종목을 50:50 분할 매수 (시간 지연 없음)
+              09:00 day_open 가격에 선택한 2종목을 <strong>50:50 분할 시장가 매수</strong>.<br>
+              (갭업은 09:00에 이미 확정 → 동적 polling 없이 즉시 진입)
             </td></tr>
             <tr class="highlight"><td><strong>09:01~15:30</strong></td><td><strong style="color:#f59e0b">★ 당일 +5% 익절 모니터링</strong></td><td>
-              매수가 대비 close ≥ entry × 1.05 도달하면 즉시 매도 (20.4%, 당일 익절)<br>
-              미도달 시 보유
+              매수가 대비 <strong style="color:var(--accent)">close ≥ entry × 1.05</strong> 도달하면 그 분봉에 즉시 매도.<br>
+              (백테 66.9%가 당일 익절 — 승률 100%, 평균 +5.59%. 강한 모멘텀 조기 청산)
             </td></tr>
-            <tr><td>15:30 폐장</td><td>그냥 보유</td><td>손절 없음</td></tr>
-            <tr><td>다음날 08:50</td><td>매도 (다음 사이클)</td><td>09:00 시초가에 일괄 매도 (당일 미익절 종목)</td></tr>
+            <tr><td>15:30 폐장</td><td>미익절 종목 보유</td><td>손절 없음 (당일 +5% 미달 시 D+1 시초가까지 보유)</td></tr>
+            <tr><td>다음날 08:50</td><td>D+1 매도 (다음 사이클)</td><td>당일 미익절 종목을 9시 시초가에 일괄 자동 매도 (33.1%, 평균 +1.21%)</td></tr>
           </tbody>
         </table>
       </div>
@@ -361,7 +899,7 @@
   <!-- ─────────────── 종목 선정 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">2</span>09시에 매수 종목을 어떻게 정할까?</div>
+      <div class="section-title"><span class="num-pill">2</span>9시에 매수 종목을 어떻게 정할까?</div>
       <div class="section-meta">4단계 필터로 자동 선정</div>
     </div>
     <div class="section-body">
@@ -369,32 +907,32 @@
         <div class="tf-box">
           <div class="tf-label">1단계</div>
           <div class="tf-value">갭업 감지</div>
-          <div class="tf-sub">전종목 스캔 (KOSDAQ+KOSPI)<br>10%↑ + 거래량 5배↑</div>
+          <div class="tf-sub">KOSPI+KOSDAQ 전종목<br>10%↑ + 거래량 5배↑</div>
         </div>
         <div class="tf-box accent">
           <div class="tf-label">2단계</div>
           <div class="tf-value">클러스터 매칭</div>
-          <div class="tf-sub">갭업 종목이 어느 cluster에 속하는가?</div>
+          <div class="tf-sub">갭업 종목이 속한 동조 그룹(cluster) 조회</div>
         </div>
         <div class="tf-box accent">
           <div class="tf-label">3단계</div>
-          <div class="tf-value">클러스터 필터</div>
-          <div class="tf-sub">avg_corr ≥ 0.42 + 멤버 ≥ 8<br>(강한 동조만)</div>
+          <div class="tf-value">강한 테마인가?</div>
+          <div class="tf-sub">동조율 42%↑ + 8종목↑ 묶임 (NEMESIS보다 보수적)</div>
         </div>
         <div class="tf-box pick">
           <div class="tf-label">4단계 ★</div>
-          <div class="tf-value" style="color:var(--green);">약한 2종목</div>
-          <div class="tf-sub">클러스터 내 등락률 낮은<br>top1·2 (50:50 분할)</div>
+          <div class="tf-value" style="color:var(--green);">덜 오른 2종목</div>
+          <div class="tf-sub">클러스터 멤버 상위 2종목 (50:50 분할)</div>
         </div>
       </div>
 
       <div class="note-box" style="margin-top:14px;">
-        <strong>💡 핵심 아이디어:</strong> 갭업 종목이 속한 클러스터 = "이 테마가 진짜 강세".
-        그 테마 안에서 혼자 약하게 오른 2종목은 <strong>다음날 테마 평균으로 회귀</strong>할 가능성이 높음.
-        <strong>분산 매수(50:50)로 MDD 극소화</strong>.
+        <strong>💡 핵심 아이디어:</strong> 한 종목이 갭업(10%↑·거래량 5배)하면 = "이 테마에 시장 자금이 몰린다".
+        그 종목이 속한 강한 동조 cluster 안에서 <strong>아직 덜 오른 멤버</strong>는 다음날 따라 오를 가능성이 높다는 통계 (평균회귀).
+        <strong>2종목 50:50 분산 매수</strong> → MDD ↓ (-4.99%).
         <br><br>
-        <strong>예시:</strong> "반도체 테마" 클러스터에 SK하이닉스(+12%), 삼성전자(+5%), LG이노텍(+2%), 갤럭시아(+3%)
-        → 가장 약한 2개(LG+2%, 갤럭시아+3%) 선정 → D+1 평균 회귀로 수익.
+        <strong>예시:</strong> "반도체" 클러스터에서 SK하이닉스가 +12% 갭업(거래량 5배)했는데, 같은 클러스터의 다른 멤버가 +2~5%면
+        → 덜 오른 2종목을 50:50 분할 매수 (다음날 평균 회귀 시 수익, 강하면 당일 +5% 익절).
       </div>
     </div>
   </section>
@@ -402,78 +940,107 @@
   <!-- ─────────────── 안전장치 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">3</span>안전장치 — 손해 막는 자동 룰 (6겹)</div>
-      <div class="section-meta">매수 결정 6겹 + 운영 안전 3겹</div>
+      <div class="section-title"><span class="num-pill">3</span>안전장치 — 손해 막는 자동 룰 (11겹)</div>
+      <div class="section-meta">시그널·매수·청산 7겹 + 운영 안전장치 4겹</div>
     </div>
     <div class="section-body">
       <div class="why-grid">
         <div class="why" style="border-color:rgba(100,100,100,0.4);">
           <div class="why-head"><span class="no" style="background:rgba(100,100,100,0.2);color:var(--dim2);">📅</span>① KRX 휴일 가드</div>
           <div class="why-body">
-            주말 + 공식 폐장일은 모든 cron 첫 줄에서 차단.
+            <strong>주말 + 공식 폐장일</strong>(<code>data/krx_closed_days.json</code>)은 모든 cron 첫 줄에서 차단.
+            거래일 자체가 아님.
           </div>
         </div>
         <div class="why warn">
-          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">⚠</span>② 약한 cluster 차단</div>
+          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">⚠</span>② 매수 금지일</div>
           <div class="why-body">
-            avg_corr < 0.42 또는 멤버 < 8 → 매수 안 함.
-            <strong>진짜 강한 동조만</strong>.
+            <strong>분기말</strong>(3·6·9·12월 마지막 거래일)과 <strong>12월 배당락일</strong>은 매수 안 함.
+            통계적으로 손해 확정인 날. <span class="dim">매도는 정상.</span>
           </div>
         </div>
         <div class="why orange">
-          <div class="why-head"><span class="no" style="background:rgba(251,146,60,0.2);color:var(--orange);">🚫</span>③ 상한가 가드 (+28.5%)</div>
+          <div class="why-head"><span class="no" style="background:rgba(251,146,60,0.2);color:var(--orange);">🚫</span>③ 약한 cluster 차단</div>
           <div class="why-body">
-            매수 시점 가격이 전날보다 +28.5% 이상 → 매수 skip.
-            상한가 근처는 체결 불가.
+            cluster 동조도 <strong>0.42 미만</strong>이거나 <strong>멤버가 8개 미만</strong>이면 매수 안 함.
+            진짜 강한 동조 테마만 매매 (NEMESIS 0.34보다 보수적).
+          </div>
+        </div>
+        <div class="why" style="border-color:rgba(244,114,182,0.4);">
+          <div class="why-head"><span class="no" style="background:rgba(244,114,182,0.2);color:#f472b6;">🛑</span>④ 상한가 가드 (+28.5%)</div>
+          <div class="why-body">
+            매수가가 <strong>전날보다 +28.5% 이상</strong>이면 매수 안 함.
+            상한가 근처는 호가 잔량 부족으로 실제 체결 불가.
+            <span class="dim">매수가(09:00 day_open) 기준 가드.</span>
           </div>
         </div>
         <div class="why" style="border-color:rgba(34,197,94,0.4);">
-          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>④ KOSDAQ 필터</div>
+          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>⑤ 거래량 5배 필터</div>
           <div class="why-body">
-            갭업 종목 자체가 KOSDAQ이어야 함 (KOSPI 제외).
+            갭업 종목은 <strong>거래량이 평균 5배 이상</strong>이어야 통과 (gap_up + vol_ratio 이중 조건).
+            거래량 없는 가짜 상한가·작전주를 자동 차단.
           </div>
         </div>
         <div class="why" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:var(--orange);">💰</span>⑤ 저가주 가드</div>
+          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:var(--orange);">💰</span>⑥ 저가주 가드</div>
           <div class="why-body">
-            매수가 < 1,000원 종목은 매수 skip. 동전주 슬리피지 위험.
+            매수가 <strong>&lt; 1,000원</strong> 종목은 매수 skip. 동전주 1틱 슬리피지(0.4~1%)·상한가 락 폭락 패턴으로 mean reversion 알파 깨짐.
+            <span class="dim">env <code>LOW_PRICE_GUARD=0</code>으로 끔.</span>
           </div>
         </div>
-        <div class="why" style="border-color:rgba(168,85,247,0.5);background:rgba(168,85,247,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(168,85,247,0.2);color:#a855f7;">📉</span>⑥ 매수금지 캘린더</div>
+        <div class="why" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:#f59e0b;">⚡</span>⑦ 당일 +5% 익절 (리스크 조기 청산)</div>
           <div class="why-body">
-            분기말(3·6·9·12월 마지막) + 12월 배당락 → 매수 안 함.
+            매수가 대비 <strong>+5% 도달 시 즉시 매도</strong>. 강한 모멘텀을 당일에 확정 (백테 66.9%·승률 100%).
+            장중 급반락 전에 이익을 잠가 MDD를 <strong>-4.99%</strong>로 통제.
           </div>
         </div>
       </div>
 
-      <!-- 운영 안전 3겹 -->
+      <!-- 운영 안전장치 4겹 (실전 자금 보호) -->
       <div style="margin-top:24px;padding:14px 16px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.3);border-radius:8px;">
         <div style="font-size:13px;font-weight:700;color:#22d3ee;margin-bottom:10px;">
-          ⚙️ 운영 안전장치 3겹
+          ⚙️ 운영 안전장치 4겹 (실전 자금 보호)
         </div>
-        <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+        <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑦ 중복 매수 방지</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑧ in-progress lock</div>
             <div class="why-body">
-              매수 후 체결 polling 중 다음 cron이 같은 종목 또 매수 X (in-progress lock).
+              체결 polling 95초 중 다음 1분 cron이 같은 종목 또 매수 시도하는 거 차단.
+              <strong>중복 매수 방지</strong> → 자본 2배 사용 위험 0.
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑧ 잔량 자동 취소</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">⏱️</span>⑨ 체결 polling 95초</div>
             <div class="why-body">
-              부분체결 시 KIS cancelOrder 자동 호출.
-              DB ↔ KIS 잔고 일치 보장.
+              <code>_waitForFill</code> delays [1.5, 3, 6, 12, 24, 48]초.
+              호가창 빈약·KIS 응답 지연 대응. 단계별 진행 로깅.
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑨ D-1 종가 SSoT</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑩ 잔량 자동 취소</div>
             <div class="why-body">
-              상한가 가드용 D-1 종가를 backtest/parquet에서만 read.
-              네이버 API 의존 0.
+              부분/미체결 시 KIS <code>cancelOrder</code> (TTTC0803U) 자동 호출.
+              <strong>DB ↔ KIS 잔고 일치 보장</strong>. 후속 자동 체결 위험 0.
+            </div>
+          </div>
+          <div class="why" style="border-color:rgba(34,211,238,0.4);">
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑪ D-1 종가 SSoT</div>
+            <div class="why-body">
+              상한가 가드용 D-1 종가를 <code>backtest/parquet</code>에서 read.
+              네이버 API 의존 제거 → <strong>백테와 운영 데이터 출처 일치</strong>.
             </div>
           </div>
         </div>
+      </div>
+      <div class="note-box" style="margin-top:14px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
+        <strong style="color:#f59e0b;">⚡ 당일 +5% 익절 = h7의 핵심 리스크 관리.</strong>
+        NEMESIS는 D+1 단일 청산이라 자기진단 가드(G1e)로 손실 누적을 막지만,
+        h7은 <strong>매수 당일 +5% 도달 시 즉시 청산</strong>해서 장중 급반락 위험을 원천 차단한다.
+        백테상 매매의 <strong>66.9%가 당일 익절(승률 100%, 평균 +5.59%)</strong>, 나머지 33.1%만 D+1 시초가로 넘어감.
+        <br><br>
+        <strong>그래서 MDD가 -4.99%로 매우 낮다</strong> — 이익을 빨리 잠그고 약한 흐름만 D+1로 넘기는 구조.
+        별도의 자기진단 가드(G1e) 없이도 갭업 모멘텀 + 당일 익절만으로 손실을 통제.
       </div>
     </div>
   </section>
@@ -482,78 +1049,358 @@
   <section class="section">
     <div class="section-header">
       <div class="section-title"><span class="num-pill">4</span>백테 결과 (2년)</div>
-      <div class="section-meta">2024-06 ~ 2026-05 · 479 가용 거래일 · 수수료·세금 차감</div>
+      <div class="section-meta">2024-04-19 ~ 2026-05-29 · 511 거래일 · KOSPI+KOSDAQ · 수수료·세금 차감 후 수치</div>
     </div>
     <div class="section-body">
 
-      <h3 class="sub-h3">h7 핵심 성과 (2024-06 ~ 2026-05)</h3>
+      <h3 class="sub-h3">h7 BOTH 핵심 성과 (KOSPI+KOSDAQ, N=2, 2026-06-01)</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
+        시드 50만, <strong>09:01 정적 매수 2종목 50:50 분할 → 당일 +5% 익절 또는 D+1 09:00 시초가 매도</strong> 기준.
+        ★ 시장 범위 <strong>BOTH(KOSPI+KOSDAQ)</strong> 채택 — KOSDAQ only(24매매, +97%)와 공정 비교 후 누적·빈도 모두 우월한 BOTH 선택.
+        백테 스크립트: <code>analysis/h7_gapup_cluster_both.py</code>.
+      </p>
       <table class="data-table">
         <thead><tr><th>지표</th><th>값</th><th>설명</th></tr></thead>
         <tbody>
-          <tr><td>매매 건수</td><td class="pos"><strong>250 매매</strong></td><td>2년 총 매매 건수</td></tr>
-          <tr><td>당일 익절 / D+1</td><td><strong>51 / 199</strong></td><td>20.4% 당일 +5% 익절 / 79.6% D+1 보유</td></tr>
-          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+3.01%</strong></td><td>개별 매매 수익률 (중앙값 +1.75%)</td></tr>
-          <tr><td>승률</td><td class="pos"><strong>64.8%</strong></td><td>162 수익 / 88 손실</td></tr>
-          <tr class="key-row"><td>MDD (최대 손실)</td><td style="color:var(--green)"><strong>−2.16%</strong></td><td>2년 누적 최대 낙폭 (매우 안전)</td></tr>
-          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (시드 50만)</strong></td><td class="pos"><strong>280만 (+460%)</strong></td><td>50만 → 280만 (5.6배)</td></tr>
-          <tr><td>3M 윈도우</td><td class="pos"><strong>0/21 손실 ✅</strong></td><td>21개 윈도우 모두 양수 (최악 +7.25%)</td></tr>
-          <tr><td>6M 윈도우</td><td class="pos"><strong>0/18 손실 ✅</strong></td><td>모든 6개월 양수 (최악 +45.2%)</td></tr>
+          <tr><td>매매 건수</td><td class="pos"><strong>166 매매</strong></td><td>KOSPI 136 / KOSDAQ 30, 71 갭업 종목, 57 매매일</td></tr>
+          <tr><td>당일 익절 / D+1</td><td><strong>111 / 55</strong></td><td>당일 +5% 익절 66.9% (승률 100%, 평균 +5.59%) / D+1 33.1% (평균 +1.21%, 승률 62%)</td></tr>
+          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+4.14%</strong></td><td>per-trade ret, 중앙값 +4.93%</td></tr>
+          <tr><td>승률 (매매당)</td><td class="pos"><strong>87.3%</strong></td><td>166매매 중 145건 수익</td></tr>
+          <tr class="key-row"><td>MDD (최대 손실 구간)</td><td style="color:var(--green)"><strong>−4.99%</strong></td><td>2년 누적 최대 낙폭 (NEMESIS -10.77% 대비 매우 안전)</td></tr>
+          <tr><td>시장별 매매당</td><td class="pos">KOSPI +3.86% / KOSDAQ +5.39%</td><td>KOSPI는 빈도(136)·KOSDAQ는 수익률 ↑ — BOTH로 둘 다 포착</td></tr>
+          <tr><td>worst (단일 매매)</td><td>−8.06%</td><td>2025-06-10 카카오(A035720) D+1 청산 — worst 5 모두 KOSPI 대형주 D+1</td></tr>
+          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (시드 50만 → 2년 후)</strong></td><td class="pos"><strong>367만 (7.35배)</strong></td><td>+635% (예수금 풀배분 기준)</td></tr>
+          <tr class="key-row"><td>1M/3M/6M/9M/12M/18M 손실 윈도우</td><td class="pos"><strong>0/490, 0/448, 0/385, 0/322, 0/259, 0/133</strong></td><td>★ 모든 sliding 윈도우 손실 0 (1M 최악도 0.0%)</td></tr>
         </tbody>
       </table>
-      <div class="note-box" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.25);">
-        <strong style="color:var(--green);">✅ 결론: 3개월 이상 운영 시 손실 0%, 모든 윈도우 양수.</strong>
-        매매 250건 × 평균 +3.01% = 강력한 매매당 알파. 당일 익절 20.4%로 강한 모멘텀 빨리 포착, D+1 79.6%로 평균회귀 완성.
+      <div class="note-box" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
+        <strong style="color:var(--orange);">⚡ 당일 +5% 익절 메커니즘 (h7 핵심)</strong>
+        <br><br>
+        <strong>당일 익절 111건(66.9%)은 승률 100%, 평균 +5.59%.</strong> 매수 당일 +5% 도달하면 즉시 청산하므로 손실이 날 수 없는 구조.
+        나머지 55건(33.1%)만 D+1 시초가로 넘어가고, 손실(승률 62%)은 거의 전부 이 D+1 청산에서 발생 (worst 5 모두 KOSPI 대형주 D+1).
+        <br><br>
+        <strong>→ 강한 모멘텀은 당일 확정, 약한 흐름만 D+1 노출</strong>. 이 비대칭 구조가 MDD -4.99%의 핵심.
+      </div>
+      <div class="note-box" style="background:rgba(168,85,247,0.05);border-color:rgba(168,85,247,0.25);">
+        <strong style="color:#a855f7;">⚡ h7 BOTH 검증 통과</strong>
+        <br><br>
+        <strong>✓ 시장 범위 공정 비교:</strong> 동일 코드(<code>h7_gapup_cluster_both.py</code>)로 BOTH vs KOSDAQ 2년 백테 → BOTH 누적 +635%(166매매) ≫ KOSDAQ +97%(24매매). 갭업 클러스터 멤버에 KOSPI 대형주 다수 포함.
+        <br><br>
+        <strong>✓ Lookahead 자가검증:</strong> 갭업 판정은 전일 종가 기반 / 클러스터는 date ≤ D 스냅샷만 / 매수가 = D일 day_open / 매도가 = T+1 day_open 또는 당일 +5% 익절. 미래 정보 누출 없음.
+        <br><br>
+        <strong>✓ 상한가 가드:</strong> 매수가 ≥ prev_close × 1.285 면 skip (체결 불가 종목 제외).
+        <br><br>
+        <strong>✓ 거래량 5배 이중 필터:</strong> 갭업 + 거래량 동시 조건으로 가짜 상한가·작전주 차단.
+        <br><br>
+        <strong>✓ spectral cluster SSoT:</strong> 서랍 <code>out/spectral_clusters.parquet</code> (KOSPI 2018종목 + KOSDAQ 1750종목 커버, D-1 18:00 빌드).
       </div>
 
-      <h3 class="sub-h3 mt">vs NEMESIS 비교</h3>
+      <h3 class="sub-h3 mt">시장 분위기별 성과 (96주)</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
+        KOSDAQ 주간 등락률로 시장 분위기를 5단계로 분류하고, 각 구간에서 h7이 어떻게 동작하는지 측정.
+        <strong>5가지 시장 분위기 모두 누적 플러스</strong> = 갭업 자체가 강세 신호라 베타≈0 알파 전략.
+      </p>
       <table class="data-table">
-        <thead><tr><th>항목</th><th>h7</th><th>NEMESIS</th><th>우위</th></tr></thead>
+        <thead><tr><th>시장 분위기</th><th>주 수</th><th>주평균 수익</th><th>누적</th><th>손실주</th><th>평가</th></tr></thead>
         <tbody>
-          <tr><td>매매당 평균</td><td class="pos"><strong>+3.01%</strong></td><td class="pos">+2.14%</td><td class="pos">h7 +40% 우수</td></tr>
-          <tr><td>매매 빈도</td><td class="pos"><strong>250건</strong></td><td>127건</td><td class="pos">h7 2배</td></tr>
-          <tr class="key-row"><td>MDD</td><td style="color:var(--green)"><strong>−2.16%</strong></td><td style="color:var(--orange);">−10.77%</td><td class="pos">h7 80% 안전</td></tr>
-          <tr><td>2년 누적</td><td class="pos">+460%</td><td class="pos">+514%</td><td style="color:var(--dim);">NEMESIS +54%p</td></tr>
-          <tr><td>역할</td><td style="color:var(--green);">고수익 보조</td><td style="color:var(--dim);">안정 메인</td><td>포트폴리오 분산</td></tr>
+          <tr><td>🔥 <strong>강세</strong> (+3%↑)</td><td>13</td><td class="pos"><strong>+2.22%</strong></td><td class="pos">+32.5%</td><td class="pos"><strong>0/13 ✅</strong></td><td>★★★★★ 모멘텀 시너지</td></tr>
+          <tr><td>📈 <strong>약강세</strong> (+1~+3%)</td><td>20</td><td class="pos"><strong>+1.66%</strong></td><td class="pos">+38.5%</td><td class="pos"><strong>0/20 ✅</strong></td><td>★★★★★ 손실 없음</td></tr>
+          <tr class="key-row"><td>↔️ <strong>횡보</strong> (±1%)</td><td>33</td><td class="pos"><strong>+2.44%</strong></td><td class="pos"><strong>+119.2%</strong></td><td>1/33</td><td>★★★★★ 가장 자주·강력</td></tr>
+          <tr><td>📉 <strong>약약세</strong> (-1~-3%)</td><td>20</td><td class="pos">+2.04%</td><td class="pos">+48.4%</td><td class="pos"><strong>0/20 ✅</strong></td><td>★★★★ 안정</td></tr>
+          <tr><td>❄️ <strong>약세</strong> (-3%↓)</td><td>10</td><td class="pos"><strong>+2.17%</strong></td><td class="pos">+23.2%</td><td class="pos"><strong>0/10 ✅</strong></td><td>★★★★ 자동 회피</td></tr>
         </tbody>
       </table>
       <div class="note-box">
-        <strong>📊 포트폴리오 배치:</strong>
-        h7 (고수익 + 저MDD) 보조 + NEMESIS (안정 메인) 병렬 운영으로 <strong>복합 Sharpe 향상</strong>.
-        h7은 빈도 높은 단기 모멘텀, NEMESIS는 저수익 안정형.
+        <strong>핵심 패턴:</strong>
+        <ul style="margin:6px 0 0 18px;padding:0;line-height:1.7;font-size:12.5px;">
+          <li>↔️ <strong>횡보장</strong>: 96주 중 33주(34%) — 가장 흔한 구간인데 누적 +119.2%로 가장 강력 (갭업은 시장 방향과 무관)</li>
+          <li>🔥 <strong>강세장</strong>: 주 +2.22% — 갭업 빈발 + 클러스터 동조 강화</li>
+          <li>❄️ <strong>약세장</strong>: 주 +2.17%, 손실주 0 — 갭업 종목 자체가 강세라 시장 하락과 무관하게 작동</li>
+          <li>✅ <strong>5개 분위기 중 손실주는 횡보 1주뿐</strong> — 시장 베타 거의 0</li>
+        </ul>
       </div>
 
+      <h3 class="sub-h3 mt">⚡ 당일 익절 vs D+1 청산 비교 (2년)</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
+        h7은 매수 당일 +5% 익절(즉시 청산) 또는 D+1 시초가 매도 두 경로로 청산. 두 경로의 성격이 명확히 다르다.
+      </p>
+      <table class="data-table">
+        <thead><tr><th>청산 경로</th><th>건수 (비중)</th><th>평균 수익</th><th>승률</th><th>성격</th></tr></thead>
+        <tbody>
+          <tr class="key-row"><td>⚡ <strong>당일 +5% 익절</strong></td><td class="pos"><strong>111건 (66.9%)</strong></td><td class="pos"><strong>+5.59%</strong></td><td class="pos"><strong>100%</strong></td><td>강한 모멘텀 — 손실 불가능 구조</td></tr>
+          <tr><td>🌅 <strong>D+1 시초가</strong></td><td>55건 (33.1%)</td><td class="pos">+1.21%</td><td>62%</td><td>약한 흐름 — 손실은 대부분 여기서 발생</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box dim">
+        <strong>당일 익절이 손실을 원천 차단.</strong> 매수 당일 +5%를 찍으면 즉시 빠져나오므로, 166매매 중 111건은 무조건 +5%대 수익.
+        나머지 55건만 다음날까지 보유해 시장 리스크에 노출 — 그래서 worst 5 매매(카카오 -8.06%, 삼성전자 -4.60% 등)가 모두 D+1 청산 KOSPI 대형주다.
+      </div>
+
+      <h3 class="sub-h3 mt">얼마나 안정적인가? — 운영 기간별 손실 확률 (h7 BOTH)</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
+        "운 좋은 시기에 잠깐 잘 된 것"이 아니라 "꾸준한 알파"인지 확인.
+        2년 데이터를 1/3/6/9/12/18개월씩 sliding 잘라보면 어떻게 나오는지 측정 (캘린더 정규화).
+      </p>
+      <table class="data-table">
+        <thead><tr><th>운영 기간</th><th>측정 횟수</th><th>평균 누적</th><th>중앙값</th><th>손실 윈도우</th><th>의미</th></tr></thead>
+        <tbody>
+          <tr class="key-row"><td><strong>1개월</strong></td><td>490개</td><td><strong>+9.04%</strong></td><td>+7.63%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 0.0% — 손실 윈도우 자체 없음)</strong></td></tr>
+          <tr class="key-row"><td><strong>3개월</strong></td><td>448개</td><td><strong>+30.85%</strong></td><td>+24.37%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +0.22%)</strong></td></tr>
+          <tr class="key-row"><td><strong>6개월</strong></td><td>385개</td><td><strong>+69.46%</strong></td><td>+58.45%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +13.46%)</strong></td></tr>
+          <tr class="key-row"><td><strong>9개월</strong></td><td>322개</td><td><strong>+116.49%</strong></td><td>+82.56%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +32.28%)</strong></td></tr>
+          <tr class="key-row"><td><strong>12개월</strong></td><td>259개</td><td><strong>+174.80%</strong></td><td>+145.93%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +63.42%)</strong></td></tr>
+          <tr class="key-row"><td><strong>18개월</strong></td><td>133개</td><td><strong>+346.53%</strong></td><td>+327.52%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">최악도 +190.90%</strong></td></tr>
+        </tbody>
+      </table>
+      <div class="note-box" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.25);">
+        <strong style="color:#22c55e;">✅ 결론: 1개월 윈도우조차 손실 0 — 당일 +5% 익절(승률 100%) 비중이 높아 단기 변동성도 매우 낮다.</strong>
+        모든 운영 기간(1M~18M)에서 손실 윈도우 0건.
+        <br><br>
+        <strong style="color:var(--accent);">📊 분기별 안정성:</strong>
+        2년 중 <strong>9개 분기 전부 양수</strong> — 2024Q2 +6.5% / 2024Q3 +11.1% / 2024Q4 +11.8% / 2025Q1 +13.0% / 2025Q2 +20.6% / 2025Q3 +31.5% / 2025Q4 +51.6% / 2026Q1 +72.2% / 2026Q2 +18.7%.
+        <br><br>
+        <strong style="color:var(--orange);">⚠️ 단, 실전 슬리피지 미반영</strong> — 당일 익절은 분봉 close 기준이라 실전 체결가와 격차 가능. paper-self 운영으로 실측 후 캘리브레이션 필요.
+      </div>
+
+      <h3 class="sub-h3 mt">시드별 예상 수익 (h7 BOTH 2년 운영, 비중별 복리)</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
+        매매일에 2종목 50:50 자동 분할 (KOSPI+KOSDAQ). 비중 = 시드 중 APEX(h7)에 배정하는 비율 (일별 수익률 비중 스케일 복리 계산).
+        ⚠️ <strong style="color:var(--orange);">백테 순수치 (슬리피지 모델 미반영)</strong> — 실전은 체결가 격차로 낮아질 수 있음. paper-self 실측 후 캘리브레이션 필요.
+      </p>
+      <table class="data-table">
+        <thead><tr><th>시드</th><th>비중 50%</th><th>비중 65%</th><th>비중 80%</th><th>비중 100%</th></tr></thead>
+        <tbody>
+          <tr><td>100만</td><td class="pos">약 275만 (+175%)</td><td class="pos">약 370만 (+270%)</td><td class="pos">약 497만 (+397%)</td><td class="pos">약 735만 (+635%)</td></tr>
+          <tr><td>500만</td><td class="pos">약 1,373만</td><td class="pos">약 1,850만</td><td class="pos">약 2,486만</td><td class="pos">약 3,675만</td></tr>
+          <tr class="key-row"><td><strong>1,000만</strong></td><td class="pos">약 2,745만 (+175%)</td><td class="pos"><strong>약 3,699만 (+270%)</strong></td><td class="pos">약 4,971만 (+397%)</td><td class="pos"><strong>약 7,350만 (+635%)</strong></td></tr>
+          <tr><td>5,000만</td><td class="pos">약 1.37억</td><td class="pos">약 1.85억</td><td class="pos">약 2.49억</td><td class="pos">약 3.67억</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box dim">
+        <strong>비중별 누적 (백테 순수, 일별 비중 스케일 복리)</strong>: 50% → +174.5% / 65% → +269.9% / 80% → +397.1% / 100% → +635.0%.
+        MDD가 -4.99%로 매우 낮아 비중을 높여도 낙폭 부담이 작다.
+        <br><br>
+        <strong style="color:var(--orange);">⚠️ 이건 보장 수익 아닙니다.</strong> 백테 = 과거 데이터 시뮬레이션 + 슬리피지 모델 미반영.
+        실전에서는 시장 환경 변화·슬리피지·체결 실패·분봉 API 안정성으로 결과가 달라질 수 있습니다.
+        <strong>시드의 일부로 시작 → paper-self 검증 후 단계적 증액</strong> 권장.
+      </div>
     </div>
   </section>
 
-  <!-- ─────────────── 운영 모드 ─────────────── -->
+  <!-- ─────────────── 위험 관리 ─────────────── -->
   <section class="section">
     <div class="section-header">
       <div class="section-title"><span class="num-pill">5</span>운영 모드 & 시작하기</div>
-      <div class="section-meta">실전 전환은 2단계 (모의 → 실전)</div>
+      <div class="section-meta">실전 전환은 3단계 (모의 → 모의증권사 → 실전)</div>
     </div>
     <div class="section-body">
       <table class="data-table">
         <thead><tr><th>단계</th><th>모드</th><th>설명</th><th>권장 기간</th></tr></thead>
         <tbody>
-          <tr><td><strong>1단계</strong></td><td><code>paper-self</code></td><td>실제 시세 + 가상 매매. 돈 안 나감. 엔진 동작 + 백테 일치율 검증.</td><td><strong>4주</strong></td></tr>
-          <tr class="key-row" style="background:rgba(239,68,68,0.05);"><td><strong>2단계</strong></td><td><code>real</code></td><td><strong style="color:#fca5a5;">실제 돈 사용</strong>. 비중 단계적: 25% → 50% → 100%.</td><td>장기 운영</td></tr>
+          <tr><td><strong>1단계</strong></td><td><code>paper-self</code> (기본)</td><td>실제 시세 + 가상 매매. <strong>돈 안 나감.</strong> 엔진 동작 + 백테 vs 실제 매매 일치율 + 당일 익절 체결가 슬리피지 측정.</td><td><strong>4주</strong></td></tr>
+          <tr><td>2단계</td><td><code>paper</code></td><td>한국투자증권 모의투자 (KIS API). 돈 안 나감.</td><td>2주</td></tr>
+          <tr class="key-row" style="background:rgba(239,68,68,0.05);"><td><strong>3단계</strong></td><td><code>real</code></td><td><strong style="color:#fca5a5;">실제 돈 사용</strong>. 비중 단계적: 25% → 50% → 100%.</td><td>장기 운영</td></tr>
         </tbody>
       </table>
       <div class="note-box">
         <strong>📋 현재 상태:</strong>
-        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>매매일에 2종목 50:50 분할 (h7: 갭업 + 클러스터)</strong>
+        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>09:01 정적 매수 2종목 50:50 분할 (h7: 갭업 + 클러스터 + 당일 +5% 익절, 시장 KOSPI+KOSDAQ)</strong>
       </div>
       <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.3);">
-        <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: paper-self 4주 신호 안정성 → paper-self에서 실측 슬리피지 수집 → real 25% → 50% → 100% 단계적 진입. h7은 MDD -2.16%로 극도로 안전하므로 보조엔진 추가 확인 후 투입.
+        <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: h7은 MDD -4.99%로 매우 안전하지만 실전 슬리피지(특히 당일 +5% 익절 체결가)가 미측정 상태. <strong>paper-self 4주로 백테 vs 실제 체결가 격차를 먼저 실측</strong> → paper 2주 → real 25% → 50% → 100% 단계적 권장. NEMESIS와 병렬 운영 시 포트폴리오 분산 효과.
+      </div>
+      <div class="note-box" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
+        <strong style="color:var(--orange);">⚠️ 주의:</strong> 당일 +5% 익절(66.9%·승률 100%)은 백테상 분봉 close 기준이라 실전 체결가와 격차가 날 수 있음. 또한 worst 매매가 모두 KOSPI 대형주 D+1 청산이므로, D+1로 넘어가는 33.1% 종목의 익일 갭다운 리스크 모니터링 필요. 백테 대비 결과가 크게 다르면 즉시 정지 후 분석.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 개발자 참고 ─────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="num-pill">6</span>개발자 참고 (룰 설정값)</div>
+      <div class="section-meta">포트 <code>3100</code> · 변경 시 백테 재검증 필수</div>
+    </div>
+    <div class="section-body">
+      <h3 class="sub-h3">핵심 파라미터 (h7)</h3>
+      <table class="data-table">
+        <thead><tr><th style="width:240px">키</th><th style="width:160px">값</th><th>위치 / 설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>TRADING_MODE</code></td><td id="kvMode">paper-self</td><td>.env (paper-self / paper / real)</td></tr>
+          <tr><td><code>BUY_MODE</code></td><td><strong style="color:#f59e0b">h7</strong></td><td>.env (h7 갭업 모드 활성)</td></tr>
+          <tr><td><code>TOTAL_CAPITAL</code></td><td id="kvBudget">200,000</td><td>.env (2종목 50:50 분할 = 종목당 100,000원)</td></tr>
+          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:var(--accent);font-weight:600;text-align:center;">— 시그널 (갭업 + 클러스터) —</td></tr>
+          <tr class="key-row"><td><strong>GAP_UP_THRESHOLD</strong></td><td><strong style="color:var(--accent)">1.10 (10%↑)</strong></td><td>strategy.js (close ≥ prev_close × 1.10)</td></tr>
+          <tr class="key-row"><td><strong>VOLUME_RATIO_THRESHOLD</strong></td><td><strong style="color:var(--accent)">5.0 (5배↑)</strong></td><td>strategy.js (volume ≥ avg_vol × 5.0)</td></tr>
+          <tr class="key-row"><td><strong>CLUSTER_CORR</strong></td><td><strong style="color:var(--accent)">≥ 0.42</strong></td><td>strategy.js (NEMESIS 0.34보다 보수적)</td></tr>
+          <tr class="key-row"><td><strong>CLUSTER_SIZE</strong></td><td><strong style="color:var(--accent)">≥ 8</strong></td><td>strategy.js (멤버 수 컷)</td></tr>
+          <tr class="key-row"><td><strong>MARKET_FILTER</strong></td><td><strong style="color:var(--green)">BOTH (KOSPI+KOSDAQ)</strong></td><td>strategy.js (env NEMESIS_MARKET_FILTER) — 공정비교 후 채택</td></tr>
+          <tr class="key-row"><td><strong>N_PICKS (분할 매수)</strong></td><td><strong style="color:var(--accent)">2 (상위 2멤버)</strong></td><td>strategy.js (클러스터 멤버 상위 2종목)</td></tr>
+          <tr class="key-row"><td><strong>WEIGHTS (자본 분할)</strong></td><td><strong>[0.5, 0.5]</strong></td><td>50:50 균등</td></tr>
+          <tr><td>상한가 가드 (매수 시점)</td><td>+28.5% 이상 skip</td><td>strategy.js (H7_PRICE_GUARD=0.285)</td></tr>
+          <tr><td>저가주 가드</td><td>&lt; 1,000원 skip</td><td>strategy.js (LOW_PRICE_GUARD)</td></tr>
+          <tr style="background:rgba(245,158,11,0.05);"><td colspan="3" style="font-size:11px;color:#f59e0b;font-weight:600;text-align:center;">— 매수 / 청산 —</td></tr>
+          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>매수 시점</strong></td><td><strong style="color:#f59e0b">09:01 정적 매수</strong></td><td>scheduler.js (09:00 day_open 가격, 동적 polling 없음)</td></tr>
+          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>INTRADAY_TARGET (당일 익절)</strong></td><td><strong style="color:#f59e0b">1.05 (+5%)</strong></td><td>scheduler.js (close ≥ entry × 1.05 시 즉시 매도)</td></tr>
+          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>D+1 매도</strong></td><td><strong>익일 09:00 시초가</strong></td><td>scheduler.js (당일 미익절 종목 일괄)</td></tr>
+          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:var(--accent);font-weight:600;text-align:center;">— 운영 안전 —</td></tr>
+          <tr><td>in-progress lock / 잔량 자동 취소</td><td>활성</td><td>real-broker.js (중복 매수 방지 + KIS cancelOrder)</td></tr>
+          <tr><td>D-1 종가 SSoT</td><td>backtest/parquet</td><td>상한가 가드용 (네이버 API 의존 0)</td></tr>
+          <tr><td>스캔 / 매수 / 매도 시각</td><td>09:00 / 09:01 / 익일 09:00 (+ 당일 익절 09:01~15:30)</td><td>scheduler.js cron</td></tr>
+          <tr><td>왕복 수수료·세금</td><td>약 0.23%</td><td>매수 0.015% + 매도 0.015% + 매도세 0.2%</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub-h3 mt">백테 / 검증</h3>
+      <table class="data-table">
+        <thead><tr><th style="width:320px">항목</th><th>값 / 위치</th></tr></thead>
+        <tbody>
+          <tr><td>백테 스크립트</td><td><code>backtest/analysis/h7_gapup_cluster_both.py</code></td></tr>
+          <tr><td>실행 (BOTH 2년 N=2)</td><td><code>.venv/bin/python analysis/h7_gapup_cluster_both.py --n 2 --market both</code></td></tr>
+          <tr><td>결과 3종 세트</td><td><code>out/h7_gapup_cluster_both_n2_{trades.csv, summary.json, summary.md}</code></td></tr>
+          <tr><td>분봉 데이터 (SSoT)</td><td><code>backtest/parquet/</code> (KOSDAQ) + <code>parquet_kospi/</code> (KOSPI)</td></tr>
+          <tr><td>spectral cluster</td><td><code>서랍/out/spectral_clusters.parquet</code> (KOSPI 2018 + KOSDAQ 1750 커버)</td></tr>
+          <tr><td>차트 데이터</td><td><code>public/market-flow-weekly.json</code> (h7 주별 수익)</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box dim">
+        <strong>외부 의존:</strong> 서랍 spectral cluster (read-only) · KIS API · 네이버 모바일 API · Python venv (backtest/.venv).
+        <strong>시그널 룰 변경 시</strong> strategy.js의 GAP_UP/VOLUME_RATIO/CLUSTER_CORR/N_PICKS + 백테 <code>h7_gapup_cluster_both.py</code> 재실행 필수.
+        <strong>시장 범위 변경 시</strong> strategy.js의 MARKET_FILTER + 백테 <code>--market</code> 옵션 동시 점검 (백테-운영 일치).
+      </div>
+      <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.25);font-size:11.5px;line-height:1.7;">
+        <strong style="color:#22d3ee;">📊 시장 범위 공정 비교 결과 (2026-06-01):</strong>
+        동일 코드로 BOTH vs KOSDAQ 2년 백테 → <strong>BOTH 누적 +635%(166매매) ≫ KOSDAQ +97%(24매매)</strong>.
+        갭업 클러스터 멤버에 KOSPI 대형주가 다수 포함되어 매매 빈도·수익 모두 우월 → <strong>BOTH(KOSPI+KOSDAQ) 채택</strong>.
       </div>
     </div>
   </section>
 
 </div>
 
+<script src="/app.js"></script>
 <script>
-  document.getElementById('cfgMode').textContent = 'paper-self';
-  document.getElementById('cfgBudget').textContent = '100,000원';
+  // 시계
+  function updateClock() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    const el = document.querySelector('.clock');
+    if (el) el.innerHTML = `<span class="date">${yyyy}-${MM}-${dd}</span>${hh}:${mm}<span class="sec">:${ss}</span>`;
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  // 모드 / 설정값 동적 표시 (코드와 UI 일치 검증)
+  async function hydrateEnginePage() {
+    try {
+      const r = await fetch('/api/status');
+      if (!r.ok) return;
+      const d = await r.json();
+
+      // 헤더 모드 배지
+      const mode = d.mode || '--';
+      const modeEl = document.getElementById('modeLabel');
+      if (modeEl) modeEl.textContent = mode;
+      const badge = document.getElementById('autoStatusBadge');
+      if (badge) {
+        if (mode === 'real') {
+          badge.style.background = 'rgba(239,68,68,0.18)';
+          badge.style.borderColor = 'rgba(239,68,68,0.6)';
+          badge.style.color = '#fca5a5';
+        } else {
+          badge.style.background = 'rgba(74,222,128,0.12)';
+          badge.style.borderColor = 'rgba(74,222,128,0.35)';
+          badge.style.color = '#4ade80';
+        }
+      }
+
+      const fmtMoney = (v) => v != null ? Number(v).toLocaleString() : '--';
+      const setText = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.textContent = v; };
+
+      setText('cfgMode', mode);
+      setText('kvMode', mode);
+      setText('cfgBudget', fmtMoney(d.perStockBudget) + '원');
+      setText('kvBudget', fmtMoney(d.perStockBudget));
+      setText('kvTotalCap', fmtMoney(d.strategy?.totalCapital));
+
+      const s = d.strategy || {};
+      setText('kvFee', s.feeRoundTrip);
+      setText('kvLimitUp', s.limitUpCut);
+      setText('kvTopN', s.topN);
+
+      const sch = d.schedule || {};
+      setText('kvSignalTime', sch.signal_scan || sch.signal_buy);
+      setText('kvSellTime', sch.morning_sell);
+
+      // ── 라이브 시그널 카드 (최근 signal_log 1건) ─────
+      const signals = d.recent_signals || [];
+      const sig = signals[0];
+      const liveMeta = document.getElementById('sigLiveMeta');
+      if (!sig) {
+        if (liveMeta) liveMeta.textContent = '시그널 누적 대기 중 (평일 09:00~15:20)';
+        return;
+      }
+
+      const setBarPct = (id, count, denom) => {
+        const e = document.getElementById(id);
+        if (!e) return;
+        const n = Number(count) || 0;
+        const d2 = Number(denom) || 20;
+        const pct = Math.max(0, Math.min(100, Math.round(n / d2 * 100)));
+        e.style.width = pct + '%';
+      };
+
+      // 활성 cluster (NEMESIS 컬럼)
+      const clusterDesc = sig.pick_cluster_id != null
+        ? `cluster #${sig.pick_cluster_id}` + (sig.pick_signal_source ? ` (${sig.pick_signal_source})` : '')
+        : '— (활성 cluster 없음)';
+      setText('sigTop1Theme', clusterDesc);
+      setText('sigTop1Count', sig.pick_cluster_count != null ? sig.pick_cluster_count : '—');
+      setText('sigN20', sig.n_top10 != null ? sig.n_top10 : '10');
+      setBarPct('sigTop1Bar', sig.pick_cluster_count, sig.n_top10 || 10);
+
+      // 신호 소스 (우선순위 표시, R4.2.1에서 multitime/W=10/W=15 모두 미사용)
+      const srcMap = { 's16_w20': 'spectral W=20', 's16_w5': 'spectral W=5' };
+      setText('sigTop2Theme', sig.pick_signal_source ? srcMap[sig.pick_signal_source] || sig.pick_signal_source : '—');
+      setText('sigTop2Count', sig.pick_abs_dev != null ? `|편차|=${Number(sig.pick_abs_dev).toFixed(2)}` : '—');
+      setBarPct('sigTop2Bar', sig.pick_abs_dev, 50); // |편차| 최대 50 기준 막대
+
+      // 매수 종목
+      if (sig.pick_excluded) {
+        setText('sigPickName', '(매수 제외)');
+        setText('sigPickCode', sig.pick_excluded_reason ? `· ${sig.pick_excluded_reason}` : '');
+        setText('sigPickChg', '');
+        const ex = document.getElementById('sigPickExcluded');
+        if (ex) ex.textContent = '⚠ excluded';
+      } else {
+        setText('sigPickName', sig.pick_name || '—');
+        setText('sigPickCode', sig.pick_code ? `(${sig.pick_code})` : '');
+        const dev = sig.pick_deviation;
+        setText('sigPickChg', dev != null ? `편차 ${dev >= 0 ? '+' : ''}${Number(dev).toFixed(2)}` : '');
+      }
+
+      // 스캔 메타
+      const at = sig.signal_at || '';
+      setText('sigAt', at ? at.replace('T', ' ').slice(0, 19) : '—');
+      setText('sigN20Live', sig.n_top10 != null ? sig.n_top10 : '—');
+      setText('sigNThemes', sig.n_clusters_active != null ? sig.n_clusters_active : '—');
+      setText('sigNScanned', sig.n_scanned != null ? Number(sig.n_scanned).toLocaleString() : '—');
+
+      // 메타 라벨
+      if (liveMeta) {
+        const dateStr = sig.signal_date || '';
+        const tag = sig.derive_only ? 'derive (관찰)' : '★ 매수 시그널';
+        liveMeta.textContent = `${dateStr} · ${tag} · 누적 ${signals.length}건`;
+      }
+    } catch (e) { /* silent */ }
+  }
+  hydrateEnginePage();
+  // 30초마다 라이브 시그널 갱신
+  setInterval(hydrateEnginePage, 30000);
 </script>
 
 </body>
