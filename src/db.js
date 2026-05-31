@@ -102,26 +102,30 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_top10_date ON top10_snapshot(signal_date DESC);
 
-  -- 09:29 시그널 로그 (spectral cluster 신호)
-  --   derive_only=0 : 매수 트리거 신호 (09:29 1회)
+  -- 09:29/09:00 시그널 로그 (spectral cluster 신호 + h7 갭업)
+  --   signal_type: 09:29_spectral | h7_gapup
+  --   derive_only=0 : 매수 트리거 신호 (1회)
   --   derive_only=1 : 관찰용 (수동 호출 등)
   CREATE TABLE IF NOT EXISTS signal_log (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     signal_date     TEXT NOT NULL,                        -- YYYYMMDD (신호 발생일)
-    signal_at       TEXT NOT NULL,                        -- ISO 타임스탬프 (09:29경)
+    signal_at       TEXT NOT NULL,                        -- ISO 타임스탬프
+    signal_type     TEXT DEFAULT '09:29_spectral',        -- 09:29_spectral | h7_gapup
     pick_code       TEXT,                                 -- 선정 종목 코드 (NULL이면 신호 없음)
     pick_name       TEXT,                                 -- 선정 종목 이름
-    pick_buy        INTEGER,                              -- 09:29 기준 참고가
+    pick_buy        INTEGER,                              -- 09:29/09:00 기준 참고가
     pick_change_rate REAL,                                -- 09:29 등락률
     pick_cluster_id INTEGER,                              -- 속한 spectral cluster_id
     pick_cluster_count INTEGER,                           -- cluster 멤버 수
     pick_cluster_size INTEGER,                            -- cluster 총 사이즈
-    pick_signal_source TEXT,                              -- s16_w20 | s16_w5
+    pick_cluster_corr REAL,                               -- h7용: cluster 평균 상관도
+    pick_signal_source TEXT,                              -- s16_w20 | s16_w5 | h7_gapup_cluster
     pick_deviation  REAL,                                 -- 정규화 편차 (음수)
     pick_abs_dev    REAL,                                 -- |편차| 절대값
     pick_excluded   INTEGER DEFAULT 0,                    -- 1 = 가드/필터로 제외
     pick_excluded_reason TEXT,                            -- 제외 사유 (가드/차단)
     n_top10         INTEGER,                              -- 09:29 Top10 개수
+    n_gapup         INTEGER,                              -- h7용: 갭업 감지 종목 수
     n_clusters_active INTEGER,                            -- 활성 cluster 개수
     n_scanned       INTEGER,                              -- 스캔한 전체 종목 개수
     derive_only     INTEGER NOT NULL DEFAULT 0            -- 1 = 관찰용 (매수X)
@@ -139,10 +143,11 @@ db.exec(`
     pick_code       TEXT NOT NULL,                        -- 선정 종목 코드
     pick_name       TEXT NOT NULL,                        -- 선정 종목 이름
     pick_cluster_id INTEGER,                              -- spectral cluster_id
-    pick_signal_source TEXT,                              -- s16_w20 | s16_w5
+    pick_signal_source TEXT,                              -- s16_w20 | s16_w5 | h7_gapup_cluster
     pick_deviation  REAL,                                 -- 정규화 편차
     pick_abs_dev    REAL,                                 -- |편차| 절대값
     pick_market     TEXT,                                 -- KOSDAQ | KOSPI | ETF
+    pick_buy        INTEGER,                              -- 매수 참고가 (h7: 09:00 close, 매수 qty 계산용)
     vol_threshold   INTEGER DEFAULT 2500000,              -- 동적 매수 트리거 누적 거래량
     cum_vol         INTEGER DEFAULT 0,                    -- 마지막 polling 누적 거래량 (진행 추적)
     buy_time        TEXT,                                 -- 실제 매수 시각 (HHMM, 예: 1055)
@@ -238,6 +243,11 @@ _safeAlter(`ALTER TABLE trades ADD COLUMN signal_source TEXT`);
 _safeAlter(`ALTER TABLE trades ADD COLUMN rank         INTEGER DEFAULT 1`);
 _safeAlter(`ALTER TABLE trades ADD COLUMN weight       REAL DEFAULT 1.0`);
 
+// h7 갭업 신호 지원 (2026-05-31)
+_safeAlter(`ALTER TABLE signal_log ADD COLUMN signal_type TEXT DEFAULT 'spectral'`);  // 'spectral' | 'h7_gapup'
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN signal_type TEXT DEFAULT 'spectral'`);  // 동일
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_buy    INTEGER`);                   // h7 매수 참고가 (qty 계산용)
+
 // ── helpers ─────────────────────────────────────
 function logMsg(level, category, message) {
   try {
@@ -303,16 +313,17 @@ const stmts = {
     VALUES (@signal_date, @rank, @code, @name, @change_rate, @close_price, @market, @cluster_w20, @cluster_w5)
   `),
   top10ByDate: db.prepare(`SELECT * FROM top10_snapshot WHERE signal_date = ? ORDER BY rank`),
+  getMorningSnapshotCount: db.prepare(`SELECT COUNT(*) AS cnt FROM top10_snapshot WHERE signal_date = ?`),
 
-  // ── signal_log (R4.2.1 spectral cluster 신호) ──
+  // ── signal_log (R4.2.1 spectral cluster 신호 + h7 갭업) ──
   insertSignalLog: db.prepare(`
     INSERT INTO signal_log
-      (signal_date, signal_at, pick_code, pick_name, pick_buy, pick_change_rate,
+      (signal_date, signal_at, signal_type, pick_code, pick_name, pick_buy, pick_change_rate,
        pick_cluster_id, pick_cluster_count, pick_cluster_size, pick_signal_source,
        pick_deviation, pick_abs_dev, pick_excluded, pick_excluded_reason,
        n_top10, n_clusters_active, n_scanned, derive_only)
     VALUES
-      (@signal_date, @signal_at, @pick_code, @pick_name, @pick_buy, @pick_change_rate,
+      (@signal_date, @signal_at, @signal_type, @pick_code, @pick_name, @pick_buy, @pick_change_rate,
        @pick_cluster_id, @pick_cluster_count, @pick_cluster_size, @pick_signal_source,
        @pick_deviation, @pick_abs_dev, @pick_excluded, @pick_excluded_reason,
        @n_top10, @n_clusters_active, @n_scanned, @derive_only)
@@ -323,15 +334,26 @@ const stmts = {
     WHERE signal_date = ? AND derive_only = 0
     ORDER BY id DESC LIMIT 1
   `),
+  signalsByDate: db.prepare(`
+    SELECT * FROM signal_log
+    WHERE signal_date = ? AND derive_only = 0
+    ORDER BY signal_at DESC
+  `),
+  // 대시보드 /api/top10·/api/top20 — 해당일 선정된(pick_code 있는) 신호
+  selectedSignalsByDate: db.prepare(`
+    SELECT * FROM signal_log
+    WHERE signal_date = ? AND pick_code IS NOT NULL AND derive_only = 0
+    ORDER BY signal_at DESC
+  `),
 
-  // ── pending_buy (R4.2.1 동적 매수 지원) ──
+  // ── pending_buy (R4.2.1 동적 매수 + h7 갭업 정적 매수) ──
   insertPendingBuy: db.prepare(`
     INSERT OR REPLACE INTO pending_buy
-      (signal_date, rank, weight, pick_code, pick_name, pick_cluster_id, pick_signal_source,
-       pick_deviation, pick_abs_dev, pick_market, vol_threshold, created_at, consumed)
+      (signal_date, signal_type, rank, weight, pick_code, pick_name, pick_cluster_id, pick_signal_source,
+       pick_deviation, pick_abs_dev, pick_market, pick_buy, vol_threshold, created_at, consumed)
     VALUES
-      (@signal_date, @rank, @weight, @pick_code, @pick_name, @pick_cluster_id, @pick_signal_source,
-       @pick_deviation, @pick_abs_dev, @pick_market, @vol_threshold, @created_at, 0)
+      (@signal_date, @signal_type, @rank, @weight, @pick_code, @pick_name, @pick_cluster_id, @pick_signal_source,
+       @pick_deviation, @pick_abs_dev, @pick_market, @pick_buy, @vol_threshold, @created_at, 0)
   `),
   getPendingBuy: db.prepare(`SELECT * FROM pending_buy WHERE signal_date = ? AND rank = 1 AND consumed = 0`),
   getAllPendingBuys: db.prepare(`SELECT * FROM pending_buy WHERE signal_date = ? AND consumed = 0 ORDER BY rank`),

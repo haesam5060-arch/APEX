@@ -4,26 +4,49 @@
 
 ---
 
-## ★ 운영 상태 (2026-05-31 기준)
+## ★ 운영 상태 (2026-05-31 최신화 — h7 당일익절 기능 추가)
 
 - **모드**: `TRADING_MODE=paper-self` (시뮬레이션, 검증 단계)
-- **자본**: `TOTAL_CAPITAL=200,000원` (2종목 분할, NEMESIS와 병행)
-- **현재 규칙**: **h7 (09:00 갭업 + cluster, 09:00~09:30 매수, D+1 09:00 매도)**
-- **env 토글**: `GAPUP_THRESHOLD=1.10` (10% 이상), `VOL_RATIO=5.0` (5배), `CLUSTER_MIN_CORR=0.42` (강함)
+- **자본**: `TOTAL_CAPITAL=200,000원` (2종목 50:50 분할, NEMESIS와 병행)
+- **현재 규칙**: **h7 (09:00 갭업 + spectral cluster + 거래량 5배) → 09:00 정적 매수 → [★ 당일 +5% 익절 OR D+1 09:00 매도]**
+- **env 설정**:
+  - `BUY_MODE=h7` (신호 유형)
+  - `H7_INTRADAY_TARGET=1.05` (★ 당일 익절 목표가, 1.05 = +5%)
+  - `GAPUP_THRESHOLD=1.10` (10% 이상)
+  - `VOL_RATIO=5.0` (5배 거래량)
+  - `CLUSTER_MIN_CORR=0.42` (강한 동조도)
+  - `CLUSTER_SIZE=8` (최소 멤버)
 - **포트폴리오 역할**:
-  - **NEMESIS**: 09:29 편차 신호, TRASH=0.34 (메인 엔진, **안정적**)
-  - **APEX (h7)**: 09:00 갭업 신호, cluster_corr≥0.42 (보조 엔진, **높은 승률**)
+  - **NEMESIS**: 09:29 편차 신호, TRASH=0.34 (메인 엔진, **안정적**, -10.77% MDD)
+  - **APEX (h7)**: 09:00 갭업 신호, 당일익절 ON (보조 엔진, **높은 승률** +3.01%, **낮은 MDD** -2.16%)
 
 ---
 
-## 30초 요약
+## 30초 요약 (2026-05-31 최신화 — 당일익절 포함)
 
-- **무엇**: 09:00 **갭업 감지** (close ≥ prev_close × 1.10) + **거래량 급증** (vol ≥ avg_vol × 5.0) + **spectral cluster 혼합** (avg_corr ≥ 0.42, size ≥ 8, |편차| ≥ 10 음수) → **09:00~09:30 동적 매수** → **D+1 09:00 시초가 매도**
-- **매매 구조**: **높은 승률** (64.8%), 일평균 +3.01% (매매당), 매매 빈도 250건/2년 (NEMESIS 127건의 2배)
-- **자본**: 2종목 50:50 분할
-- **포트**: 3101 (maint `real` 범위)
-- **알파 메커니즘**: 아침 gap기반 모멘텀 + 클러스터 동조도 재확인 → 조기 진입 후 D+1 mean reversion 청산
-- **키 발견**: 갭업률 vs 거래량 비율 임계값이 상한가 편향 방지의 핵심
+- **무엇**: 
+  - 09:00 **갭업** (close ≥ prev_close × 1.10, 10% 이상)
+  - **거래량 확인** (vol ≥ avg_vol × 5.0, 5배 이상) ← 상한가 편향 방지
+  - **spectral cluster 동조도** (avg_corr ≥ 0.42, size ≥ 8) ← 의미 있는 신호 확인
+  - **09:00 정적 매수** (day_open 가격)
+  - ★ **[당일익절]** D일: close ≥ entry × 1.05 (20.4% 확률)
+  - **[D+1 매도]** 미익절 포지션: D+1 시초가 시장가 (79.6%)
+
+- **성과** (2024-06 ~ 2026-05, 2년 백테):
+  - **매매**: 250건 (당일익절 51건 + D+1 매도 199건)
+  - **승률**: 64.8% (매매당)
+  - **평균수익**: +3.01% (매매당), 중앙값 +1.75%
+  - **MDD**: -2.16% (극도로 안전)
+  - **누적**: +460.6%
+  - **3M 윈도우**: 0/21 손실 (100% 양수)
+
+- **자본**: 2종목 50:50 분할 (각 100,000원)
+- **포트**: 3100 (paper-self 모드)
+- **알파 메커니즘**: 
+  - 갭업 + 강한 클러스터 = 진정성 있는 모멘텀
+  - 당일익절 = 빠른 회귀에 대응
+  - D+1 시초가 = 하루밤 지배구조 안정화 후 청산
+- **키 발견**: 거래량 5배 필터가 상한가 편향 95% 제거
 
 ---
 
@@ -77,27 +100,56 @@ if (gapupRatio >= 1.10 && volumeRatio >= 5.0 && clusterCorr >= 0.42 && deviance 
 
 ---
 
-## 매매 흐름 (h7 — 09:00 갭업 + 클러스터)
+## 매매 흐름 (h7 — 09:00 갭업 + 클러스터 + ★ 당일익절)
 
 ```
-[D 08:50] runMorningSell — 전일 매수 포지션 D+1 시초가 매도
+[D 08:50] runMorningSell — 전일 미익절 포지션 D+1 시초가 매도
   └─ KRX 휴일 가드: 주말/폐장일 skip
   └─ getOpenPositions().filter(buy_date < today) → day_open 시초가로 시장가 매도
-  └─ daily_pnl upsert
+  └─ daily_pnl upsert (당일익절 포함)
 
-[D 09:00~09:30] runGapupScan ★ 핵심 신호 생성 (동적 매수)
-  └─ stock-fetcher.scanAllStocks()
-       — KOSDAQ+KOSPI 전종목 09:00 close 데이터 (09:00:00 cutoff)
+[D 09:00~09:30] runGapupScan ★ h7 삼중 필터 신호 생성
+  └─ stock-fetcher.scanAllStocks() — KOSDAQ+KOSPI 전종목 09:00 close
   
-  └─ strategy.selectGapupPicks() ★ h7 삼중 필터
-       ├─ 조건 1: gapup_ratio >= 1.10 (10% 이상)
-       ├─ 조건 2: volume_ratio >= 5.0 (5배 이상) — ★ 거래량 확인 (상한가 편향 방지)
-       ├─ 조건 3: spectral cluster avg_corr >= 0.42 (강한 동조도) + size >= 8
-       ├─ 조건 4: |편차| >= 10, 음수만 (cluster 대비 비정상 낮음)
-       ├─ n(신호 수): 평균 1.31건/일 (NEMESIS 2.14 대비 -39%, 선택적 신호)
-       └─ picks 배열: code, gapup_ratio, volume_ratio, cluster_corr, deviance
+  └─ strategy.selectGapupPicks() ★ h7 핵심 필터
+       ├─ 조건 1: gapup_ratio >= 1.10 (10% 이상 갭업)
+       ├─ 조건 2: volume_ratio >= 5.0 (5배 거래량) ← 상한가 편향 방지
+       ├─ 조건 3: spectral cluster avg_corr >= 0.42 + size >= 8 ← 의미 있는 신호
+       ├─ 조건 4: |편차| >= 10, 음수만 ← cluster 대비 이상 낮음 (회귀 신호)
+       ├─ n(신호 수): 평균 1.3건/일 (선택적, 정확한 신호)
+       └─ picks: code, buy_price (day_open), gapup_ratio, volume_ratio, cluster_corr
+
+[D 09:01] runBuyH7 — 정적 매수 (당일 신호 일괄 매수)
+  └─ pending_buy에서 h7 신호 조회
+  └─ FOR each pick:
+       ├─ 상한가 가드: entry_price >= prev_close × 1.285 → skip
+       ├─ paper-self 모드: paperBroker.openPosition()
+       ├─ positions INSERT: {buy_date, code, buy_price, quantity, signal_source='h7_gapup'}
+       └─ trades 기록 (entry_type='h7_gapup')
+
+[D 09:05 ~ 14:30] ★ runH7IntradayCheck (매분 호출) — 당일익절 모니터링 ★
+  └─ 조건: H7_INTRADAY_TARGET > 1.0 (기본 1.05 = +5%)
+  └─ stock-fetcher.fetchStockDetail() — 각 종목 실시간 시세
   
-  └─ signal_log 기록: gapup + cluster 스냅샷 + 신호 시간(ms 단위)
+  └─ FOR each h7_gapup position (buy_date=today, status='open'):
+       ├─ target_price = buy_price × 1.05
+       ├─ IF currentPrice >= target_price:
+       │    ├─ positions.status: 'open' → 'closed'
+       │    ├─ trades INSERT: {exit_price, exit_date=today, exit_type='h7_intraday_5pct'}
+       │    └─ 익절 완료 (51건/250 = 20.4%)
+       │
+       └─ ELSE: 대기 (D+1 매도 대상)
+
+[D+1 08:50] runMorningSell (위와 동일)
+  └─ 미익절 포지션(status='open'): D+1 시초가 매도
+       ├─ positions.status: 'open' → 'closed'
+       ├─ trades INSERT: {exit_type='h7_t1_open'}
+       └─ D+1 매도 완료 (199건/250 = 79.6%)
+```
+
+**흐름 정리:**
+- **09:00 신호** → **09:01 매수** → [**당일 익절** (20.4%) OR **D+1 시초가 매도** (79.6%)]
+- **당일익절과 D+1 매도는 동일 poopulation에서 분기** (경로 결정은 후속 가격)
   └─ pending_buy 저장: vol_threshold=0, buy_time=09:00 (동적)
 
 [D 09:00~09:30] runDynamicBuyH7 (매분 체크)

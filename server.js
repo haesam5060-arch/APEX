@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// APEX — 14:30 클러스터 스캔 → 14:50 매수 → T+1 09:01 매도 자동매매 엔진
+// APEX — h7 갭업 + 클러스터 당일익절 엔진 (2026-05-31)
+// 09:00 갭업(10%) + 거래량(5배) + cluster(avg_corr≥0.42) → 09:01 정적 매수 → [당일 +5% 익절 OR D+1 시초가 매도]
 // NEMESIS 호환 API (대시보드 공용)
 // ═══════════════════════════════════════════════════════════════
 require('dotenv').config();
@@ -17,8 +18,8 @@ const TRADING_MODE   = process.env.TRADING_MODE || 'paper-self';
 const TOTAL_CAPITAL  = parseInt(process.env.TOTAL_CAPITAL) || 500000;
 
 const config = {
-  version: '0.1.0',
-  label:   'APEX v0.1.0 (14:30 클러스터 스캔 → 14:50 매수 → T+1 09:01 매도)',
+  version: '2.0.0',
+  label:   'APEX v2.0.0 (h7 갭업 + 클러스터 + 당일익절 | 09:01 매수 → 당일+5%익절 OR D+1 시초가 매도)',
   tradingMode: TRADING_MODE,
   perStockBudget: Math.floor(TOTAL_CAPITAL / 2),  // nPicks=2 기준 50:50
   slots: 2,
@@ -165,8 +166,8 @@ function _buildTodayEvents() {
     });
   }
 
-  // 14:30 스캔 결과 → signal 이벤트
-  const selectedSignals = signals.filter(s => s.selected === 1);
+  // 스캔 결과 → signal 이벤트 (pick_code 있는 signal_log 행)
+  const selectedSignals = signals.filter(s => s.pick_code);
   const tradeByCode = {};
   for (const t of trades) tradeByCode[t.code] = t;
 
@@ -178,59 +179,56 @@ function _buildTodayEvents() {
   // 신호가 있는 경우: pending별로 signal + (체결 시) buy 또는 buy_skip
   const signalByCode = {};
   for (const sig of selectedSignals) {
-    signalByCode[sig.code] = sig;
+    signalByCode[sig.pick_code] = sig;
   }
 
   for (const p of pendings) {
-    const sig = signalByCode[p.code] || selectedSignals[0]; // pending 연계 신호
+    const code = p.pick_code;
+    const name = p.pick_name;
+    const sig  = signalByCode[code] || selectedSignals[0]; // pending 연계 신호
 
     // 신호 이벤트 (rank별 1행)
     events.push({
-      time_kst:         sig?.scan_at || p.created_at,
+      time_kst:         sig?.signal_at || p.created_at,
       event:            'signal',
       rank:             p.rank,
-      code:             p.code,
-      name:             p.name,
-      change_rate:      sig?.change_rate,
-      cluster_strength: sig?.cluster_strength,
-      market:           p.market,
+      code,
+      name,
+      change_rate:      sig?.pick_change_rate,
+      cluster_corr:     sig?.pick_cluster_corr,
+      market:           p.pick_market,
     });
 
-    // 체결 또는 미체결
-    const trade = tradeByCode[p.code];
+    // 체결 또는 미체결 (consumed=1 → 체결, exit_type=blocked/failed → skip, 그 외 대기)
+    const trade = tradeByCode[code];
     if (trade) {
-      // 14:50 매수 완료 (정적 매수, exit_type='buy' 고정)
       events.push({
-        time_kst:         trade.buy_at,
-        event:            'buy',
-        rank:             p.rank,
-        code:             p.code,
-        name:             p.name,
-        price:            trade.buy_price,
-        qty:              trade.qty,
-        cluster_strength: p.cluster_strength,
-        change_rate:      p.change_rate,
+        time_kst:    trade.buy_at,
+        event:       'buy',
+        rank:        p.rank,
+        code,
+        name,
+        price:       trade.buy_price,
+        qty:         trade.qty,
       });
-    } else if (p.status === 'skipped') {
-      // 미체결 (상한가 가드 등)
+    } else if (p.consumed && (p.exit_type === 'blocked' || p.exit_type === 'failed' || p.exit_type === 'low_price')) {
+      // 미체결 (상한가 가드/차단/실패)
       events.push({
-        time_kst:         p.created_at,
-        event:            'buy_skip',
-        rank:             p.rank,
-        code:             p.code,
-        name:             p.name,
-        reason:           p.skip_reason || 'not_filled',
+        time_kst:    p.buy_time ? `${todayIso}T${p.buy_time.slice(0,2)}:${p.buy_time.slice(2,4)}:00.000Z` : p.created_at,
+        event:       'buy_skip',
+        rank:        p.rank,
+        code,
+        name,
+        reason:      p.exit_type,
       });
-    } else if (p.status === 'pending') {
-      // 14:50 대기 중 pending (미체결 상태)
+    } else if (!p.consumed) {
+      // 매수 대기 중 (미체결 pending)
       events.push({
-        time_kst:         p.created_at,
-        event:            'pending',
-        rank:             p.rank,
-        code:             p.code,
-        name:             p.name,
-        cluster_strength: p.cluster_strength,
-        change_rate:      p.change_rate,
+        time_kst:    p.created_at,
+        event:       'pending',
+        rank:        p.rank,
+        code,
+        name,
       });
     }
   }

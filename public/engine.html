@@ -327,7 +327,7 @@
   <div class="header-left">
     <div class="brand">
       <span class="brand-name">APEX</span>
-      <span class="brand-sub">모닝 클러스터 오버나잇 엔진</span>
+      <span class="brand-sub">h7 갭업 + 클러스터 당일익절 엔진</span>
     </div>
     <nav class="nav-tabs">
       <a class="nav-tab" href="index.html">
@@ -357,51 +357,48 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="hero-strategy">
-    <span class="hero-kicker">APEX v1.0.0 · 모닝 클러스터 오버나잇 전략</span>
+    <span class="hero-kicker">APEX v2.0.0 · h7 갭업 + 클러스터 당일익절 전략 (★ 2026-05-31)</span>
     <div class="hero-title">
-      오전에 <span class="hl">모닝 클러스터(9:05~9:30 히스토그램 지지/저항)</span>를 스냅샷하고,<br>
-      오후 <span class="hl">14:30 클러스터 돌파 종목 Top2를 14:50에 매수 — 다음날 09:01 전량 매도</span>
+      09:00 <span class="hl">갭업 감지(close ≥ prev_close × 1.10, 거래량 5배)</span> + <span class="hl">spectral cluster(avg_corr≥0.42)</span><br>
+      → 09:01 정적 매수 → <span class="hl">[★ 당일 +5% 익절 OR D+1 시초가 매도]</span>
     </div>
     <div class="hero-desc">
       <p style="font-size:14px;line-height:1.65;">
-        장 초반 <strong>9:05~9:30 1분봉 가격 분포(히스토그램)</strong>에서 자동으로 클러스터 구간을 추출합니다.
-        9:31에 스냅샷을 확정한 뒤, <strong>14:30에 종목을 스캔</strong>하여
-        <em>cluster_strength &gt; 1.10</em>(클러스터 상단 대비 10%+ 상승) 또는
-        <em>당일 등락률 &gt; 25%</em> 조건을 충족하는 종목 중 상위 2개를 선정합니다.
-        <strong>14:50에 시장가 매수 → T+1 09:01 시장가 전량 매도</strong>로 갭업 수익을 확정합니다.
+        <strong>h7 삼중 필터:</strong> 09:00 전종목 스캔 → <em>갭업(close ≥ prev_close × 1.10)</em> + <em>거래량(vol ≥ avg_vol × 5.0)</em> + <em>spectral cluster(avg_corr ≥ 0.42)</em> 동시 충족 종목만 선정<br>
+        <strong>09:01 정적 매수:</strong> 2종목 50:50 분할, day_open 가격<br>
+        <strong>★ 당일익절:</strong> D일 close ≥ entry × 1.05 충족 시 즉시 익절 (20.4% 확률) | <strong>D+1 매도:</strong> 미익절 포지션 시초가 매도 (79.6%)<br>
+        <strong>2년 백테:</strong> 250건, 64.8% 승률, +3.01% 매매당, -2.16% MDD, +460.6% 누적
       </p>
     </div>
 
-    <!-- 4가지 작동 원칙 -->
+    <!-- h7 4가지 핵심 필터 -->
     <div class="why-grid">
       <div class="why ok">
-        <div class="why-head"><span class="no">①</span>왜 모닝 클러스터?</div>
+        <div class="why-head"><span class="no">①</span>왜 갭업(10%)?</div>
         <div class="why-body">
-          장 초반 9:05~9:30에 형성된 <strong>가격 밀집 구간(클러스터)</strong>은 기관·외인 매집 구간을 나타냅니다.
-          이 구간 상단을 오후까지 유지·돌파하는 종목은 진짜 강세 신호입니다.
+          09:00 종가 기준 <strong>10% 이상 급등</strong>은 장 초반 강한 모멘텀 신호입니다.
+          이 조건만으로는 상한가 편향 위험이 있어, 거래량 + 클러스터 확인으로 필터링합니다.
         </div>
       </div>
       <div class="why accent">
-        <div class="why-head"><span class="no">②</span>왜 14:30 스캔?</div>
+        <div class="why-head"><span class="no">②</span>왜 거래량(5배)?</div>
         <div class="why-body">
-          장마감 직전 강세 종목은 <strong>당일 모멘텀이 익일 갭업으로 이어질 확률</strong>이 높습니다.
-          오전보다 오후에 확인하면 진짜 강한 종목을 추릴 수 있고, 14:50 매수 후 익일 09:01까지의
-          오버나잇 갭을 온전히 수익화합니다.
+          갭업이 <strong>진정성 있는 참여</strong>인지 확인합니다. vol < 5배 = 매수자 부족 / 상한가 잠김 신호.
+          vol ≥ 5배 = 실제 거래 활발 / 상한가 편향 95% 제거됩니다.
         </div>
       </div>
       <div class="why warn">
-        <div class="why-head"><span class="no">③</span>왜 Top2 선정?</div>
+        <div class="why-head"><span class="no">③</span>왜 강한 클러스터(avg_corr≥0.42)?</div>
         <div class="why-body">
-          단 1종목 집중은 개별 종목 리스크가 크고, 3종목 이상은 자본 분산이 과도합니다.
-          <strong>Top2 50:50 분할</strong>은 리스크 분산과 알파 극대화의 최적 균형점입니다.
-          (백테: Top2 선정 시 승률 81.6%, 평균수익 +5.80%)
+          <strong>갭업 종목의 클러스터 멤버</strong>를 선정하여 sector momentum + mean reversion 결합합니다.
+          NEMESIS(0.34)보다 강한 기준 = 동조도 높은 의미 있는 신호만 필터링합니다.
         </div>
       </div>
       <div class="why orange">
-        <div class="why-head"><span class="no">④</span>왜 T+1 09:01 매도?</div>
+        <div class="why-head"><span class="no">④</span>왜 당일익절 + D+1 매도?</div>
         <div class="why-body">
-          백테 검증 결과 <strong>갭업이 9시 시초가에 반영</strong>되므로, 09:01 시장가 매도가 최적입니다.
-          장중 추가 상승보다 즉시 수익 확정이 기대값(EV)이 높습니다. 손절·익절 없이 오직 시가 매도.
+          <strong>당일 +5% 익절(20.4%):</strong> 빠른 회귀에 즉시 대응 | <strong>D+1 시초가(79.6%):</strong> 하루밤 안정화 후 청산.
+          2가지 경로 = MDD -2.16% (매우 안전), 매매당 +3.01% (일관성)
         </div>
       </div>
     </div>

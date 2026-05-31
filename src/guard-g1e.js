@@ -27,33 +27,35 @@ const SKIP_K = 3;           // 트리거 시 다음 K 매매일 skip
 const COOLDOWN_K = 3;       // 가드 해제 후 K 매매일 동안 재트리거 면제
 
 // ── 스키마 초기화 ────────────────────────────────────────────
-db.exec(`
-  CREATE TABLE IF NOT EXISTS guard_state (
-    id                    INTEGER PRIMARY KEY CHECK (id = 1),
-    skip_remaining        INTEGER NOT NULL DEFAULT 0,
-    cooldown_remaining    INTEGER NOT NULL DEFAULT 0,
-    last_trigger_date     TEXT,
-    last_trigger_cum_pct  REAL,
-    total_trigger_count   INTEGER NOT NULL DEFAULT 0,
-    updated_at            TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
-  );
-`);
-db.prepare(`
-  INSERT OR IGNORE INTO guard_state
-    (id, skip_remaining, cooldown_remaining, total_trigger_count, updated_at)
-  VALUES (1, 0, 0, 0, datetime('now', 'localtime'))
-`).run();
+// ★ db.js 스키마와 동일하게 유지 (싱글톤 guard_state)
+// 이미 db.js에서 테이블 생성, 여기서는 SELECT/UPDATE 쿼리만 사용
+// db.exec(`CREATE TABLE ...`)은 호출하지 않음 (중복 정의 방지)
+
+// db.js 스키마 확인:
+//   CREATE TABLE IF NOT EXISTS guard_state (
+//     id INTEGER PRIMARY KEY CHECK (id = 1),
+//     mode TEXT NOT NULL,
+//     skip_remaining INTEGER DEFAULT 0,
+//     cooldown_remaining INTEGER DEFAULT 0,
+//     last_trigger_date TEXT,
+//     last_signal_date TEXT,
+//     cum_return_4d REAL DEFAULT 0.0,
+//     updated_at TEXT NOT NULL
+//   );
 
 // ── 내부 statements ──────────────────────────────────────────
 const _stm = {
   get: db.prepare(`SELECT * FROM guard_state WHERE id = 1`),
+  // ★ db.js 스키마와 일치: mode, skip_remaining, cooldown_remaining, last_trigger_date,
+  //   last_signal_date, cum_return_4d, updated_at
   update: db.prepare(`
     UPDATE guard_state SET
+      mode = @mode,
       skip_remaining = @skip_remaining,
       cooldown_remaining = @cooldown_remaining,
       last_trigger_date = @last_trigger_date,
-      last_trigger_cum_pct = @last_trigger_cum_pct,
-      total_trigger_count = @total_trigger_count,
+      last_signal_date = @last_signal_date,
+      cum_return_4d = @cum_return_4d,
       updated_at = datetime('now', 'localtime')
     WHERE id = 1
   `),
@@ -109,9 +111,17 @@ function reset() {
  * }
  */
 function checkAndApply(mode, signalDate) {
+  // ★ db.js 스키마와 일치: id, mode, skip_remaining, cooldown_remaining,
+  //   last_trigger_date, last_signal_date, cum_return_4d, updated_at
   const before = _stm.get.get() || {
-    skip_remaining: 0, cooldown_remaining: 0,
-    last_trigger_date: null, last_trigger_cum_pct: null, total_trigger_count: 0,
+    id: 1,
+    mode: mode,
+    skip_remaining: 0,
+    cooldown_remaining: 0,
+    last_trigger_date: null,
+    last_signal_date: null,
+    cum_return_4d: 0,
+    updated_at: new Date().toISOString(),
   };
 
   // ─── 1) skip 활성 중 ───────────────────────────────────────
@@ -119,11 +129,12 @@ function checkAndApply(mode, signalDate) {
     const newSkip = before.skip_remaining - 1;
     const newCooldown = (newSkip === 0) ? COOLDOWN_K : before.cooldown_remaining;
     _stm.update.run({
+      mode: mode,
       skip_remaining: newSkip,
       cooldown_remaining: newCooldown,
       last_trigger_date: before.last_trigger_date,
-      last_trigger_cum_pct: before.last_trigger_cum_pct,
-      total_trigger_count: before.total_trigger_count,
+      last_signal_date: before.last_signal_date || signalDate,
+      cum_return_4d: before.cum_return_4d || 0,
     });
     return {
       action: 'skip_active',
@@ -138,11 +149,12 @@ function checkAndApply(mode, signalDate) {
   // ─── 2) cooldown 중 → 정상 매매 + cooldown 차감, 트리거 체크 안 함 ───
   if (before.cooldown_remaining > 0) {
     _stm.update.run({
+      mode: mode,
       skip_remaining: 0,
       cooldown_remaining: before.cooldown_remaining - 1,
       last_trigger_date: before.last_trigger_date,
-      last_trigger_cum_pct: before.last_trigger_cum_pct,
-      total_trigger_count: before.total_trigger_count,
+      last_signal_date: signalDate,
+      cum_return_4d: recentCum || 0,
     });
     return {
       action: 'pass',
@@ -175,11 +187,12 @@ function checkAndApply(mode, signalDate) {
     const newSkip = SKIP_K - 1;
     const newCooldown = (newSkip === 0) ? COOLDOWN_K : 0;
     _stm.update.run({
+      mode: mode,
       skip_remaining: newSkip,
       cooldown_remaining: newCooldown,
       last_trigger_date: signalDate,
-      last_trigger_cum_pct: cum,
-      total_trigger_count: before.total_trigger_count + 1,
+      last_signal_date: signalDate,
+      cum_return_4d: cum,
     });
     return {
       action: 'skip_triggered',

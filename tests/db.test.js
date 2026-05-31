@@ -183,6 +183,7 @@ async function run() {
   await t('insertPendingBuy: 정상 INSERT', async () => {
     stmts.insertPendingBuy.run({
       signal_date: '20260601',
+      signal_type: 'spectral',  // h7 신호 추가 (2026-05-31)
       rank: 1,
       weight: 0.5,
       pick_code: 'A012330',
@@ -192,6 +193,7 @@ async function run() {
       pick_deviation: -15.5,
       pick_abs_dev: 15.5,
       pick_market: 'KOSDAQ',
+      pick_buy: 67000,
       vol_threshold: 2_500_000,
       created_at: new Date().toISOString(),
     });
@@ -200,6 +202,7 @@ async function run() {
       .get('20260601', 1);
     assertNotNull(row, 'INSERT 후 SELECT 확인');
     assertEq(row.pick_code, 'A012330');
+    assertEq(row.pick_buy, 67000);
     assertEq(row.vol_threshold, 2_500_000);
     assertEq(row.consumed, 0);
   });
@@ -243,6 +246,7 @@ async function run() {
     stmts.insertSignalLog.run({
       signal_date: '20260601',
       signal_at: now,
+      signal_type: 'spectral',  // h7 신호 추가 (2026-05-31)
       pick_code: 'A012330',
       pick_name: '현대모비스',
       pick_buy: 67000,
@@ -274,6 +278,7 @@ async function run() {
     stmts.insertSignalLog.run({
       signal_date: '20260602',
       signal_at: now,
+      signal_type: 'spectral',  // h7 신호 추가 (2026-05-31)
       pick_code: null,
       pick_name: null,
       pick_buy: null,

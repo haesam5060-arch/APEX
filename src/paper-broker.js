@@ -45,6 +45,7 @@ function openPosition(pick, budget) {
   const buyDate = todayKstDate();
   const qty     = Math.max(1, Math.floor(budget / pick.buy));
 
+  // ★ insertPosition 명명 파라미터와 정확히 일치해야 함 (better-sqlite3는 불일치 시 throw)
   const row = {
     code:               pick.code,
     name:               pick.name,
@@ -54,12 +55,16 @@ function openPosition(pick, budget) {
     buy_at:             buyAt,
     buy_date:           buyDate,
     mode:               'paper-self',
-    // R4.2.1 포팅: cluster_strength 대신 spectral cluster 속성 저장
+    // R4.2.1 포팅: spectral cluster 속성 저장
     cluster_id:         pick.cluster_id ?? null,
-    cluster_size:       pick.cluster_size ?? null,
     signal_source:      pick.signal_source || null,
     deviation:          pick.deviation ?? null,
     abs_dev:            pick.abs_dev ?? null,
+    top10_rank:         pick.top10_rank ?? null,
+    change_rate_929:    pick.change_rate_929 ?? pick.change_rate_900 ?? null,
+    rank:               pick.rank ?? 1,
+    weight:             pick.weight ?? 1.0,
+    signal_date:        pick.signal_date ?? null,
   };
 
   let opened = null;
@@ -91,6 +96,7 @@ function closePosition(pos, sellPrice, feeRoundTripPct = 0.0035, exitReason = 'n
   const returnPct = sellPrice / pos.buy_price - 1 - feeRoundTripPct;
 
   db.transaction(() => {
+    // ★ insertTrade 명명 파라미터와 정확히 일치해야 함 (better-sqlite3는 불일치 시 throw)
     stmts.insertTrade.run({
       code:             pos.code,
       name:             pos.name,
@@ -107,8 +113,11 @@ function closePosition(pos, sellPrice, feeRoundTripPct = 0.0035, exitReason = 'n
       exit_reason:      exitReason,
       fee_paid:         fee,
       mode:             'paper-self',
-      cluster_strength: pos.cluster_strength ?? null,
-      change_rate:      pos.change_rate       ?? null,
+      signal_date:      pos.signal_date    ?? null,
+      cluster_id:       pos.cluster_id     ?? null,
+      signal_source:    pos.signal_source  ?? null,
+      rank:             pos.rank           ?? 1,
+      weight:           pos.weight         ?? 1.0,
     });
     stmts.closePosition.run(pos.id);
     _addPaperCash(sellPrice * pos.qty - fee);
