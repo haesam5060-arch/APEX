@@ -337,7 +337,7 @@
           <tbody>
             <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날 매수한 종목을 9시 시초가로 자동 매도 (어제 거래 정산)</td></tr>
             <tr class="highlight"><td><strong>09:00</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
-              ① KOSDAQ 갭업(10%↑) + 거래량(5배↑) 종목 스캔<br>
+              ① 전종목(KOSDAQ+KOSPI) 갭업(10%↑) + 거래량(5배↑) 스캔<br>
               ② 그 종목의 spectral cluster(동조도≥0.42, 멤버≥8) 확인<br>
               ③ 클러스터 멤버 중 09:00 등락률 가장 낮은 2종목 선정<br>
               ④ 상한가 가드(28.5%) 적용<br>
@@ -369,7 +369,7 @@
         <div class="tf-box">
           <div class="tf-label">1단계</div>
           <div class="tf-value">갭업 감지</div>
-          <div class="tf-sub">close ≥ prev_close × 1.10 + volume ≥ avg_vol × 5.0</div>
+          <div class="tf-sub">전종목 스캔 (KOSDAQ+KOSPI)<br>10%↑ + 거래량 5배↑</div>
         </div>
         <div class="tf-box accent">
           <div class="tf-label">2단계</div>
@@ -379,12 +379,12 @@
         <div class="tf-box accent">
           <div class="tf-label">3단계</div>
           <div class="tf-value">클러스터 필터</div>
-          <div class="tf-sub">avg_corr ≥ 0.42 + 멤버 ≥ 8 (강한 동조만)</div>
+          <div class="tf-sub">avg_corr ≥ 0.42 + 멤버 ≥ 8<br>(강한 동조만)</div>
         </div>
         <div class="tf-box pick">
           <div class="tf-label">4단계 ★</div>
           <div class="tf-value" style="color:var(--green);">약한 2종목</div>
-          <div class="tf-sub">09:00 등락률 낮은 순 top1·2 (50:50 분할)</div>
+          <div class="tf-sub">클러스터 내 등락률 낮은<br>top1·2 (50:50 분할)</div>
         </div>
       </div>
 
