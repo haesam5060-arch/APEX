@@ -19,6 +19,7 @@ const path = require('path');
 const { db, log, stmts } = require('./db');
 const paperBroker = require('./paper-broker');
 const realBroker = require('./real-broker');
+const { fetchOrderbook, estimateFillPrice } = require('./stock-fetcher');
 const { PRICE_GUARD_PCT } = require('./strategy');
 
 const UV_BIN = process.env.UV_BIN || '/opt/homebrew/bin/uv';
@@ -252,7 +253,41 @@ async function executeBuy(pending, currentPrice, exitType, buyTime, cumVol, opts
     return null;
   }
 
+  // ★ 호가 가드 (R1.1 신규) — 매도 호가 부재 = 상한가 잠김 = 체결 불가능
+  //   상한가 함정 해결: 43~54% 종목이 호가 없어서 체결되지 않는 현상 방지
+  let orderbook = null;
+  try {
+    orderbook = await fetchOrderbook(pending.pick_code);
+  } catch (e) {
+    log.warn('DYN_BUY',
+      `[ASK_GUARD] 호가 조회 실패 ${pending.pick_name}(${pending.pick_code}): ${e.message}`);
+    // 호가 조회 실패 = 네트워크 이슈 → pending 유지 (재시도 가능)
+    throw e;
+  }
+
+  if (!orderbook || !orderbook.asks || orderbook.asks.length === 0) {
+    log.warn('DYN_BUY',
+      `[ASK_GUARD] ${pending.pick_name}(${pending.pick_code}) skip — ` +
+      `매도호가 없음 (상한가 잠김, 체결 불가능)`);
+    stmts.markPendingBought.run(buyTime, `${exitType}_no_ask`, cumVol, pending.id);
+    return null;
+  }
+
+  // ask1 잔량 vs 주문 규모 비교 (슬리피지 검사)
   const capital = totalCapital * (pending.weight || 1.0);
+  const estimatedQty = Math.floor(capital / currentPrice);
+  const ask1Qty = orderbook.asks[0].qty;
+
+  if (estimatedQty > ask1Qty * 10) {
+    // ask1의 10배 이상 → 슬리피지 심각, 여러 단계 호가 뚫려야 함
+    const estimatedFill = estimateFillPrice(orderbook.asks, capital);
+    log.warn('DYN_BUY',
+      `[ASK_GUARD] ${pending.pick_name}(${pending.pick_code}) skip — ` +
+      `호가 부족 (주문량=${estimatedQty.toLocaleString()}주 > ask1=${ask1Qty.toLocaleString()}주×10) ` +
+      `추정 체결가=${estimatedFill?.toLocaleString() || 'null'}원`);
+    stmts.markPendingBought.run(buyTime, `${exitType}_slippage`, cumVol, pending.id);
+    return null;
+  }
 
   const pick = {
     code: pending.pick_code,
