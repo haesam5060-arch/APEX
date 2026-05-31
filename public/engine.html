@@ -1336,12 +1336,13 @@
       setText('kvSignalTime', sch.signal_scan || sch.signal_buy);
       setText('kvSellTime', sch.morning_sell);
 
-      // ── 라이브 시그널 카드 (최근 signal_log 1건) ─────
-      const signals = d.recent_signals || [];
-      const sig = signals[0];
+      // ── 라이브 시그널 카드 (APEX todayEvents: event='signal') ─────
+      const events = d.recent_signals || [];
+      const sigEvents = events.filter(e => e && e.event === 'signal');
+      const buyEvents = events.filter(e => e && (e.event === 'buy' || e.event === 'triggered_buy'));
       const liveMeta = document.getElementById('sigLiveMeta');
-      if (!sig) {
-        if (liveMeta) liveMeta.textContent = '시그널 누적 대기 중 (평일 09:00~15:20)';
+      if (sigEvents.length === 0) {
+        if (liveMeta) liveMeta.textContent = '오늘 갭업 신호 대기 중 (평일 09:00 스캔)';
         return;
       }
 
@@ -1349,52 +1350,49 @@
         const e = document.getElementById(id);
         if (!e) return;
         const n = Number(count) || 0;
-        const d2 = Number(denom) || 20;
+        const d2 = Number(denom) || 1;
         const pct = Math.max(0, Math.min(100, Math.round(n / d2 * 100)));
         e.style.width = pct + '%';
       };
 
-      // 활성 cluster (NEMESIS 컬럼)
-      const clusterDesc = sig.pick_cluster_id != null
-        ? `cluster #${sig.pick_cluster_id}` + (sig.pick_signal_source ? ` (${sig.pick_signal_source})` : '')
-        : '— (활성 cluster 없음)';
-      setText('sigTop1Theme', clusterDesc);
-      setText('sigTop1Count', sig.pick_cluster_count != null ? sig.pick_cluster_count : '—');
-      setText('sigN20', sig.n_top10 != null ? sig.n_top10 : '10');
-      setBarPct('sigTop1Bar', sig.pick_cluster_count, sig.n_top10 || 10);
+      // rank 순 정렬 (rank1·rank2 = 매수 픽 2종목)
+      sigEvents.sort((a, b) => (a.rank || 99) - (b.rank || 99));
+      const sig = sigEvents[0];
 
-      // 신호 소스 (우선순위 표시, R4.2.1에서 multitime/W=10/W=15 모두 미사용)
-      const srcMap = { 's16_w20': 'spectral W=20', 's16_w5': 'spectral W=5' };
-      setText('sigTop2Theme', sig.pick_signal_source ? srcMap[sig.pick_signal_source] || sig.pick_signal_source : '—');
-      setText('sigTop2Count', sig.pick_abs_dev != null ? `|편차|=${Number(sig.pick_abs_dev).toFixed(2)}` : '—');
-      setBarPct('sigTop2Bar', sig.pick_abs_dev, 50); // |편차| 최대 50 기준 막대
+      // 매수 픽 카드: 갭업 클러스터 + 픽 종목들
+      const corr = sig.cluster_corr != null ? Number(sig.cluster_corr).toFixed(2) : '—';
+      setText('sigTop1Theme', `갭업 클러스터 (corr ${corr})`);
+      setText('sigTop1Count', sigEvents.length);
+      setText('sigN20', 2);
+      setBarPct('sigTop1Bar', sigEvents.length, 2);
 
-      // 매수 종목
-      if (sig.pick_excluded) {
-        setText('sigPickName', '(매수 제외)');
-        setText('sigPickCode', sig.pick_excluded_reason ? `· ${sig.pick_excluded_reason}` : '');
-        setText('sigPickChg', '');
-        const ex = document.getElementById('sigPickExcluded');
-        if (ex) ex.textContent = '⚠ excluded';
-      } else {
-        setText('sigPickName', sig.pick_name || '—');
-        setText('sigPickCode', sig.pick_code ? `(${sig.pick_code})` : '');
-        const dev = sig.pick_deviation;
-        setText('sigPickChg', dev != null ? `편차 ${dev >= 0 ? '+' : ''}${Number(dev).toFixed(2)}` : '');
-      }
+      // 신호 소스
+      setText('sigTop2Theme', '갭업 10%↑ + 거래량 5배↑ → spectral cluster');
+      setBarPct('sigTop2Bar', sigEvents.length, 2);
+
+      // 매수 종목 (rank1·2 묶어서 표시)
+      const pickNames = sigEvents.map(s => {
+        const mk = s.market ? `[${s.market}]` : '';
+        const cr = s.change_rate != null ? ` ${Number(s.change_rate) >= 0 ? '+' : ''}${Number(s.change_rate).toFixed(1)}%` : '';
+        return `${mk} ${s.name || s.code}${cr}`;
+      });
+      setText('sigPickName', pickNames[0] || '—');
+      setText('sigPickCode', sig.code ? `(${sig.code})` : '');
+      const chg = sig.change_rate;
+      setText('sigPickChg', chg != null ? `${Number(chg) >= 0 ? '+' : ''}${Number(chg).toFixed(1)}%` : '');
+      const ex = document.getElementById('sigPickExcluded');
+      if (ex && pickNames[1]) ex.textContent = `· 2픽: ${pickNames[1]}`;
 
       // 스캔 메타
-      const at = sig.signal_at || '';
-      setText('sigAt', at ? at.replace('T', ' ').slice(0, 19) : '—');
-      setText('sigN20Live', sig.n_top10 != null ? sig.n_top10 : '—');
-      setText('sigNThemes', sig.n_clusters_active != null ? sig.n_clusters_active : '—');
-      setText('sigNScanned', sig.n_scanned != null ? Number(sig.n_scanned).toLocaleString() : '—');
+      const at = sig.time_kst || '';
+      setText('sigAt', at ? String(at).replace('T', ' ').slice(0, 19) : '—');
+      setText('sigN20Live', sigEvents.length);
+      setText('sigNThemes', new Set(sigEvents.map(s => s.cluster_corr)).size || '—');
+      setText('sigNScanned', buyEvents.length ? `${buyEvents.length} 체결` : '대기');
 
       // 메타 라벨
       if (liveMeta) {
-        const dateStr = sig.signal_date || '';
-        const tag = sig.derive_only ? 'derive (관찰)' : '★ 매수 시그널';
-        liveMeta.textContent = `${dateStr} · ${tag} · 누적 ${signals.length}건`;
+        liveMeta.textContent = `오늘 · ★ 갭업 매수 신호 ${sigEvents.length}건${buyEvents.length ? ` · 체결 ${buyEvents.length}` : ''}`;
       }
     } catch (e) { /* silent */ }
   }
