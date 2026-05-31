@@ -248,6 +248,10 @@ _safeAlter(`ALTER TABLE signal_log ADD COLUMN signal_type TEXT DEFAULT 'spectral
 _safeAlter(`ALTER TABLE pending_buy ADD COLUMN signal_type TEXT DEFAULT 'spectral'`);  // 동일
 _safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_buy    INTEGER`);                   // h7 매수 참고가 (qty 계산용)
 
+// h7 지정가 매도 지원 (2026-06-01) — 폴링 제거, 지정가 주문 관리
+_safeAlter(`ALTER TABLE positions ADD COLUMN limit_order_price  INTEGER`);              // h7 지정가 가격 (buy_price × 1.05)
+_safeAlter(`ALTER TABLE positions ADD COLUMN limit_order_filled_at TEXT`);              // 지정가 체결 시각 (ISO 타임스탬프)
+
 // ── helpers ─────────────────────────────────────
 function logMsg(level, category, message) {
   try {

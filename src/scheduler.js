@@ -1,17 +1,20 @@
 // ═══════════════════════════════════════════════════════════════
-// APEX 스케줄러 — spectral cluster + 동적 매수 (NEMESIS 포팅, TRASH=0.30)
+// APEX 스케줄러 — h7 갭업 클러스터 엔진 (2026-06-01)
+//   + NEMESIS R4.2 호환 (spectral cluster + 동적 매수)
 //
 // 매일 KST (평일):
-//   08:50           - 전일 매수 포지션 D+1 동시호가 매도 (09:00 시초가 체결)
-//   09:29           - 스캔 → Top10 → 서랍 시그널 (TRASH=0.30) → pending_buy 저장 (매수 X)
-//   09:36~14:29     - 매분 cum_vol 폴링 → 2.5M 도달 시 시장가 매수 (triggered)
-//   14:30           - 미트리거 pending 일괄 매수 (fallback)
-//   D+1 09:00       - 시초가 매도
+//   [h7 모드]
+//     08:50         - 전일 미체결 지정가 취소 + D+1 시초가 매도
+//     09:00         - 갭업 스캔 (10% + vol 5배 + cluster)
+//     09:01         - 정적 매수 + 지정가 주문 생성 (buy_price × 1.05)
+//     [당일익절]    - 지정가로 자동 체결 (폴링 불필요)
 //
-// 차이점 vs 구 APEX:
-//   - cluster_strength (비율) → spectral clustering (편차)
-//   - 14:50 정적 매수 → 09:36~14:29 동적 + 14:30 fallback
-//   - pending_buy: vol_threshold, cum_vol, buy_time, exit_type 추가
+//   [NEMESIS R4.2 호환 모드 (BUY_MODE=dynamic_v2500k)]
+//     08:50         - 전일 매수 포지션 D+1 시초가 매도
+//     09:29         - 스캔 → Top10 → spectral cluster
+//     09:36~14:29   - cum_vol 폴링 → 2.5M 트리거 시 시장가 매수
+//     14:30         - fallback 매수
+//     D+1 09:00     - 시초가 매도
 // ═══════════════════════════════════════════════════════════════
 
 'use strict';
@@ -185,6 +188,36 @@ async function runBuyH7() {
           );
           if (buyResult.success) {
             stmts.markPendingBought.run('0901', 'h7_static', 0, pending.id);
+
+            // ★ h7 지정가 매도 주문 생성 (2026-06-01)
+            const limitPrice = Math.round(buyResult.price * H7_INTRADAY_TARGET);
+            try {
+              const limitResult = await realBroker.placeStopLimitOrder?.(
+                { code: pending.pick_code, name: pending.pick_name },
+                buyResult.qty,
+                limitPrice,
+                _config.strategy,
+                _kisCfg()
+              );
+              if (limitResult?.success) {
+                // 포지션 테이블에 limit_order_price 저장 (추적용)
+                stmts.db.prepare(`
+                  UPDATE positions
+                  SET limit_order_price = ?
+                  WHERE code = ? AND status = 'open' AND buy_date = ?
+                  LIMIT 1
+                `).run(limitPrice, pending.pick_code, todayKstDate().replace(/-/g, ''));
+                log.info('SCHED',
+                  `  [KIS] h7 지정가 매도 주문 생성: ${pending.pick_name}(${pending.pick_code}) 수량=${buyResult.qty} @${limitPrice}`);
+              } else {
+                log.warn('SCHED',
+                  `  [KIS] h7 지정가 주문 생성 실패 (매수는 성공): ${pending.pick_name}(${pending.pick_code})`);
+              }
+            } catch (e) {
+              log.warn('SCHED',
+                `  [KIS] h7 지정가 주문 생성 오류: ${pending.pick_name}(${pending.pick_code}) — ${e.message}`);
+            }
+
             log.info('SCHED', `  [KIS] h7 매수 성공: ${pending.pick_name}(${pending.pick_code}) @${buyResult.price}`);
             // sendBuy(pick, opened, mode) — opened에 qty/buy_price 필요
             await discord.sendBuy?.(
@@ -214,7 +247,19 @@ async function runBuyH7() {
             capital
           );
           stmts.markPendingBought.run('0901', 'h7_static', 0, pending.id);
-          log.info('SCHED', `  [paper] h7 매수 성공: ${pending.pick_name}(${pending.pick_code}) @${pending.pick_buy}`);
+
+          // ★ h7 지정가 매도 주문 저장 (2026-06-01)
+          // 당일 익절: limit_order_price = buy_price × 1.05
+          const limitPrice = Math.round(pending.pick_buy * H7_INTRADAY_TARGET);
+          stmts.db.prepare(`
+            UPDATE positions
+            SET limit_order_price = ?
+            WHERE id = ?
+          `).run(limitPrice, opened.id);
+
+          log.info('SCHED',
+            `  [paper] h7 매수 성공: ${pending.pick_name}(${pending.pick_code}) @${pending.pick_buy} ` +
+            `[지정가 ${limitPrice} (${(H7_INTRADAY_TARGET * 100).toFixed(0)}%)]`);
           // sendBuy(pick, opened, mode) — opened에 qty/buy_price 필요
           await discord.sendBuy?.(
             { code: pending.pick_code.replace(/^A/, ''), name: pending.pick_name, theme: 'h7', change_rate_901: null },
@@ -233,14 +278,15 @@ async function runBuyH7() {
   }
 }
 
-// ── h7 당일 +5% 익절 체크 (09:05~14:30 매분) ─────────────────────
+// ── h7 당일 +5% 익절 체크 (paper-self 모드용, 09:05~14:30 매분) ─────────────────────
 /**
- * h7 당일 익절 체크: 현재 보유 포지션 (h7_gapup 매도) 중
- * exit_type='h7_static'이고 agg_price >= buy_price × 1.05이면 매도
+ * h7 당일 익절 체크 (paper-self 모드만)
+ * - KIS 실전/paper: 지정가 주문으로 자동 관리 (폴링 불필요)
+ * - paper-self: 네이버 API로 현재가 조회 후 지정가 체결 판단
  */
 async function runH7IntradayCheck() {
-  if (H7_INTRADAY_TARGET <= 1.0) {
-    // 당일 익절 비활성화
+  if (H7_INTRADAY_TARGET <= 1.0 || _isRealMode()) {
+    // KIS 모드에서는 지정가가 자동 관리되므로 skip
     return;
   }
 
@@ -253,26 +299,19 @@ async function runH7IntradayCheck() {
     const today = todayKstDate();
     const todayYmd = today.replace(/-/g, '');
 
-    // h7_gapup 신호로 매수한 당일 포지션만
-    // status='open' AND signal_source='h7_gapup' AND buy_date=today
-    let h7Positions = [];
-    try {
-      h7Positions = stmts.db.prepare(`
-        SELECT * FROM positions
-        WHERE status = 'open' AND signal_source = 'h7_gapup' AND buy_date = ?
-        ORDER BY buy_price ASC
-      `).all(todayYmd) || [];
-    } catch (e) {
-      log.warn('SCHED', `h7 당일 익절 쿼리 실패: ${e.message}`);
-      h7Positions = [];
-    }
+    // h7_gapup 신호로 매수한 당일 포지션 중 미체결 지정가
+    const h7Positions = stmts.db.prepare(`
+      SELECT * FROM positions
+      WHERE status = 'open' AND signal_source = 'h7_gapup' AND buy_date = ?
+        AND limit_order_price > 0 AND limit_order_filled_at IS NULL
+      ORDER BY buy_price ASC
+    `).all(todayYmd) || [];
 
     if (!h7Positions || h7Positions.length === 0) {
       return;
     }
 
-    // 각 포지션 가격 조회 + 익절 체크
-    const soldPositions = [];
+    // 각 포지션 현재가 조회 + 지정가 체결 판정
     const now = new Date();
     const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
 
@@ -280,83 +319,51 @@ async function runH7IntradayCheck() {
       try {
         const detail = await fetchStockDetail(pos.code);
         if (!detail || detail.error) {
-          log.warn('SCHED', `h7 익절 가격 조회 실패: ${pos.code} — ${detail?.error || 'unknown'}`);
           continue;
         }
 
-        const currentPrice = detail.close || detail.open || 0;
-        const targetPrice = pos.buy_price * H7_INTRADAY_TARGET;
+        // ★ 판정 기준 = 당일 누적 고가(high) (2026-06-01)
+        //   현재가(close)로 판정하면 분봉 사이 순간 터치를 놓쳐 백테(분봉 high)와 괴리.
+        //   네이버 detail.high는 당일 누적 최고가이므로, 한 번이라도 limit을 터치했으면 잡힘
+        //   → 매분 폴링이어도 백테 지정가 체결 모델과 정합 (글로벌 §8.4 Same Environment).
+        const dayHigh = detail.high || 0;
 
-        if (currentPrice >= targetPrice && currentPrice > 0) {
-          // 익절 조건 달성 — 매도 실행
-          log.info('SCHED', `[h7 익절] ${pos.name}(${pos.code}) @ ${currentPrice} >= target ${targetPrice.toFixed(0)}`);
+        // 지정가 체결 판정 (당일 고가가 지정가 터치)
+        if (dayHigh >= pos.limit_order_price && dayHigh > 0) {
+          // 지정가 체결 — paper-self 매도 (체결가 = 지정가, 백테와 동일)
+          const sellPrice = pos.limit_order_price; // 지정가로 체결
+          const pnl = (sellPrice - pos.buy_price) * pos.qty;
+          const returnPct = (sellPrice - pos.buy_price) / pos.buy_price;
 
-          let sellPrice = currentPrice;
-          let success = false;
-
-          if (_isRealMode()) {
-            // 실전 매도 (KIS)
-            const sellResult = await realBroker.closePositionReal(
-              { code: pos.code, name: pos.name },
-              pos.qty,
-              _config.strategy,
-              _kisCfg(),
-              'h7_intraday_profit_take'
+          // 포지션 + 거래 기록
+          stmts.db.transaction(() => {
+            stmts.db.prepare(`UPDATE positions SET status = 'closed', limit_order_filled_at = ? WHERE id = ?`)
+              .run(now.toISOString(), pos.id);
+            stmts.db.prepare(`
+              INSERT INTO trades (
+                code, name, market, qty, buy_price, sell_price, buy_at, sell_at,
+                buy_date, sell_date, pnl, return_pct, exit_reason, fee_paid, mode,
+                signal_date, cluster_id, signal_source, rank, weight
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(
+              pos.code, pos.name, pos.market, pos.qty, pos.buy_price, sellPrice,
+              pos.buy_at, todayYmd + timeStr,
+              pos.buy_date, todayYmd, pnl, returnPct, 'h7_intraday_limit_filled', 0, 'paper-self',
+              pos.signal_date, pos.cluster_id, pos.signal_source, pos.rank, pos.weight
             );
-            if (sellResult.success) {
-              sellPrice = sellResult.price || currentPrice;
-              success = true;
-              log.info('SCHED', `  [KIS] h7 익절 매도 성공: ${pos.name}(${pos.code}) @${sellPrice}`);
-              await discord.sendSell?.({ code: pos.code.replace(/^A/, ''), name: pos.name }, { qty: pos.qty, sell_price: sellPrice }, _config.tradingMode);
-            } else {
-              log.error('SCHED', `  [KIS] h7 익절 매도 실패: ${pos.name}(${pos.code}) — ${sellResult.error}`);
-            }
-          } else {
-            // paper-self 매도
-            success = true;
-            log.info('SCHED', `  [paper] h7 익절 매도 성공: ${pos.name}(${pos.code}) @${sellPrice} (+${((sellPrice - pos.buy_price) / pos.buy_price * 100).toFixed(2)}%)`);
-            await discord.sendSell?.({ code: pos.code.replace(/^A/, ''), name: pos.name }, { qty: pos.qty, sell_price: sellPrice }, _config.tradingMode);
-          }
+          })();
 
-          if (success) {
-            // trades 테이블에 거래 기록 (positions → closed, trades INSERT)
-            const pnl = (sellPrice - pos.buy_price) * pos.qty;
-            const returnPct = (sellPrice - pos.buy_price) / pos.buy_price;
-
-            try {
-              // positions 상태 update: open → closed
-              stmts.db.prepare(`UPDATE positions SET status = 'closed' WHERE id = ?`).run(pos.id);
-
-              // trades 테이블에 거래 기록
-              stmts.db.prepare(`
-                INSERT INTO trades (
-                  code, name, market, qty, buy_price, sell_price, buy_at, sell_at,
-                  buy_date, sell_date, pnl, return_pct, exit_reason, fee_paid, mode,
-                  signal_date, cluster_id, signal_source, rank, weight
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-              `).run(
-                pos.code, pos.name, pos.market, pos.qty, pos.buy_price, sellPrice,
-                pos.buy_at, todayYmd + timeStr,
-                pos.buy_date, todayYmd, pnl, returnPct, 'h7_intraday_profit_take', 0, pos.mode,
-                pos.signal_date, pos.cluster_id, pos.signal_source, pos.rank, pos.weight
-              );
-
-              soldPositions.push({ code: pos.code, name: pos.name, buy: pos.buy_price, sell: sellPrice });
-            } catch (dbErr) {
-              log.error('SCHED', `h7 익절 DB 기록 실패 (${pos.code}): ${dbErr.message}`);
-            }
-          }
+          log.info('SCHED',
+            `[h7 익절] ${pos.name}(${pos.code}) 당일고가 ${dayHigh} >= limit ${pos.limit_order_price} (지정가 체결 @${sellPrice})`);
+          await discord.sendSell?.({ code: pos.code.replace(/^A/, ''), name: pos.name },
+            { qty: pos.qty, sell_price: sellPrice }, _config.tradingMode);
         }
       } catch (e) {
         log.error('SCHED', `h7 익절 처리 오류 (${pos.code}): ${e.message}`);
       }
     }
-
-    if (soldPositions.length > 0) {
-      log.info('SCHED', `h7 당일 익절 완료: ${soldPositions.length}건 — ${soldPositions.map(s => `${s.code}(+${((s.sell - s.buy) / s.buy * 100).toFixed(1)}%)`).join(', ')}`);
-    }
   } catch (e) {
-    log.error('SCHED', `h7 당일 익절 함수 오류: ${e.message}`);
+    log.error('SCHED', `h7 익절 함수 오류: ${e.message}`);
   }
 }
 
@@ -425,6 +432,7 @@ async function runMorningSell() {
   log.info('SCHED', '08:50 D+1 시초가 매도 트리거');
 
   const today = todayKstDate();
+  const todayYmd = today.replace(/-/g, '');
   const positions = paperBroker.getOpenPositions().filter(p => p.buy_date < today);
 
   if (positions.length === 0) {
@@ -434,7 +442,29 @@ async function runMorningSell() {
 
   for (const pos of positions) {
     try {
+      // ★ h7 미체결 지정가 처리 (2026-06-01)
+      // limit_order_price가 있으면 h7 지정가 주문이 미체결된 상태
+      // → 지정가 취소 + 시초가 시장가 매도
       let closed = null;
+
+      if (pos.limit_order_price && !pos.limit_order_filled_at) {
+        // h7 미체결 지정가 존재 → 취소 후 시초가 매도
+        log.info('SCHED', `  [h7 지정가 미체결] ${pos.name}(${pos.code}) — 취소하고 시초가 매도`);
+        if (_isRealMode()) {
+          // KIS: 미체결 지정가 취소 (있으면)
+          try {
+            await realBroker.cancelLimitOrder?.(
+              { code: pos.code, name: pos.name },
+              _config.strategy,
+              _kisCfg()
+            );
+            log.info('SCHED', `  [KIS] h7 지정가 취소 완료: ${pos.name}(${pos.code})`);
+          } catch (e) {
+            log.warn('SCHED', `  [KIS] h7 지정가 취소 실패: ${pos.name}(${pos.code}) — ${e.message}`);
+          }
+        }
+      }
+
       if (_isRealMode()) {
         closed = await realBroker.closePositionReal(pos, _config.strategy, _kisCfg(), 'next_day_open');
       } else {
@@ -563,22 +593,26 @@ function start(config) {
   cron.schedule('50 8 * * 1-5', runMorningSell, { timezone: 'Asia/Seoul' });
 
   if (BUY_MODE === 'h7') {
-    // ★ h7 갭업 + 클러스터 신호 (2026-05-31 신규, 당일 익절 ON)
+    // ★ h7 갭업 + 클러스터 신호 (2026-06-01 지정가 주문 방식)
     // 09:00 갭업 스캔
     cron.schedule('0 9 * * 1-5', runGapupH7Scan, { timezone: 'Asia/Seoul' });
-    // 09:01 정적 매수
+    // 09:01 정적 매수 + 지정가 주문 생성
     cron.schedule('1 9 * * 1-5', runBuyH7, { timezone: 'Asia/Seoul' });
-    // 09:05~14:30 당일 +5% 익절 (H7_INTRADAY_TARGET=1.05)
-    if (H7_INTRADAY_TARGET > 1.0) {
+
+    // ★ paper-self 모드: 매분 폴링으로 지정가 체결 판정 필요
+    // KIS 실전/paper 모드: 지정가가 자동 관리되므로 폴링 불필요
+    if (config.tradingMode === 'paper-self' && H7_INTRADAY_TARGET > 1.0) {
       cron.schedule('5-59 9 * * 1-5', runH7IntradayCheck, { timezone: 'Asia/Seoul' });
       cron.schedule('* 10-13 * * 1-5', runH7IntradayCheck, { timezone: 'Asia/Seoul' });
       cron.schedule('0-30 14 * * 1-5', runH7IntradayCheck, { timezone: 'Asia/Seoul' });
+      log.info('SCHED',
+        `[h7 paper-self] 매분 폴링 등록: 09:05~14:30 (지정가 체결 판정)`);
     }
-    // D+1 08:50 매도 (위에서 등록)
 
+    // D+1 08:50 매도 + 미체결 지정가 처리 (위에서 등록)
     log.info('SCHED',
-      `cron 등록 완료 — 08:50 매도 / ★ H7 GAPUP ★ 09:00 스캔 / 09:01 정적 매수 / ` +
-      `당일 익절(target=${H7_INTRADAY_TARGET}) (mode=${config.tradingMode}, BUY_MODE=${BUY_MODE})`);
+      `cron 등록 완료 — 08:50 매도(미체결 처리) / ★ H7 GAPUP ★ 09:00 스캔 / 09:01 정적 매수 ` +
+      `(mode=${config.tradingMode}, BUY_MODE=${BUY_MODE}, target=${H7_INTRADAY_TARGET}x)`);
 
   } else if (BUY_MODE === 'dynamic_v2500k') {
     // 동적 매수 (R4.2 / D1 백테 검증): 09:29 스캔 + 09:36~14:29 매분 + 14:30 fallback

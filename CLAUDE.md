@@ -112,51 +112,60 @@ if (gapupRatio >= 1.10 && volumeRatio >= 5.0 && clusterCorr >= 0.42 && deviance 
 
 ---
 
-## 매매 흐름 (h7 — 09:00 갭업 + 클러스터 + ★ 당일익절)
+## 매매 흐름 (h7 — 09:00 갭업 + 클러스터 + ★ 지정가 주문 당일익절, 2026-06-01)
 
 ```
-[D 08:50] runMorningSell — 전일 미익절 포지션 D+1 시초가 매도
+[D 08:50] runMorningSell — 전일 미익절 포지션 처리 + D+1 시초가 매도
   └─ KRX 휴일 가드: 주말/폐장일 skip
-  └─ getOpenPositions().filter(buy_date < today) → day_open 시초가로 시장가 매도
-  └─ daily_pnl upsert (당일익절 포함)
+  └─ FOR each 어제 매수 포지션 (buy_date < today):
+       ├─ ★ 미체결 지정가 처리: limit_order_price 있으면 취소 후 시초가 매도
+       │   └─ KIS 모드: realBroker.cancelLimitOrder()
+       └─ day_open 시초가로 시장가 매도
+  └─ daily_pnl upsert
 
 [D 09:00] runGapupScan ★ h7 삼중 필터 신호 생성
-  └─ stock-fetcher.scanAllStocks() — KOSPI+KOSDAQ 전종목 09:00 close (시장 필터 없음 = BOTH)
+  └─ stock-fetcher.scanAllStocks() — KOSPI+KOSDAQ 전종목 09:00 close
   
   └─ strategy.selectGapupPicks() ★ h7 핵심 필터
-       ├─ 조건 1 (갭업): gapup_ratio >= 1.10 (전일대비 10% 이상)
-       ├─ 조건 2 (거래량): volume_ratio >= 5.0 (5배) ← 상한가 편향 방지
-       ├─ 조건 3 (클러스터): 갭업 종목의 spectral cluster avg_corr >= 0.42 + size >= 8
-       ├─ 멤버 선택: 클러스터 멤버 상위 2개 (members[:2], 정렬 없음 — 백테 일치)
-       └─ picks: code, buy_price (09:00 day_open), gapup_ratio, cluster_corr, market
-       └─ 빈도: BOTH 2년 71 갭업 종목 / 57 매매일 (선택적 신호)
+       ├─ 조건 1 (갭업): gapup_ratio >= 1.10
+       ├─ 조건 2 (거래량): volume_ratio >= 5.0 ← 상한가 편향 방지
+       ├─ 조건 3 (클러스터): avg_corr >= 0.42 + size >= 8
+       ├─ 멤버 선택: members[:2] (정렬 없음)
+       └─ 빈도: BOTH 2년 71 갭업 / 57 매매일
 
-[D 09:01] runBuyH7 — 정적 매수 (당일 신호 일괄 매수)
-  └─ pending_buy에서 h7 신호 조회
+[D 09:01] runBuyH7 — 정적 매수 + ★ 지정가 주문 생성
   └─ FOR each pick:
        ├─ 상한가 가드: entry_price >= prev_close × 1.285 → skip
-       ├─ paper-self 모드: paperBroker.openPosition()
-       ├─ positions INSERT: {buy_date, code, buy_price, quantity, signal_source='h7_gapup'}
-       └─ trades 기록 (entry_type='h7_gapup')
+       ├─ paper-self: paperBroker.openPosition()
+       ├─ KIS: realBroker.openPositionReal()
+       └─ ★ limit_order_price = buy_price × 1.05 저장
+          └─ paper-self: DB 저장만
+          └─ KIS: realBroker.placeStopLimitOrder() 호출 (실제 주문 생성)
 
-[D 09:05 ~ 14:30] ★ runH7IntradayCheck (매분 호출) — 당일익절 모니터링 ★
-  └─ 조건: H7_INTRADAY_TARGET > 1.0 (기본 1.05 = +5%)
-  └─ stock-fetcher.fetchStockDetail() — 각 종목 실시간 시세
-  
-  └─ FOR each h7_gapup position (buy_date=today, status='open'):
-       ├─ target_price = buy_price × 1.05
-       ├─ IF currentPrice >= target_price:
-       │    ├─ positions.status: 'open' → 'closed'
-       │    ├─ trades INSERT: {exit_price, exit_date=today, exit_type='h7_intraday_5pct'}
-       │    └─ 익절 완료 (111건/166 = 66.9%)
-       │
-       └─ ELSE: 대기 (D+1 매도 대상)
+[D 09:05 ~ 14:30] ★ 당일 익절 — 모드별 다름 (2026-06-01)
 
-[D+1 08:50] runMorningSell (위와 동일)
-  └─ 미익절 포지션(status='open'): D+1 시초가 매도
-       ├─ positions.status: 'open' → 'closed'
-       ├─ trades INSERT: {exit_type='h7_t1_open'}
-       └─ D+1 매도 완료 (55건/166 = 33.1%)
+  ┌─ [paper-self 모드] runH7IntradayCheck (매분 폴링)
+  │  └─ fetchStockDetail()로 OHLC 조회
+  │  └─ ★ 판정 기준 = 당일 누적 고가(detail.high), 현재가 아님
+  │  │   └─ 현재가(close)는 분봉 사이 순간 터치를 놓쳐 백테(분봉 high)와 괴리
+  │  │   └─ detail.high는 당일 최고가 → 한 번이라도 터치하면 잡힘 (백테 정합)
+  │  └─ dayHigh >= limit_order_price → 지정가 체결 (체결가 = 지정가)
+  │  └─ positions 'open' → 'closed' / trades 기록 (exit='h7_intraday_limit_filled')
+  │  └─ 66.9% 익절 (평균 +5.59%)
+  │
+  └─ [KIS paper/real 모드] 폴링 불필요
+     └─ KIS가 지정가 주문 자동 관리 (호가에 걸려 분봉 사이 터치도 체결)
+     └─ 66.9% 자동 체결 (평균 +5.59%)
+
+  ※ 백테 정합성: 백테는 분봉 high ≥ entry×1.05 시 entry×1.05 체결 (지정가 모델).
+    paper-self도 당일고가(detail.high)로 판정 → 동일 로직. KIS는 호가 체결로 자연 정합.
+
+[D+1 08:50] runMorningSell 
+  └─ 미체결 포지션 처리:
+       ├─ limit_order_filled_at 없으면 미체결
+       ├─ KIS: cancelLimitOrder() 호출
+       ├─ 시초가 시장가 매도 (33.1%, 평균 +1.21%)
+       └─ trades INSERT: exit_reason='h7_t1_open' or 'h7_intraday_limit_filled'
 ```
 
 **흐름 정리:**
