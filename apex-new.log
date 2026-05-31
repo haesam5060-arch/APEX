@@ -1,0 +1,27 @@
+
+> apex@0.1.0 start
+> node server.js
+
+◇ injected env (18) from .env // tip: ⌘ enable debugging { debug: true }
+2026-05-31T15:00:40.637Z [INFO] [SCHED] 알림 채널 — discord=false / email=true
+2026-05-31T15:00:40.653Z [INFO] [SCHED] cron 등록 완료 — 08:50 매도 / ★ H7 GAPUP ★ 09:00 스캔 / 09:01 정적 매수 / 당일 익절(target=1.05) (mode=paper-self, BUY_MODE=h7)
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 127.0.0.1:3100
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2044:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '127.0.0.1',
+  port: 3100
+}
+
+Node.js v25.9.0

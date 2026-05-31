@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APEX · 엔진설명</title>
+  <title>APEX · h7 엔진설명</title>
   <style>
     :root {
       --bg: #09090d;
-      --bg2: #0a0e12;
-      --card: #0d1419;
-      --card2: #121c22;
-      --border: #1a2a35;
-      --border2: #153045;
+      --bg2: #0f0f15;
+      --card: #151019;
+      --card2: #1c1520;
+      --border: #2a1a1f;
+      --border2: #3d1515;
       --text: #e8e8ec;
       --dim: #9a9aa5;
       --dim2: #5a5a65;
-      --accent: #22d3ee;
       --green: #4ade80;
-      --red: #f87171;
+      --accent: #22d3ee;
+      --red: #ef4444;
+      --red2: #f87171;
       --yellow: #fbbf24;
       --orange: #fb923c;
       --shadow: 0 2px 12px rgba(0,0,0,0.4);
@@ -30,20 +31,17 @@
       font-family: 'Inter', -apple-system, 'SF Pro Display', 'Pretendard', system-ui, sans-serif;
       font-size: 13px; -webkit-font-smoothing: antialiased;
     }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    /* 헤더 */
     .header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 24px;
-      background: linear-gradient(180deg, #071018 0%, #050c14 100%);
+      background: linear-gradient(180deg, #1a0a0e 0%, #100808 100%);
       border-bottom: 1px solid var(--border2);
       gap: 16px; box-shadow: var(--shadow);
       position: sticky; top: 0; z-index: 40;
     }
-    .header-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1 1 auto; }
+    .header-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1; }
     .brand { display: flex; align-items: baseline; gap: 10px; }
-    .brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; color: var(--accent); }
+    .brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; }
     .brand-sub {
       font-weight: 500; font-size: 11px; color: var(--dim);
       letter-spacing: 0.5px; text-transform: uppercase;
@@ -52,1346 +50,511 @@
       content: ''; display: inline-block; width: 1px; height: 11px;
       background: var(--border2); margin-right: 10px; vertical-align: -1px;
     }
-    .nav-tabs {
-      display: flex; gap: 2px; background: rgba(0,0,0,0.3);
-      padding: 3px; border-radius: 8px; border: 1px solid var(--border);
+    .container {
+      max-width: 1200px; margin: 0 auto; padding: 32px 24px;
     }
-    .nav-tab {
-      padding: 6px 12px; border: none; border-radius: 6px;
-      background: transparent; color: var(--dim);
-      font-size: 12.5px; font-weight: 600; cursor: pointer;
-      text-decoration: none; transition: all 0.15s;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .nav-tab .nav-ico { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.55; transition: opacity 0.15s; }
-    .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-    .nav-tab:hover .nav-ico { opacity: 0.9; }
-    .nav-tab.active {
-      background: rgba(34,211,238,0.12); color: var(--accent);
-      border: 1px solid rgba(34,211,238,0.25); padding: 5px 11px;
-    }
-    .nav-tab.active .nav-ico { opacity: 1; }
-    .nav-tab .nav-live {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 6px var(--accent);
-      flex-shrink: 0; animation: blink 1.3s ease-in-out infinite; margin-left: 2px;
-    }
-    .nav-tab:not(.active) .nav-live { display: none; }
-    .header-right { display: flex; gap: 8px; align-items: center; }
-    .auto-status {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 12px; border-radius: 999px;
-      font-size: 11.5px; font-weight: 600;
-      color: var(--accent); border: 1px solid rgba(34,211,238,0.4);
-      background: rgba(34,211,238,0.1);
-    }
-    .auto-status strong { font-weight: 800; color: #fff; }
-    .auto-status .live {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 8px var(--accent);
-      animation: blink 1.3s ease-in-out infinite;
-    }
-    .clock {
-      font-family: 'SF Mono', monospace; font-size: 11.5px;
-      color: var(--dim); padding: 6px 10px;
-      background: rgba(0,0,0,0.3); border-radius: 6px;
-      border: 1px solid var(--border); letter-spacing: 0.3px;
-    }
-    .clock .date { color: var(--dim2); margin-right: 6px; }
-    .clock .sec { color: var(--accent); }
-    .icon-btn {
-      width: 34px; height: 34px; border-radius: 8px;
-      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-      color: var(--dim); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; transition: all 0.15s;
-    }
-    .icon-btn:hover { color: var(--text); border-color: var(--accent); }
 
-    .container { padding: 16px 20px; max-width: 100%; }
-
-    /* 히어로 */
+    /* Hero */
     .hero-strategy {
-      background: linear-gradient(135deg, #071018 0%, #0a1822 50%, #071018 100%);
-      border: 1px solid rgba(34,211,238,0.25);
-      border-radius: 14px; padding: 24px 28px;
-      margin-bottom: 14px; position: relative; overflow: hidden;
-    }
-    .hero-strategy::before {
-      content: ''; position: absolute; top: -60px; right: -60px;
-      width: 220px; height: 220px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(34,211,238,0.10), transparent 70%);
-      pointer-events: none;
+      margin-bottom: 48px;
     }
     .hero-kicker {
-      display: inline-block; font-size: 10.5px; font-weight: 700;
-      color: var(--accent); letter-spacing: 1px; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 999px;
-      background: rgba(34,211,238,0.10); border: 1px solid rgba(34,211,238,0.25);
-      margin-bottom: 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--dim);
+      margin-bottom: 8px; display: block;
     }
     .hero-title {
-      font-size: 22px; font-weight: 800; line-height: 1.35;
-      letter-spacing: -0.5px; margin-bottom: 10px;
+      font-size: 32px; font-weight: 800; line-height: 1.4;
+      letter-spacing: -0.5px; margin-bottom: 12px;
     }
     .hero-title .hl { color: var(--accent); }
     .hero-desc {
-      font-size: 13px; color: var(--dim); line-height: 1.85; max-width: none;
+      font-size: 14px; line-height: 1.65; color: var(--dim);
+      margin-bottom: 20px; max-width: 900px;
     }
-    .hero-desc p { margin: 0 0 10px; }
-    .hero-desc p:last-child { margin-bottom: 0; }
+    .hero-desc p { margin-bottom: 8px; }
     .hero-desc strong { color: var(--text); font-weight: 700; }
-    .hero-desc em { color: var(--accent); font-style: normal; font-weight: 600; }
 
-    /* 구조 해설 서브카드 */
-    .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
+    .why-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px; margin: 20px 0;
+    }
     .why {
-      background: rgba(0,0,0,0.25); border: 1px solid var(--border);
-      border-left: 3px solid var(--dim2);
-      border-radius: 10px; padding: 14px 16px;
+      padding: 16px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2); transition: all 0.15s;
     }
-    .why.ok { border-left-color: var(--green); }
-    .why.warn { border-left-color: var(--yellow); }
-    .why.accent { border-left-color: var(--accent); }
-    .why.orange { border-left-color: var(--orange); }
-    .why-head { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .why-head .no { color: var(--dim); margin-right: 4px; font-family: 'SF Mono', monospace; }
-    .why-body { font-size: 12px; color: var(--dim); line-height: 1.75; }
-    .why-body strong { color: var(--text); font-weight: 700; }
-    .why-body em { color: var(--accent); font-style: normal; font-weight: 600; }
-    .why-body .g { color: var(--green); font-weight: 600; }
-    .why-body .r { color: var(--red); font-weight: 600; }
-    @media (max-width: 900px) { .why-grid { grid-template-columns: 1fr; } }
+    .why:hover { border-color: var(--border2); background: rgba(0,0,0,0.35); }
+    .why.ok { border-color: rgba(52,211,153,0.3); background: rgba(16,185,129,0.05); }
+    .why.accent { border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.05); }
+    .why.warn { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
+    .why.orange { border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.05); }
+    .why-head {
+      font-weight: 700; font-size: 13px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .why .no {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 11px;
+    }
+    .why-body {
+      font-size: 12px; line-height: 1.6; color: var(--dim);
+    }
+    .why-body strong { color: var(--text); }
 
-    /* 핵심 지표 */
     .hero-metrics {
-      display: grid; grid-template-columns: repeat(6, 1fr);
-      gap: 1px; background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border); border-radius: 10px;
-      overflow: hidden; margin-top: 18px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px; margin: 24px 0;
     }
-    .hm { padding: 12px 16px; background: rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 3px; }
-    .hm-label { font-size: 10px; color: var(--dim); letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
-    .hm-value {
-      font-size: 20px; font-weight: 800; line-height: 1;
-      font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
+    .hm {
+      padding: 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
     }
+    .hm-label { font-size: 11px; color: var(--dim); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
+    .hm-value { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
     .hm-value.pos { color: var(--green); }
-    .hm-value.neg { color: var(--red); }
-    .hm-value.warn { color: var(--yellow); }
-    .hm-sub { font-size: 10.5px; color: var(--dim2); }
+    .hm-sub { font-size: 11px; color: var(--dim2); line-height: 1.5; }
 
-    /* 섹션 */
+    /* Section */
     .section {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
-      margin-bottom: 14px;
+      margin-bottom: 32px; padding: 24px; border-radius: 12px;
+      border: 1px solid var(--border); background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.15));
     }
     .section-header {
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
     }
     .section-title {
-      font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 800; letter-spacing: -0.3px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
     }
-    .section-title .num-pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 6px;
-      background: rgba(34,211,238,0.12); color: var(--accent);
-      font-size: 11px; font-weight: 800;
-      border: 1px solid rgba(34,211,238,0.25);
+    .num-pill {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; border: 1px solid currentColor;
     }
-    .section-meta { font-size: 11px; color: var(--dim); }
-    .section-body { padding: 18px; }
+    .section-meta {
+      font-size: 12px; color: var(--dim); letter-spacing: 0.3px;
+    }
+    .section-body { color: var(--text); }
 
-    /* 파이프라인 */
-    .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .step {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 14px; position: relative; transition: all 0.15s;
+    /* Table */
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: 12.5px;
+      margin: 12px 0;
     }
-    .step:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-1px); }
-    .step::after {
-      content: '→'; position: absolute; right: -13px; top: 50%;
-      transform: translateY(-50%); color: var(--dim2); font-size: 14px; font-weight: 800;
-      z-index: 2; pointer-events: none;
+    .data-table thead { background: rgba(0,0,0,0.4); }
+    .data-table th, .data-table td {
+      padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border);
     }
-    .step:last-child::after { display: none; }
-    .step-num {
-      display: inline-block; font-size: 10px; font-weight: 800;
-      color: var(--accent); padding: 2px 7px; border-radius: 999px;
-      background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.2);
-      letter-spacing: 0.3px; margin-bottom: 8px;
+    .data-table th {
+      font-weight: 700; color: var(--dim);
+      text-transform: uppercase; font-size: 11px; letter-spacing: 0.3px;
     }
-    .step-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-    .step-time { font-size: 10.5px; color: var(--accent); font-family: 'SF Mono', monospace; margin-bottom: 8px; font-weight: 700; }
-    .step-desc { font-size: 11.5px; color: var(--dim); line-height: 1.55; }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table tr.key-row { background: rgba(34,211,238,0.05); }
+    .data-table .pos { color: var(--green); font-weight: 700; }
+    .data-table .warn { color: var(--orange); font-weight: 700; }
 
-    /* 테이블 */
-    .filter-table, .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    .filter-table th, .data-table th {
-      text-align: left; padding: 10px 12px; color: var(--dim); font-weight: 500;
-      border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    /* Note box */
+    .note-box {
+      margin-top: 12px; padding: 12px 14px; border-radius: 6px;
+      background: rgba(0,0,0,0.25); border-left: 3px solid var(--border);
+      font-size: 12px; line-height: 1.6; color: var(--dim);
     }
-    .filter-table td, .data-table td {
-      padding: 10px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums;
-    }
-    .filter-table tr:last-child td, .data-table tr:last-child td { border-bottom: none; }
-    .filter-table tr:hover, .data-table tr:hover { background: rgba(255,255,255,0.02); }
-    .filter-table code, .data-table code, .note-box code {
-      background: rgba(34,211,238,0.08); padding: 2px 6px; border-radius: 4px;
-      font-family: 'SF Mono', 'Menlo', monospace; font-size: 11.5px; color: var(--accent);
-    }
-    .filter-table tr.key-rule { background: rgba(34,211,238,0.05); }
-    .data-table tr.key-row, .data-table tr.highlight { background: rgba(34,211,238,0.06); }
+    .note-box strong { color: var(--text); }
+    .note-box ul { margin: 6px 0 0 18px; padding: 0; line-height: 1.7; }
+    .note-box li { margin-bottom: 4px; }
 
-    .rule-id {
-      display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center;
-      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
-      color: #050c14; font-weight: 700; font-size: 12px; border-radius: 4px;
+    /* Theme flow */
+    .theme-flow {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin: 16px 0;
     }
-    .pos { color: var(--green); }
-    .neg { color: var(--red); }
-    .warn { color: var(--yellow); }
-    .dim { color: var(--dim); }
-    .dim2 { color: var(--dim2); }
+    .tf-box {
+      padding: 16px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2); text-align: center;
+    }
+    .tf-box.accent { border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.05); }
+    .tf-box.pick { border-color: rgba(52,211,153,0.3); background: rgba(16,185,129,0.08); }
+    .tf-label { font-size: 10.5px; color: var(--dim); text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+    .tf-value { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+    .tf-sub { font-size: 11px; color: var(--dim2); line-height: 1.4; }
 
+    /* Timeline */
+    .timeline-table { overflow-x: auto; }
+    .timeline-table table {
+      width: 100%; border-collapse: collapse; font-size: 12.5px;
+    }
+    .timeline-table th, .timeline-table td {
+      padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .timeline-table th {
+      background: rgba(0,0,0,0.4); font-weight: 700; color: var(--dim);
+      text-transform: uppercase; font-size: 11px;
+    }
+    .timeline-table tr.highlight { background: rgba(34,211,238,0.05); }
+    .timeline-table tr:hover { background: rgba(255,255,255,0.02); }
+    .timeline-table strong { color: var(--accent); font-weight: 700; }
+
+    /* Sub heading */
     .sub-h3 {
-      font-size: 13px; color: var(--accent); margin: 0 0 8px; padding-left: 4px;
-      border-left: 3px solid var(--accent); font-weight: 700;
+      font-size: 15px; font-weight: 800; margin: 16px 0 8px 0;
+      letter-spacing: -0.2px;
     }
     .sub-h3.mt { margin-top: 24px; }
-    .note-box {
-      margin-top: 14px; padding: 12px 14px; border-radius: 6px;
-      background: rgba(34,211,238,0.05); border-left: 3px solid var(--accent);
-      font-size: 12.5px; line-height: 1.7;
-    }
-    .note-box.dim-box { background: rgba(255,255,255,0.02); border-left-color: var(--dim); color: var(--dim); }
-    .note-box strong { color: var(--text); font-weight: 700; }
-
-    /* 백테 결과 카드 그리드 */
-    .backtest-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px;
-    }
-    .bt-card {
-      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-      border-radius: 10px; padding: 16px 18px;
-    }
-    .bt-card.highlight { border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.05); }
-    .bt-card-title {
-      font-size: 11px; color: var(--dim); font-weight: 700; letter-spacing: 0.5px;
-      text-transform: uppercase; margin-bottom: 12px;
-      padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    }
-    .bt-metric { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-    .bt-metric:last-child { margin-bottom: 0; }
-    .bt-metric .k { font-size: 11.5px; color: var(--dim); }
-    .bt-metric .v {
-      font-size: 15px; font-weight: 700; font-family: 'SF Mono', monospace;
-      font-variant-numeric: tabular-nums;
-    }
-    .bt-metric .v.pos { color: var(--green); }
-    .bt-metric .v.neg { color: var(--red); }
-    .bt-metric .v.accent { color: var(--accent); }
-    .bt-metric .v.warn { color: var(--yellow); }
-
-    /* 모바일 */
-    @media (max-width: 1100px) {
-      .pipeline { grid-template-columns: repeat(3, 1fr); }
-      .step:nth-child(3)::after { display: none; }
-      .hero-metrics { grid-template-columns: repeat(2, 1fr); }
-      .backtest-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .header { padding: 10px 14px; flex-wrap: wrap; }
-      .header-left { flex-wrap: wrap; gap: 10px 16px; width: 100%; }
-      .nav-tabs { order: 3; flex-basis: 100%; width: 100%; overflow-x: auto; }
-      .nav-tab { flex: 1; font-size: 11.5px; padding: 6px 10px; }
-      .nav-tab.active { padding: 5px 9px; }
-      .clock { font-size: 11px; padding: 5px 8px; }
-      .clock .date { display: none; }
-      .brand-sub { display: none; }
-      .container { padding: 10px; }
-      .hero-strategy { padding: 18px 16px; }
-      .hero-title { font-size: 17px; }
-      .pipeline { grid-template-columns: repeat(2, 1fr); }
-      .step::after { display: none; }
-    }
+    .dim { color: var(--dim); }
+    .dim2 { color: var(--dim2); }
   </style>
 </head>
 <body>
 
-<header class="header">
+<div class="header">
   <div class="header-left">
     <div class="brand">
-      <span class="brand-name">APEX</span>
-      <span class="brand-sub">h7 갭업 + 클러스터 당일익절 엔진</span>
+      <div class="brand-name">APEX</div>
+      <div class="brand-sub">h7 갭업 모드</div>
     </div>
-    <nav class="nav-tabs">
-      <a class="nav-tab" href="index.html">
-        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3" opacity="0.6"/></svg>
-        모니터링
-        <span class="nav-live"></span>
-      </a>
-      <a class="nav-tab" href="stats.html">
-        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-5M11 20V9M16 20v-7"/></svg>
-        일별손익
-      </a>
-      <a class="nav-tab active" href="engine.html">
-        <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
-        엔진설명
-      </a>
-    </nav>
   </div>
   <div class="header-right">
-    <div id="autoStatusBadge" class="auto-status"><span class="live"></span>모드 <strong id="modeLabel">--</strong></div>
-    <div class="clock"><span class="date">--</span>--:--<span class="sec">:--</span></div>
-    <button class="icon-btn" title="알림">🔔</button>
-    <button class="icon-btn" title="설정" onclick="location.href='index.html'">⚙</button>
+    <div class="auto-status">
+      <span class="live"></span>
+      <strong>자동매매 활성</strong>
+    </div>
   </div>
-</header>
+</div>
 
 <div class="container">
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="hero-strategy">
-    <span class="hero-kicker">APEX v2.0.0 · h7 갭업 + 클러스터 당일익절 전략 (★ 2026-05-31)</span>
+    <span class="hero-kicker">APEX (h7) v0.1.0 · 자동매매 엔진</span>
     <div class="hero-title">
-      09:00 <span class="hl">갭업 감지(close ≥ prev_close × 1.10, 거래량 5배)</span> + <span class="hl">spectral cluster(avg_corr≥0.42)</span><br>
-      → 09:01 정적 매수 → <span class="hl">[★ 당일 +5% 익절 OR D+1 시초가 매도]</span>
+      아침 <span class="hl">갭업 종목의 강한 동조 그룹에서 가장 약한 2종목</span>을 사고 (50:50 분할),<br>
+      <span class="hl">다음날 아침 또는 당일 +5%</span>에 판다. <span style="font-size:0.55em;color:#a855f7;font-weight:700;">⚡ 고수익 보조 엔진</span>
+      <span style="font-size:0.65em;color:var(--dim);font-weight:600;line-height:1.5;display:block;margin-top:6px;">
+        갭업 + 클러스터 동조도로 단기 모멘텀 포착 (매매당 +3.01% 평균, MDD -2.16% 극도로 안전)
+      </span>
     </div>
     <div class="hero-desc">
       <p style="font-size:14px;line-height:1.65;">
-        <strong>h7 삼중 필터:</strong> 09:00 전종목 스캔 → <em>갭업(close ≥ prev_close × 1.10)</em> + <em>거래량(vol ≥ avg_vol × 5.0)</em> + <em>spectral cluster(avg_corr ≥ 0.42)</em> 동시 충족 종목만 선정<br>
-        <strong>09:01 정적 매수:</strong> 2종목 50:50 분할, day_open 가격<br>
-        <strong>★ 당일익절:</strong> D일 close ≥ entry × 1.05 충족 시 즉시 익절 (20.4% 확률) | <strong>D+1 매도:</strong> 미익절 포지션 시초가 매도 (79.6%)<br>
-        <strong>2년 백테:</strong> 250건, 64.8% 승률, +3.01% 매매당, -2.16% MDD, +460.6% 누적
+        매일 아침 한국 <strong>KOSDAQ</strong>이 열리면 <strong>전일대비 10% 이상, 거래량 5배 이상 오른 종목</strong>을 찾고,
+        그 종목이 속한 <strong>같은 테마(spectral cluster, 동조도 ≥0.42, 멤버 ≥8)</strong>의 다른 멤버들을 조사합니다.
+        테마 안에서 <strong>가장 약하게 오른 2종목</strong>을 매매하면, <strong>다음날 평균회귀</strong>로 수익이 나는 패턴을 활용합니다.
+        <strong>매매일에 2종목 50:50 분할 매수</strong> (자본 분산으로 MDD 극소화).
+        <strong style="color:#f59e0b;">★ 당일 익절 옵션</strong>: 매수 후 +5% 달성하면 즉시 매도 (20.4%, 강한 모멘텀). 나머지는 D+1 09:00 시초가 매도.
       </p>
     </div>
 
-    <!-- h7 4가지 핵심 필터 -->
+    <!-- 4가지 작동 원칙 -->
     <div class="why-grid">
       <div class="why ok">
-        <div class="why-head"><span class="no">①</span>왜 갭업(10%)?</div>
+        <div class="why-head"><span class="no">①</span>왜 갭업 감지?</div>
         <div class="why-body">
-          09:00 종가 기준 <strong>10% 이상 급등</strong>은 장 초반 강한 모멘텀 신호입니다.
-          이 조건만으로는 상한가 편향 위험이 있어, 거래량 + 클러스터 확인으로 필터링합니다.
+          <strong>전일대비 10%↑ + 거래량 5배↑</strong> = 시장 관심 급증 신호.
+          거짓 상한가가 아닌 진짜 모멘텀만 포착.
         </div>
       </div>
       <div class="why accent">
-        <div class="why-head"><span class="no">②</span>왜 거래량(5배)?</div>
+        <div class="why-head"><span class="no">②</span>왜 spectral cluster?</div>
         <div class="why-body">
-          갭업이 <strong>진정성 있는 참여</strong>인지 확인합니다. vol < 5배 = 매수자 부족 / 상한가 잠김 신호.
-          vol ≥ 5배 = 실제 거래 활발 / 상한가 편향 95% 제거됩니다.
+          갭업 종목이 속한 <strong>같은 동조도 그룹</strong>에서 약한 종목을 찾음.
+          갭업은 테마 강세의 신호, 약한 멤버는 다음날 따라올 확률 ↑.
         </div>
       </div>
       <div class="why warn">
-        <div class="why-head"><span class="no">③</span>왜 강한 클러스터(avg_corr≥0.42)?</div>
+        <div class="why-head"><span class="no">③</span>왜 약한 2종목?</div>
         <div class="why-body">
-          <strong>갭업 종목의 클러스터 멤버</strong>를 선정하여 sector momentum + mean reversion 결합합니다.
-          NEMESIS(0.34)보다 강한 기준 = 동조도 높은 의미 있는 신호만 필터링합니다.
+          같은 테마인데 <strong>혼자 약하게 오른 종목</strong>은
+          다음날 평균으로 회귀할 가능성이 높음 (mean reversion).
         </div>
       </div>
       <div class="why orange">
-        <div class="why-head"><span class="no">④</span>왜 당일익절 + D+1 매도?</div>
+        <div class="why-head"><span class="no">④</span>왜 당일/D+1 이중 청산?</div>
         <div class="why-body">
-          <strong>당일 +5% 익절(20.4%):</strong> 빠른 회귀에 즉시 대응 | <strong>D+1 시초가(79.6%):</strong> 하루밤 안정화 후 청산.
-          2가지 경로 = MDD -2.16% (매우 안전), 매매당 +3.01% (일관성)
+          강한 모멘텀은 <strong>당일 +5%에서 즉시 매도</strong> (20.4%, 빨리 빠져나감).
+          약한 흐름은 <strong>D+1 시초가 보유</strong> (79.6%, 평균회귀 완성).
         </div>
       </div>
     </div>
 
-    <!-- 핵심 지표 (1개월 백테, 19거래일 기준) -->
+    <!-- 핵심 지표 (h7, 2년 백테, N=2) -->
     <div class="hero-metrics">
       <div class="hm">
-        <div class="hm-label">승률 (전체)</div>
-        <div class="hm-value pos">66.2<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">1개월 백테 (19거래일)</div>
+        <div class="hm-label">매매당 평균 수익</div>
+        <div class="hm-value pos">+3.01<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2년 (2종목 50:50 분할) / 수수료·세금 차감</div>
       </div>
       <div class="hm">
-        <div class="hm-label">평균 수익률</div>
-        <div class="hm-value pos">+2.84<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">종목 평균 · 수수료 차감</div>
+        <div class="hm-label">매매별 승률</div>
+        <div class="hm-value pos">64.8<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2년 250 매매 / 162건 수익</div>
       </div>
       <div class="hm">
-        <div class="hm-label">누적 수익률</div>
-        <div class="hm-value pos">+63.5<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">1개월 복리 (전액 재투자)</div>
+        <div class="hm-label">당일 익절</div>
+        <div class="hm-value" style="color:var(--accent);">20.4<small style="font-size:13px;font-weight:600;color:var(--accent);margin-left:2px">%</small></div>
+        <div class="hm-sub">51건 / 나머지 79.6%는 D+1 보유</div>
       </div>
       <div class="hm">
-        <div class="hm-label">Top2 선정 승률</div>
-        <div class="hm-value pos">81.6<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">상위 2종목 필터 적용 시</div>
+        <div class="hm-label">3개월 누적</div>
+        <div class="hm-value pos">+29.5<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">21개 3M 윈도우 / 손실 0 (100% 양수)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">Top2 평균 수익</div>
-        <div class="hm-value pos">+5.80<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">누적 +180.9%</div>
+        <div class="hm-label">최대 손실 (MDD)</div>
+        <div class="hm-value" style="color:var(--green)">−2.16<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">★ NEMESIS -10.77%대비 극도로 안전</div>
       </div>
       <div class="hm">
-        <div class="hm-label">MDD</div>
-        <div class="hm-value" style="color:var(--orange)">−13.81<small style="font-size:13px;font-weight:600;color:var(--orange);margin-left:2px">%</small></div>
-        <div class="hm-sub">최대 낙폭 (1개월)</div>
+        <div class="hm-label">2년 누적 (시드 50만)</div>
+        <div class="hm-value pos">+460<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">50만 → 280만 (5.6배)</div>
       </div>
     </div>
-
+    <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(34,211,238,0.06);border-left:3px solid var(--accent);font-size:11.5px;color:var(--dim2);">
+      💡 <strong style="color:var(--accent);">h7의 강점</strong>: 매매 빈도 250건(NEMESIS 127건 대비 2배) × 매매당 알파 +3.01% (NEMESIS +2.14% 대비 +40% 우수) → 포트폴리오 보조엔진으로 고수익. MDD -2.16%로 가장 안전.
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(245,158,11,0.06);border-left:3px solid var(--orange);font-size:11.5px;color:var(--dim2);">
+      ⚠️ <strong style="color:var(--orange);">주의</strong>: 당일 익절 20.4% + D+1 매도 79.6% 분산. 당일 익절 시 강한 모멘텀만 포착, D+1은 평균회귀 완성 가정. 실전 슬리피지 아직 미측정.
+    </div>
     <div style="margin-top:10px;padding:10px 14px;border-radius:6px;background:rgba(34,211,238,0.05);border-left:3px solid var(--accent);font-size:12.5px;line-height:1.7;">
       <strong style="color:var(--accent);">💡 쉽게 비유하면:</strong>
-      "오전에 가격 지지선을 확인하고, 오후까지 그 위에 있는 종목만 고른다." — 장마감 직전 검증된 강세 종목의 오버나잇 갭을 수익화하는 전략.
+      "오늘 K-팝 그룹 중에 <strong>갭업(급상승)한 멤버가 있으면, 같은 그룹의 다른 멤버들을 본다</strong>.
+      그룹 평균 대비 약하게 오른 멤버 1·2등이 <strong>다음날 따라올 거다</strong>"는 패턴.
+      종목판으로 옮기면 = 갭업 종목의 클러스터 약한 멤버 2개 분산 매수 → 평균회귀 알파.
     </div>
   </section>
 
-  <!-- ─────────────── 전략 파이프라인 ─────────────── -->
+  <!-- ─────────────── 하루 흐름 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">1</span>전략 실행 파이프라인
-      </div>
-      <div class="section-meta">5단계 · 일일 자동 실행</div>
+      <div class="section-title"><span class="num-pill">1</span>하루 흐름 — 매수부터 매도까지</div>
+      <div class="section-meta">평일 자동 실행 · 공휴일은 건너뜀</div>
     </div>
     <div class="section-body">
-      <div class="pipeline">
-        <div class="step">
-          <div class="step-num">STEP 1</div>
-          <div class="step-time">09:05~09:30</div>
-          <div class="step-title">모닝 클러스터 형성</div>
-          <div class="step-desc">1분봉 가격 히스토그램으로 당일 지지/저항 클러스터 구간 자동 추출. 거래량 가중 밀집 구간 = 기관 매집 흔적.</div>
-        </div>
-        <div class="step">
-          <div class="step-num">STEP 2</div>
-          <div class="step-time">09:31</div>
-          <div class="step-title">스냅샷 확정</div>
-          <div class="step-desc">9:31에 각 종목의 클러스터 상단 가격을 스냅샷으로 저장. 이후 비교 기준값으로 사용.</div>
-        </div>
-        <div class="step" style="border-color:rgba(34,211,238,0.35);box-shadow:0 0 0 1px rgba(34,211,238,0.2);">
-          <div class="step-num">STEP 3</div>
-          <div class="step-time">14:30</div>
-          <div class="step-title">종목 스캔</div>
-          <div class="step-desc">
-            <strong>cluster_strength &gt; 1.10</strong> (클러스터 상단 대비 +10%↑)<br>
-            <em>OR</em><br>
-            <strong>당일 등락률 &gt; +25%</strong><br>
-            두 조건 중 하나 충족 종목 수집 → score 내림차순 정렬.
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">STEP 4</div>
-          <div class="step-time">14:50</div>
-          <div class="step-title">Top2 시장가 매수</div>
-          <div class="step-desc">상위 2종목 50:50 분할 시장가 매수. 1종목만 충족 시 단일 매수. 자본 최대 활용.</div>
-        </div>
-        <div class="step">
-          <div class="step-num">STEP 5</div>
-          <div class="step-time">T+1 09:01</div>
-          <div class="step-title">전량 시가 매도</div>
-          <div class="step-desc">다음날 09:01 시장가 전량 매도. 갭업 수익 확정. 손절·익절 없음.</div>
-        </div>
+      <div class="timeline-table">
+        <table>
+          <thead><tr><th style="width:90px">시각</th><th style="width:150px">하는 일</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날 매수한 종목을 9시 시초가로 자동 매도 (어제 거래 정산)</td></tr>
+            <tr class="highlight"><td><strong>09:00</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
+              ① KOSDAQ 갭업(10%↑) + 거래량(5배↑) 종목 스캔<br>
+              ② 그 종목의 spectral cluster(동조도≥0.42, 멤버≥8) 확인<br>
+              ③ 클러스터 멤버 중 09:00 등락률 가장 낮은 2종목 선정<br>
+              ④ 상한가 가드(28.5%) 적용<br>
+              → pending_buy 2건 생성
+            </td></tr>
+            <tr class="highlight"><td><strong>09:01</strong></td><td><strong style="color:#f59e0b">★ 정적 매수 (즉시)</strong></td><td>
+              09:00 day_open 가격에 선택한 2종목을 50:50 분할 매수 (시간 지연 없음)
+            </td></tr>
+            <tr class="highlight"><td><strong>09:01~15:30</strong></td><td><strong style="color:#f59e0b">★ 당일 +5% 익절 모니터링</strong></td><td>
+              매수가 대비 close ≥ entry × 1.05 도달하면 즉시 매도 (20.4%, 당일 익절)<br>
+              미도달 시 보유
+            </td></tr>
+            <tr><td>15:30 폐장</td><td>그냥 보유</td><td>손절 없음</td></tr>
+            <tr><td>다음날 08:50</td><td>매도 (다음 사이클)</td><td>09:00 시초가에 일괄 매도 (당일 미익절 종목)</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
 
-  <!-- ─────────────── 진입 조건 상세 ─────────────── -->
+  <!-- ─────────────── 종목 선정 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">2</span>진입 조건 상세
-      </div>
-      <div class="section-meta">14:30 스캔 필터</div>
+      <div class="section-title"><span class="num-pill">2</span>09시에 매수 종목을 어떻게 정할까?</div>
+      <div class="section-meta">4단계 필터로 자동 선정</div>
     </div>
     <div class="section-body">
-      <div class="sub-h3">14:30 스캔 조건 (OR 논리)</div>
-      <table class="filter-table">
-        <thead><tr><th>조건</th><th>기준</th><th>의미</th><th>비고</th></tr></thead>
-        <tbody>
-          <tr class="key-rule">
-            <td><span class="rule-id">A</span></td>
-            <td><code>cluster_strength &gt; 1.10</code></td>
-            <td>9:31 스냅샷 클러스터 상단 대비 현재가 10%↑ 이상</td>
-            <td>모닝 클러스터 돌파 확인</td>
-          </tr>
-          <tr class="key-rule">
-            <td><span class="rule-id">B</span></td>
-            <td><code>change_rate &gt; 25%</code></td>
-            <td>당일 등락률 +25% 초과</td>
-            <td>급등 모멘텀 종목 포착</td>
-          </tr>
-          <tr>
-            <td><span style="display:inline-block;min-width:26px;height:26px;line-height:26px;text-align:center;background:rgba(251,191,36,0.18);color:var(--yellow);font-weight:700;font-size:12px;border-radius:4px;">+</span></td>
-            <td>Score 내림차순 Top2</td>
-            <td>A·B 조건 중 점수 높은 상위 2종목 선정</td>
-            <td>최대 2슬롯 50:50</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="theme-flow">
+        <div class="tf-box">
+          <div class="tf-label">1단계</div>
+          <div class="tf-value">갭업 감지</div>
+          <div class="tf-sub">close ≥ prev_close × 1.10 + volume ≥ avg_vol × 5.0</div>
+        </div>
+        <div class="tf-box accent">
+          <div class="tf-label">2단계</div>
+          <div class="tf-value">클러스터 매칭</div>
+          <div class="tf-sub">갭업 종목이 어느 cluster에 속하는가?</div>
+        </div>
+        <div class="tf-box accent">
+          <div class="tf-label">3단계</div>
+          <div class="tf-value">클러스터 필터</div>
+          <div class="tf-sub">avg_corr ≥ 0.42 + 멤버 ≥ 8 (강한 동조만)</div>
+        </div>
+        <div class="tf-box pick">
+          <div class="tf-label">4단계 ★</div>
+          <div class="tf-value" style="color:var(--green);">약한 2종목</div>
+          <div class="tf-sub">09:00 등락률 낮은 순 top1·2 (50:50 분할)</div>
+        </div>
+      </div>
 
       <div class="note-box" style="margin-top:14px;">
-        <strong>스코어 계산:</strong> <code>score = cluster_strength × (1 + change_rate)</code>
-        클러스터 강도와 당일 등락률을 함께 반영. 두 지표가 모두 높을수록 우선 선정.
+        <strong>💡 핵심 아이디어:</strong> 갭업 종목이 속한 클러스터 = "이 테마가 진짜 강세".
+        그 테마 안에서 혼자 약하게 오른 2종목은 <strong>다음날 테마 평균으로 회귀</strong>할 가능성이 높음.
+        <strong>분산 매수(50:50)로 MDD 극소화</strong>.
+        <br><br>
+        <strong>예시:</strong> "반도체 테마" 클러스터에 SK하이닉스(+12%), 삼성전자(+5%), LG이노텍(+2%), 갤럭시아(+3%)
+        → 가장 약한 2개(LG+2%, 갤럭시아+3%) 선정 → D+1 평균 회귀로 수익.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 안전장치 ─────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="num-pill">3</span>안전장치 — 손해 막는 자동 룰 (6겹)</div>
+      <div class="section-meta">매수 결정 6겹 + 운영 안전 3겹</div>
+    </div>
+    <div class="section-body">
+      <div class="why-grid">
+        <div class="why" style="border-color:rgba(100,100,100,0.4);">
+          <div class="why-head"><span class="no" style="background:rgba(100,100,100,0.2);color:var(--dim2);">📅</span>① KRX 휴일 가드</div>
+          <div class="why-body">
+            주말 + 공식 폐장일은 모든 cron 첫 줄에서 차단.
+          </div>
+        </div>
+        <div class="why warn">
+          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">⚠</span>② 약한 cluster 차단</div>
+          <div class="why-body">
+            avg_corr < 0.42 또는 멤버 < 8 → 매수 안 함.
+            <strong>진짜 강한 동조만</strong>.
+          </div>
+        </div>
+        <div class="why orange">
+          <div class="why-head"><span class="no" style="background:rgba(251,146,60,0.2);color:var(--orange);">🚫</span>③ 상한가 가드 (+28.5%)</div>
+          <div class="why-body">
+            매수 시점 가격이 전날보다 +28.5% 이상 → 매수 skip.
+            상한가 근처는 체결 불가.
+          </div>
+        </div>
+        <div class="why" style="border-color:rgba(34,197,94,0.4);">
+          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>④ KOSDAQ 필터</div>
+          <div class="why-body">
+            갭업 종목 자체가 KOSDAQ이어야 함 (KOSPI 제외).
+          </div>
+        </div>
+        <div class="why" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:var(--orange);">💰</span>⑤ 저가주 가드</div>
+          <div class="why-body">
+            매수가 < 1,000원 종목은 매수 skip. 동전주 슬리피지 위험.
+          </div>
+        </div>
+        <div class="why" style="border-color:rgba(168,85,247,0.5);background:rgba(168,85,247,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(168,85,247,0.2);color:#a855f7;">📉</span>⑥ 매수금지 캘린더</div>
+          <div class="why-body">
+            분기말(3·6·9·12월 마지막) + 12월 배당락 → 매수 안 함.
+          </div>
+        </div>
       </div>
 
-      <div class="sub-h3 mt">매도 조건 (고정)</div>
-      <table class="filter-table">
-        <thead><tr><th>조건</th><th>기준</th><th>비고</th></tr></thead>
-        <tbody>
-          <tr><td>시가 매도</td><td>T+1 09:01 시장가 전량 매도</td><td>손절·익절 없음. 오직 시가에 전량 정리.</td></tr>
-          <tr><td>매도 예외</td><td>당일 주문 실패·긴급 수동 매도</td><td>비상시만 허용</td></tr>
-        </tbody>
-      </table>
+      <!-- 운영 안전 3겹 -->
+      <div style="margin-top:24px;padding:14px 16px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.3);border-radius:8px;">
+        <div style="font-size:13px;font-weight:700;color:#22d3ee;margin-bottom:10px;">
+          ⚙️ 운영 안전장치 3겹
+        </div>
+        <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+          <div class="why" style="border-color:rgba(34,211,238,0.4);">
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑦ 중복 매수 방지</div>
+            <div class="why-body">
+              매수 후 체결 polling 중 다음 cron이 같은 종목 또 매수 X (in-progress lock).
+            </div>
+          </div>
+          <div class="why" style="border-color:rgba(34,211,238,0.4);">
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑧ 잔량 자동 취소</div>
+            <div class="why-body">
+              부분체결 시 KIS cancelOrder 자동 호출.
+              DB ↔ KIS 잔고 일치 보장.
+            </div>
+          </div>
+          <div class="why" style="border-color:rgba(34,211,238,0.4);">
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑨ D-1 종가 SSoT</div>
+            <div class="why-body">
+              상한가 가드용 D-1 종가를 backtest/parquet에서만 read.
+              네이버 API 의존 0.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ─────────────── 백테스트 결과 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">3</span>백테스트 결과
-      </div>
-      <div class="section-meta">2년 윈도우 (509거래일) + 1개월 정밀 백테 · 매도세 0.20% 차감</div>
+      <div class="section-title"><span class="num-pill">4</span>백테 결과 (2년)</div>
+      <div class="section-meta">2024-06 ~ 2026-05 · 479 가용 거래일 · 수수료·세금 차감</div>
     </div>
     <div class="section-body">
 
-      <!-- 2년 윈도우 결과 (cl6) -->
-      <div class="sub-h3" style="margin-bottom:10px;">▌ 2년 윈도우 백테스트 (2024-04 ~ 2026-05 · 509거래일)</div>
-      <div class="backtest-grid">
-        <div class="bt-card highlight">
-          <div class="bt-card-title">2년 전체 성과</div>
-          <div class="bt-metric"><span class="k">기간</span><span class="v accent">26개월 (509거래일)</span></div>
-          <div class="bt-metric"><span class="k">총 거래 수</span><span class="v">1,006건</span></div>
-          <div class="bt-metric"><span class="k">일평균 거래</span><span class="v">~2건/일</span></div>
-          <div class="bt-metric"><span class="k">승률</span><span class="v pos">74.1%</span></div>
-          <div class="bt-metric"><span class="k">평균 수익률</span><span class="v pos">+5.57%</span></div>
-          <div class="bt-metric"><span class="k">MDD</span><span class="v" style="color:var(--orange);">-18.71%</span></div>
-        </div>
-        <div class="bt-card">
-          <div class="bt-card-title">월별 연속성</div>
-          <div class="bt-metric"><span class="k">손실 월</span><span class="v pos">0개월 (26개월 전부 양수)</span></div>
-          <div class="bt-metric"><span class="k">최저 승률 월</span><span class="v" style="color:var(--yellow);">43% (2024-04, 표본적음)</span></div>
-          <div class="bt-metric"><span class="k">최고 승률 월</span><span class="v pos">88% (2025-09)</span></div>
-          <div class="bt-metric"><span class="k">평균 수익 범위</span><span class="v">+2.8% ~ +8.8%</span></div>
-          <div class="bt-metric"><span class="k">하락장 검증</span><span class="v pos">2024-06~07 (52~61%) 포함</span></div>
-        </div>
-        <div class="bt-card">
-          <div class="bt-card-title">전략 특성</div>
-          <div class="bt-metric"><span class="k">평균 보유 시간</span><span class="v">~18시간 (오버나잇)</span></div>
-          <div class="bt-metric"><span class="k">대상 시장</span><span class="v">KOSDAQ + KOSPI</span></div>
-          <div class="bt-metric"><span class="k">매수 시각</span><span class="v accent">14:50 종가 근사</span></div>
-          <div class="bt-metric"><span class="k">매도 시각</span><span class="v accent">T+1 09:01 시초가</span></div>
-          <div class="bt-metric"><span class="k">손절/익절</span><span class="v">없음 — T+1 단순 청산</span></div>
-        </div>
-      </div>
-
-      <!-- 1개월 정밀 결과 (cl5 Top2) -->
-      <div class="sub-h3" style="margin:18px 0 10px;">▌ 1개월 정밀 백테스트 · Top2 (2026-04-28 ~ 05-27)</div>
-      <div class="backtest-grid">
-        <div class="bt-card">
-          <div class="bt-card-title">cl5 전체 후보</div>
-          <div class="bt-metric"><span class="k">기간</span><span class="v accent">19거래일</span></div>
-          <div class="bt-metric"><span class="k">승률</span><span class="v pos">66.2%</span></div>
-          <div class="bt-metric"><span class="k">평균 수익률</span><span class="v pos">+2.84%</span></div>
-          <div class="bt-metric"><span class="k">누적 수익률</span><span class="v pos">+63.5%</span></div>
-          <div class="bt-metric"><span class="k">MDD</span><span class="v" style="color:var(--orange);">-9.78%</span></div>
-        </div>
-        <div class="bt-card highlight">
-          <div class="bt-card-title">Top2 선정 적용 ★ 실제 엔진</div>
-          <div class="bt-metric"><span class="k">선정 방식</span><span class="v accent">cluster_strength 상위 2</span></div>
-          <div class="bt-metric"><span class="k">승률</span><span class="v pos">81.6%</span></div>
-          <div class="bt-metric"><span class="k">평균 수익률</span><span class="v pos">+5.80%</span></div>
-          <div class="bt-metric"><span class="k">중앙값 수익률</span><span class="v pos">+4.58%</span></div>
-          <div class="bt-metric"><span class="k">MDD</span><span class="v" style="color:var(--orange);">-13.81%</span></div>
-        </div>
-        <div class="bt-card">
-          <div class="bt-card-title">진입 조건</div>
-          <div class="bt-metric"><span class="k">cluster_strength</span><span class="v">&gt; 1.20 (20%+ 돌파)</span></div>
-          <div class="bt-metric"><span class="k">OR 등락률</span><span class="v">&gt; 25% (상한가 직전)</span></div>
-          <div class="bt-metric"><span class="k">제외 구간</span><span class="v" style="color:var(--yellow);">등락률 20~25% (최악 구간)</span></div>
-          <div class="bt-metric"><span class="k">최악일 (5/19)</span><span class="v" style="color:var(--red);">2건 전부 손실 −12%</span></div>
-          <div class="bt-metric"><span class="k">나머지 18일</span><span class="v pos">16일 50%↑ 승률</span></div>
-        </div>
-      </div>
-
-      <div class="note-box" style="margin-top:14px;">
-        <strong>⚠️ 백테 조건 (2년 윈도우):</strong> 매도세 0.20% 차감. 진입가 = 일 종가 근사 (실제 14:50 close),
-        청산가 = T+1 첫 봉 open. 슬리피지 미적용 — 실전에서 급등 종목 체결가 불리 시 소폭 하향 조정 필요.
-      </div>
-
-      <div class="note-box" style="margin-top:8px;">
-        <strong>📌 2년 핵심 인사이트:</strong> 26개월 중 손실 월 0건. 2024년 하락장(6~7월, 승률 52~61%)에서도
-        평균 수익 양수 유지. 모멘텀 종목의 오버나잇 갭업 패턴은 2년간 구조적으로 지속됨.
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─────────────── 윈도우 안정성 & 통계 분석 ─────────────── -->
-  <section class="section">
-    <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">4</span>윈도우 안정성 & 통계 분석
-      </div>
-      <div class="section-meta">N개월 rolling window · 분기별 · 연도별 · 분포 · NEMESIS 동일 포맷</div>
-    </div>
-    <div class="section-body">
-
-      <!-- ① 윈도우 안정성 — 거래당 평균수익 (가중평균) -->
-      <div class="sub-h3" style="margin-bottom:8px;">▌ 윈도우 안정성 — 거래당 평균수익률 (n 가중평균, %)</div>
-      <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">
-        각 N개월 rolling window 안의 모든 매매를 n으로 가중평균한 거래당 수익률. NEMESIS "일평균" 표의 거래 단위 버전.
-      </div>
-      <div style="overflow-x:auto;margin-bottom:8px;">
-        <table class="filter-table" style="min-width:680px;">
-          <thead>
-            <tr>
-              <th>윈도우</th>
-              <th style="text-align:right;">표본</th>
-              <th style="text-align:right;">손실</th>
-              <th style="text-align:right;">양수율</th>
-              <th style="text-align:right;">중앙값</th>
-              <th style="text-align:right;">최악</th>
-              <th style="text-align:right;">최고</th>
-              <th>최악 윈도우</th>
-            </tr>
-          </thead>
-          <tbody id="win-avg-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- ② 윈도우 안정성 — 누적 P&L (만원, 1M/건 고정) -->
-      <div class="sub-h3" style="margin:20px 0 8px;">▌ 윈도우 안정성 — 누적 P&L (만원, 1건당 100만원 고정자본)</div>
-      <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">
-        각 window 안의 Σ(n × avg) — 1건당 100만원 투입, 복리 미적용. NEMESIS "누적 %" 와 같은 의미 (자본 베이스 다름).
-      </div>
-      <div style="overflow-x:auto;margin-bottom:8px;">
-        <table class="filter-table" style="min-width:680px;">
-          <thead>
-            <tr>
-              <th>윈도우</th>
-              <th style="text-align:right;">표본</th>
-              <th style="text-align:right;">손실</th>
-              <th style="text-align:right;">중앙값</th>
-              <th style="text-align:right;">최악</th>
-              <th style="text-align:right;">최고</th>
-              <th style="text-align:right;">평균 거래수</th>
-              <th>최고 윈도우</th>
-            </tr>
-          </thead>
-          <tbody id="win-pnl-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- ③ 윈도우 안정성 — 승률 -->
-      <div class="sub-h3" style="margin:20px 0 8px;">▌ 윈도우 안정성 — 승률 (n 가중평균, %)</div>
-      <div style="overflow-x:auto;margin-bottom:8px;">
-        <table class="filter-table" style="min-width:680px;">
-          <thead>
-            <tr>
-              <th>윈도우</th>
-              <th style="text-align:right;">표본</th>
-              <th style="text-align:right;">중앙값</th>
-              <th style="text-align:right;">최저</th>
-              <th style="text-align:right;">최고</th>
-              <th style="text-align:right;">표준편차</th>
-              <th>최저 윈도우</th>
-            </tr>
-          </thead>
-          <tbody id="win-wr-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- ④ 분기별 -->
-      <div class="sub-h3" style="margin:24px 0 8px;">▌ 분기별 성과 (9개 분기)</div>
-      <div style="overflow-x:auto;margin-bottom:8px;">
-        <table class="filter-table" style="min-width:680px;">
-          <thead>
-            <tr>
-              <th>분기</th>
-              <th style="text-align:right;">개월</th>
-              <th style="text-align:right;">거래수</th>
-              <th style="text-align:right;">거래당 평균</th>
-              <th style="text-align:right;">승률</th>
-              <th style="text-align:right;">분기 P&L (만원)</th>
-              <th style="text-align:right;">월 MDD 최악</th>
-            </tr>
-          </thead>
-          <tbody id="quarter-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- ⑤ 연도별 -->
-      <div class="sub-h3" style="margin:20px 0 8px;">▌ 연도별 성과 (3개년)</div>
-      <div style="overflow-x:auto;margin-bottom:8px;">
-        <table class="filter-table" style="min-width:680px;">
-          <thead>
-            <tr>
-              <th>연도</th>
-              <th style="text-align:right;">개월</th>
-              <th style="text-align:right;">거래수</th>
-              <th style="text-align:right;">거래당 평균</th>
-              <th style="text-align:right;">승률</th>
-              <th style="text-align:right;">연 P&L (만원)</th>
-              <th style="text-align:right;">월 MDD 최악</th>
-              <th style="text-align:right;">손실월</th>
-            </tr>
-          </thead>
-          <tbody id="year-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- ⑥ Best / Worst 월 -->
-      <div class="why-grid" style="margin-top:24px;">
-        <div class="why ok">
-          <div class="why-head">Best 5 월 (거래당 평균수익 기준)</div>
-          <div class="why-body" id="best5-list" style="font-family:'SF Mono',monospace;font-size:11px;line-height:1.9;"></div>
-        </div>
-        <div class="why warn">
-          <div class="why-head">Worst 5 월 (거래당 평균수익 기준)</div>
-          <div class="why-body" id="worst5-list" style="font-family:'SF Mono',monospace;font-size:11px;line-height:1.9;"></div>
-        </div>
-        <div class="why accent">
-          <div class="why-head">Best 5 월 (월 MDD 최악 기준)</div>
-          <div class="why-body" id="bestmdd-list" style="font-family:'SF Mono',monospace;font-size:11px;line-height:1.9;"></div>
-        </div>
-        <div class="why orange">
-          <div class="why-head">Worst 5 월 (월 MDD 최악 기준)</div>
-          <div class="why-body" id="worstmdd-list" style="font-family:'SF Mono',monospace;font-size:11px;line-height:1.9;"></div>
-        </div>
-      </div>
-
-      <!-- ⑦ 종합 통계 -->
-      <div class="sub-h3" style="margin:24px 0 8px;">▌ 종합 통계 (2년 전체, 26개월)</div>
-      <div class="hero-metrics" style="grid-template-columns:repeat(4,1fr);margin-top:0;">
-        <div class="hm"><span class="hm-label">총 거래수</span><span class="hm-value" id="ss-trades">—</span><span class="hm-sub">월평균 <span id="ss-trades-mon">—</span>건</span></div>
-        <div class="hm"><span class="hm-label">거래당 평균 (가중)</span><span class="hm-value pos" id="ss-avg">—</span><span class="hm-sub">중앙값 <span id="ss-avg-med">—</span></span></div>
-        <div class="hm"><span class="hm-label">승률 (가중)</span><span class="hm-value pos" id="ss-wr">—</span><span class="hm-sub">중앙값 <span id="ss-wr-med">—</span></span></div>
-        <div class="hm"><span class="hm-label">누적 P&L (1M/건)</span><span class="hm-value pos" id="ss-pnl">—</span><span class="hm-sub">연환산 <span id="ss-pnl-yr">—</span>만원</span></div>
-        <div class="hm"><span class="hm-label">월 표준편차 (avg)</span><span class="hm-value" id="ss-std">—</span><span class="hm-sub">Sharpe (월) <span id="ss-sharpe">—</span></span></div>
-        <div class="hm"><span class="hm-label">월 MDD 최악</span><span class="hm-value neg" id="ss-mdd">—</span><span class="hm-sub" id="ss-mdd-ym">—</span></div>
-        <div class="hm"><span class="hm-label">손실 월</span><span class="hm-value pos" id="ss-lossmon">—</span><span class="hm-sub">26개월 중</span></div>
-        <div class="hm"><span class="hm-label">월 양수 비율</span><span class="hm-value pos" id="ss-posrate">—</span><span class="hm-sub">avg &gt; 0 월</span></div>
-      </div>
-
-      <!-- ⑧ 월별 avg 분포 (히스토그램) -->
-      <div class="sub-h3" style="margin:24px 0 8px;">▌ 월별 거래당 평균수익 분포</div>
-      <div id="hist-bars" style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;padding:14px 16px;"></div>
-
-      <div class="note-box" style="margin-top:14px;">
-        <strong>📌 NEMESIS 표와 비교 시 주의:</strong> APEX는 1건당 100만원 고정 투입 모델 → "누적 P&L"이 만원 단위.
-        NEMESIS는 매매일 가중수익률 합산 → "%". 직접 비교 가능한 지표는 ① 거래당 평균수익 (NEMESIS "매매당"),
-        ② 손실 윈도우 개수 (양수 안정성), ③ 월 MDD. 두 엔진 모두 W∈{3,6,12,18M} 손실 0건이면 구조적 견고.
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─────────────── 월별 상세 수익률 ─────────────── -->
-  <section class="section" id="monthly-detail">
-    <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">5</span>월별 수익률 상세 (2024-04 ~ 2026-05)
-      </div>
-      <div class="section-meta">26개월 연속 양수 · 1M/건 고정자본 모델 · 누적손익 차트</div>
-    </div>
-    <div class="section-body">
-
-      <!-- ① 누적 손익 라인 차트 -->
-      <div style="margin-bottom:6px;font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.5px;text-transform:uppercase;">
-        누적 손익 (1M/건 고정자본 기준, 2024-04 ~ 2026-05)
-      </div>
-      <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;padding:10px 10px 4px;margin-bottom:6px;">
-        <svg id="cum-svg" viewBox="0 0 660 130" style="width:100%;display:block;"></svg>
-      </div>
-      <div style="font-size:10px;color:var(--dim2);margin-bottom:18px;">
-        ※ 1건당 1,000,000원 투입 고정 · 복리 미적용 · 총 1,006건 거래 기준 · 매도세 0.2% 차감
-      </div>
-
-      <!-- ② 거래당 평균수익 바 차트 -->
-      <div style="margin-bottom:6px;font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.5px;text-transform:uppercase;">
-        거래당 평균수익 (%) · 월별
-      </div>
-      <div id="avg-bars" style="margin-bottom:6px;"></div>
-      <div style="display:flex;gap:14px;margin-bottom:20px;font-size:10px;color:var(--dim);">
-        <span><span style="display:inline-block;width:8px;height:8px;background:#4ade80;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>≥7%</span>
-        <span><span style="display:inline-block;width:8px;height:8px;background:#22d3ee;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>5~7%</span>
-        <span><span style="display:inline-block;width:8px;height:8px;background:#94a3b8;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>3~5%</span>
-        <span><span style="display:inline-block;width:8px;height:8px;background:#fbbf24;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>&lt;3%</span>
-      </div>
-
-      <!-- ③ 월별 전체 테이블 -->
-      <div class="sub-h3" style="margin-bottom:8px;">월별 전체 데이터 (26개월)</div>
-      <div style="overflow-x:auto;">
-        <table class="filter-table" style="min-width:640px;">
-          <thead>
-            <tr>
-              <th>월</th>
-              <th style="text-align:right;">거래수</th>
-              <th style="text-align:right;">승률</th>
-              <th style="text-align:right;">평균수익</th>
-              <th style="text-align:right;">월손익(만원)</th>
-              <th style="text-align:right;">누적손익(만원)</th>
-              <th style="text-align:right;">MDD</th>
-              <th>판정</th>
-            </tr>
-          </thead>
-          <tbody id="monthly-tbody"></tbody>
-        </table>
-      </div>
-
-      <div class="note-box" style="margin-top:14px;">
-        <strong>📌 핵심 지표:</strong> 거래당 평균수익 <strong style="color:var(--green);">+5.57%</strong>,
-        승률 <strong style="color:var(--green);">74.1%</strong>, 26개월 전부 양수.
-        누적손익은 1건당 100만원 고정 투입 기준 — 자본 규모에 비례해 확장됨.
-        복리 재투자 시 수익은 훨씬 크나 슬리피지·체결 리스크도 함께 증가.
-      </div>
-    </div>
-  </section>
-
-  <script>
-  (function () {
-    /* ── 원본 데이터 ──────────────────────────────────── */
-    var D = [
-      { ym:'2024-04', n:14,  wr:42.9, avg:3.594, mdd:-3.19  },
-      { ym:'2024-05', n:40,  wr:75.0, avg:5.135, mdd:-13.73 },
-      { ym:'2024-06', n:36,  wr:61.1, avg:2.799, mdd:-17.72 },
-      { ym:'2024-07', n:46,  wr:52.2, avg:3.803, mdd:-6.64  },
-      { ym:'2024-08', n:42,  wr:83.3, avg:6.003, mdd:-15.54 },
-      { ym:'2024-09', n:36,  wr:66.7, avg:4.256, mdd:-1.86  },
-      { ym:'2024-10', n:40,  wr:85.0, avg:5.011, mdd:-5.91  },
-      { ym:'2024-11', n:42,  wr:76.2, avg:4.575, mdd:-8.10  },
-      { ym:'2024-12', n:39,  wr:64.1, avg:4.098, mdd:-8.82  },
-      { ym:'2025-01', n:36,  wr:69.4, avg:4.893, mdd:-4.05  },
-      { ym:'2025-02', n:40,  wr:77.5, avg:5.555, mdd:-7.99  },
-      { ym:'2025-03', n:40,  wr:80.0, avg:5.742, mdd:-2.95  },
-      { ym:'2025-04', n:44,  wr:59.1, avg:5.972, mdd:-14.36 },
-      { ym:'2025-05', n:38,  wr:65.8, avg:6.511, mdd:-7.32  },
-      { ym:'2025-06', n:37,  wr:73.0, avg:5.736, mdd:-3.71  },
-      { ym:'2025-07', n:46,  wr:78.3, avg:5.158, mdd:-18.71 },
-      { ym:'2025-08', n:39,  wr:82.1, avg:8.837, mdd:0      },
-      { ym:'2025-09', n:43,  wr:88.4, avg:7.162, mdd:0      },
-      { ym:'2025-10', n:36,  wr:77.8, avg:5.215, mdd:-0.26  },
-      { ym:'2025-11', n:40,  wr:80.0, avg:4.114, mdd:-7.66  },
-      { ym:'2025-12', n:41,  wr:70.7, avg:6.340, mdd:-7.29  },
-      { ym:'2026-01', n:41,  wr:75.6, avg:6.725, mdd:-3.55  },
-      { ym:'2026-02', n:32,  wr:78.1, avg:4.754, mdd:-1.24  },
-      { ym:'2026-03', n:42,  wr:81.0, avg:6.682, mdd:-3.25  },
-      { ym:'2026-04', n:44,  wr:84.1, avg:7.695, mdd:-2.76  },
-      { ym:'2026-05', n:32,  wr:78.1, avg:6.682, mdd:-3.79  },
-    ];
-
-    /* ── 고정자본 누적손익 계산 (1건당 100만원) ─────────
-       월손익(만원) = n × avg (%)  →  n×1M×avg% = n×avg×10,000원 = n×avg 만원
-    ──────────────────────────────────────────────────── */
-    var cumPnl = 0;
-    D.forEach(function (r) {
-      r.monthPnl = r.n * r.avg;          // 만원 단위
-      cumPnl += r.monthPnl;
-      r.cumPnl = cumPnl;
-    });
-    var totalPnl = cumPnl;               // ≈ 5,603만원
-
-    /* ═══════════════════════════════════════════════════
-       ① 누적손익 SVG 라인 차트
-    ═══════════════════════════════════════════════════ */
-    (function () {
-      var svg = document.getElementById('cum-svg');
-      if (!svg) return;
-      var W = 660, H = 130;
-      var PL = 62, PR = 18, PT = 12, PB = 30;
-      var cw = W - PL - PR, ch = H - PT - PB;
-
-      var ns = 'http://www.w3.org/2000/svg';
-      function el(tag, attrs) {
-        var e = document.createElementNS(ns, tag);
-        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
-        return e;
-      }
-      function text(t, attrs) {
-        var e = el('text', attrs);
-        e.textContent = t;
-        return e;
-      }
-
-      /* 좌표 변환 */
-      var maxY = Math.ceil(totalPnl / 1000) * 1000;   // 6000만원
-      var pts  = D.map(function (r, i) {
-        return {
-          x: PL + i / (D.length - 1) * cw,
-          y: PT + (1 - r.cumPnl / maxY) * ch,
-          r: r
-        };
-      });
-
-      /* 그라디언트 */
-      var defs = el('defs', {});
-      var grad = el('linearGradient', { id:'cumGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
-      var s1 = el('stop', { offset:'0%', 'stop-color':'#22d3ee', 'stop-opacity':'0.30' });
-      var s2 = el('stop', { offset:'100%', 'stop-color':'#22d3ee', 'stop-opacity':'0.02' });
-      grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad);
-      svg.appendChild(defs);
-
-      /* 그리드 + Y 레이블 */
-      [0, 1500, 3000, 4500, 6000].forEach(function (v) {
-        var y = PT + (1 - v / maxY) * ch;
-        var g = el('line', { x1: PL, y1: y.toFixed(1), x2: W - PR, y2: y.toFixed(1),
-                              stroke: '#1a2a35', 'stroke-width': '1' });
-        svg.appendChild(g);
-        var lbl = v === 0 ? '0' : (v >= 1000 ? (v/100).toFixed(0)+'백만' : v+'만');
-        svg.appendChild(text(lbl, {
-          x: (PL - 4).toFixed(1), y: y.toFixed(1),
-          'text-anchor': 'end', 'dominant-baseline': 'middle',
-          fill: '#5a5a65', 'font-size': '9'
-        }));
-      });
-
-      /* 면적 경로 */
-      var lineD = pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
-      var areaD = lineD +
-        ' L' + pts[pts.length-1].x.toFixed(1) + ',' + (PT + ch).toFixed(1) +
-        ' L' + pts[0].x.toFixed(1) + ',' + (PT + ch).toFixed(1) + ' Z';
-      svg.appendChild(el('path', { d: areaD, fill: 'url(#cumGrad)' }));
-      svg.appendChild(el('path', { d: lineD, fill: 'none', stroke: '#22d3ee', 'stroke-width': '1.8' }));
-
-      /* X 레이블 (4개월 간격) */
-      pts.forEach(function (p, i) {
-        if (i % 4 !== 0) return;
-        svg.appendChild(text(p.r.ym.slice(2), {
-          x: p.x.toFixed(1), y: (PT + ch + 12).toFixed(1),
-          'text-anchor': 'middle', fill: '#5a5a65', 'font-size': '9'
-        }));
-      });
-
-      /* 마지막 점 + 최종값 레이블 */
-      var last = pts[pts.length - 1];
-      svg.appendChild(el('circle', { cx: last.x.toFixed(1), cy: last.y.toFixed(1), r:'4', fill:'#22d3ee' }));
-      svg.appendChild(text(Math.round(totalPnl).toLocaleString() + '만원', {
-        x: (last.x - 4).toFixed(1), y: (last.y - 9).toFixed(1),
-        'text-anchor': 'end', fill: '#22d3ee', 'font-size': '10', 'font-weight': '700'
-      }));
-
-      /* 최고 MDD 월 표시 */
-      var worstIdx = D.reduce(function (bi, r, i) { return r.mdd < D[bi].mdd ? i : bi; }, 0);
-      var wp = pts[worstIdx];
-      svg.appendChild(el('line', { x1: wp.x.toFixed(1), y1: PT.toFixed(1),
-        x2: wp.x.toFixed(1), y2: (PT+ch).toFixed(1),
-        stroke:'#f87171', 'stroke-width':'1', 'stroke-dasharray':'3 3', opacity:'0.6' }));
-      svg.appendChild(text('MDD ' + D[worstIdx].mdd + '%', {
-        x: (wp.x + 3).toFixed(1), y: (PT + 10).toFixed(1),
-        fill: '#f87171', 'font-size': '8.5'
-      }));
-    })();
-
-    /* ═══════════════════════════════════════════════════
-       ② 거래당 평균수익 바 차트
-    ═══════════════════════════════════════════════════ */
-    (function () {
-      var el = document.getElementById('avg-bars');
-      if (!el) return;
-      var maxAvg = Math.max.apply(null, D.map(function (r) { return r.avg; }));
-      el.innerHTML = D.map(function (r) {
-        var pct  = (r.avg / maxAvg * 100).toFixed(1);
-        var col  = r.avg >= 7 ? '#4ade80' : r.avg >= 5 ? '#22d3ee' : r.avg >= 3 ? '#94a3b8' : '#fbbf24';
-        return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">' +
-          '<span style="width:52px;font-size:9.5px;color:var(--dim);text-align:right;flex-shrink:0;font-family:monospace;">' + r.ym.slice(2) + '</span>' +
-          '<div style="flex:1;height:13px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;">' +
-            '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;" title="' +
-              r.ym + ' avg=' + r.avg.toFixed(2) + '% WR=' + r.wr.toFixed(1) + '%"></div>' +
-          '</div>' +
-          '<span style="width:48px;font-size:9.5px;color:' + col + ';font-weight:700;font-family:monospace;text-align:right;">+' + r.avg.toFixed(2) + '%</span>' +
-          '<span style="width:40px;font-size:9.5px;color:var(--dim2);text-align:right;">' + r.wr.toFixed(0) + '%WR</span>' +
-        '</div>';
-      }).join('');
-    })();
-
-    /* ═══════════════════════════════════════════════════
-       ④ 윈도우 안정성 & 통계 분석 (NEMESIS 동일 포맷)
-    ═══════════════════════════════════════════════════ */
-    (function () {
-      /* ── helpers ───────────────────────────────── */
-      function median(arr) {
-        var s = arr.slice().sort(function(a,b){return a-b;});
-        var n = s.length;
-        if (!n) return 0;
-        return n % 2 ? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2;
-      }
-      function stdev(arr) {
-        var n = arr.length; if (n < 2) return 0;
-        var m = arr.reduce(function(s,v){return s+v;},0)/n;
-        var v = arr.reduce(function(s,x){return s+(x-m)*(x-m);},0)/(n-1);
-        return Math.sqrt(v);
-      }
-      function rolling(N, metricFn) {
-        var out = [];
-        for (var i = 0; i + N <= D.length; i++) {
-          var slice = D.slice(i, i+N);
-          var totalN = slice.reduce(function(s,r){return s+r.n;},0);
-          var wAvgSum = slice.reduce(function(s,r){return s+r.n*r.avg;},0);
-          var wWrSum  = slice.reduce(function(s,r){return s+r.n*r.wr;},0);
-          var pnl     = wAvgSum; // 만원 (1M/건)
-          var w = {
-            start: slice[0].ym, end: slice[N-1].ym,
-            totalN: totalN,
-            wAvg: wAvgSum / totalN,
-            wWr:  wWrSum  / totalN,
-            pnl:  pnl,
-            mddMin: Math.min.apply(null, slice.map(function(r){return r.mdd;})),
-            lossMonths: slice.filter(function(r){return r.avg<0;}).length
-          };
-          w.metric = metricFn ? metricFn(w) : w.wAvg;
-          out.push(w);
-        }
-        return out;
-      }
-      function fmt(v, d) { d = d || 2; return (v>=0?'+':'') + v.toFixed(d); }
-      function pct(v, d) { d = d == null ? 2 : d; return (v>=0?'+':'') + v.toFixed(d) + '%'; }
-
-      var Ns = [1, 3, 6, 9, 12, 18, 24];
-
-      /* ── ① 윈도우 안정성 — 거래당 평균수익 ─────── */
-      (function() {
-        var tbody = document.getElementById('win-avg-tbody'); if (!tbody) return;
-        var html = '';
-        Ns.forEach(function(N) {
-          var ws = rolling(N);
-          if (!ws.length) return;
-          var vals = ws.map(function(w){return w.wAvg;});
-          var losses = vals.filter(function(v){return v<0;}).length;
-          var posRate = (vals.length - losses) / vals.length * 100;
-          var med = median(vals);
-          var worst = ws.reduce(function(a,b){return b.wAvg<a.wAvg?b:a;});
-          var best  = ws.reduce(function(a,b){return b.wAvg>a.wAvg?b:a;});
-          var lossC = losses === 0 ? 'color:var(--green);font-weight:700;' : 'color:var(--red);font-weight:700;';
-          var posC  = posRate === 100 ? 'color:var(--green);font-weight:800;' : 'color:var(--accent);';
-          html += '<tr>' +
-            '<td style="font-weight:700;color:var(--accent);">'+N+'M</td>' +
-            '<td style="text-align:right;">'+ws.length+'</td>' +
-            '<td style="text-align:right;'+lossC+'">'+losses+'/'+ws.length+'</td>' +
-            '<td style="text-align:right;'+posC+'">'+posRate.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:var(--green);font-family:monospace;">'+pct(med)+'</td>' +
-            '<td style="text-align:right;color:'+(worst.wAvg<0?'var(--red)':'var(--yellow)')+';font-family:monospace;">'+pct(worst.wAvg)+'</td>' +
-            '<td style="text-align:right;color:var(--green);font-family:monospace;font-weight:700;">'+pct(best.wAvg)+'</td>' +
-            '<td style="font-size:10.5px;color:var(--dim);font-family:monospace;">'+worst.start+'~'+worst.end+'</td>' +
-          '</tr>';
-        });
-        tbody.innerHTML = html;
-      })();
-
-      /* ── ② 윈도우 안정성 — 누적 P&L ─────────── */
-      (function() {
-        var tbody = document.getElementById('win-pnl-tbody'); if (!tbody) return;
-        var html = '';
-        Ns.forEach(function(N) {
-          var ws = rolling(N); if (!ws.length) return;
-          var vals = ws.map(function(w){return w.pnl;});
-          var losses = vals.filter(function(v){return v<0;}).length;
-          var med = median(vals);
-          var worst = ws.reduce(function(a,b){return b.pnl<a.pnl?b:a;});
-          var best  = ws.reduce(function(a,b){return b.pnl>a.pnl?b:a;});
-          var avgN  = vals.reduce(function(s,v,i){return s+ws[i].totalN;},0) / ws.length;
-          var lossC = losses === 0 ? 'color:var(--green);font-weight:700;' : 'color:var(--red);font-weight:700;';
-          html += '<tr>' +
-            '<td style="font-weight:700;color:var(--accent);">'+N+'M</td>' +
-            '<td style="text-align:right;">'+ws.length+'</td>' +
-            '<td style="text-align:right;'+lossC+'">'+losses+'/'+ws.length+'</td>' +
-            '<td style="text-align:right;color:var(--accent);font-family:monospace;">'+Math.round(med).toLocaleString()+'만</td>' +
-            '<td style="text-align:right;color:'+(worst.pnl<0?'var(--red)':'var(--yellow)')+';font-family:monospace;">'+Math.round(worst.pnl).toLocaleString()+'만</td>' +
-            '<td style="text-align:right;color:var(--green);font-family:monospace;font-weight:700;">'+Math.round(best.pnl).toLocaleString()+'만</td>' +
-            '<td style="text-align:right;color:var(--dim);">'+Math.round(avgN)+'건</td>' +
-            '<td style="font-size:10.5px;color:var(--dim);font-family:monospace;">'+best.start+'~'+best.end+'</td>' +
-          '</tr>';
-        });
-        tbody.innerHTML = html;
-      })();
-
-      /* ── ③ 윈도우 안정성 — 승률 ─────────────── */
-      (function() {
-        var tbody = document.getElementById('win-wr-tbody'); if (!tbody) return;
-        var html = '';
-        Ns.forEach(function(N) {
-          var ws = rolling(N); if (!ws.length) return;
-          var vals = ws.map(function(w){return w.wWr;});
-          var med = median(vals);
-          var worst = ws.reduce(function(a,b){return b.wWr<a.wWr?b:a;});
-          var best  = ws.reduce(function(a,b){return b.wWr>a.wWr?b:a;});
-          var sd = stdev(vals);
-          html += '<tr>' +
-            '<td style="font-weight:700;color:var(--accent);">'+N+'M</td>' +
-            '<td style="text-align:right;">'+ws.length+'</td>' +
-            '<td style="text-align:right;color:var(--green);font-family:monospace;font-weight:700;">'+med.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:'+(worst.wWr<60?'var(--yellow)':'var(--text)')+';font-family:monospace;">'+worst.wWr.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:var(--green);font-family:monospace;">'+best.wWr.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:var(--dim);font-family:monospace;">±'+sd.toFixed(2)+'%p</td>' +
-            '<td style="font-size:10.5px;color:var(--dim);font-family:monospace;">'+worst.start+'~'+worst.end+'</td>' +
-          '</tr>';
-        });
-        tbody.innerHTML = html;
-      })();
-
-      /* ── ④ 분기별 ──────────────────────────── */
-      (function() {
-        var tbody = document.getElementById('quarter-tbody'); if (!tbody) return;
-        var groups = {};
-        D.forEach(function(r) {
-          var y = r.ym.slice(0,4), m = parseInt(r.ym.slice(5,7),10);
-          var q = 'Q' + Math.ceil(m/3);
-          var key = y + q;
-          (groups[key] = groups[key] || []).push(r);
-        });
-        var rows = Object.keys(groups).sort().map(function(k) {
-          var s = groups[k];
-          var tn = s.reduce(function(a,r){return a+r.n;},0);
-          var wa = s.reduce(function(a,r){return a+r.n*r.avg;},0)/tn;
-          var ww = s.reduce(function(a,r){return a+r.n*r.wr;},0)/tn;
-          var pl = s.reduce(function(a,r){return a+r.n*r.avg;},0);
-          var mddMin = Math.min.apply(null, s.map(function(r){return r.mdd;}));
-          return {q:k, months:s.length, tn:tn, wa:wa, ww:ww, pl:pl, mdd:mddMin};
-        });
-        tbody.innerHTML = rows.map(function(r) {
-          var waC = r.wa>=6?'var(--green)':r.wa>=4?'var(--accent)':'var(--text)';
-          var wwC = r.ww>=75?'var(--green)':r.ww>=65?'var(--accent)':'var(--yellow)';
-          var mddC = r.mdd<=-10?'var(--red)':r.mdd<=-5?'var(--orange)':'var(--dim)';
-          return '<tr>' +
-            '<td style="font-family:monospace;font-weight:700;color:var(--accent);">'+r.q.slice(0,4)+' '+r.q.slice(4)+'</td>' +
-            '<td style="text-align:right;color:var(--dim);">'+r.months+'</td>' +
-            '<td style="text-align:right;color:var(--dim);">'+r.tn+'건</td>' +
-            '<td style="text-align:right;color:'+waC+';font-weight:700;font-family:monospace;">'+pct(r.wa)+'</td>' +
-            '<td style="text-align:right;color:'+wwC+';font-family:monospace;">'+r.ww.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:var(--accent);font-family:monospace;font-weight:700;">'+Math.round(r.pl).toLocaleString()+'만</td>' +
-            '<td style="text-align:right;color:'+mddC+';font-family:monospace;">'+(r.mdd===0?'—':r.mdd.toFixed(2)+'%')+'</td>' +
-          '</tr>';
-        }).join('');
-      })();
-
-      /* ── ⑤ 연도별 ──────────────────────────── */
-      (function() {
-        var tbody = document.getElementById('year-tbody'); if (!tbody) return;
-        var groups = {};
-        D.forEach(function(r) { var y = r.ym.slice(0,4); (groups[y]=groups[y]||[]).push(r); });
-        var rows = Object.keys(groups).sort().map(function(y) {
-          var s = groups[y];
-          var tn = s.reduce(function(a,r){return a+r.n;},0);
-          var wa = s.reduce(function(a,r){return a+r.n*r.avg;},0)/tn;
-          var ww = s.reduce(function(a,r){return a+r.n*r.wr;},0)/tn;
-          var pl = s.reduce(function(a,r){return a+r.n*r.avg;},0);
-          var mddMin = Math.min.apply(null, s.map(function(r){return r.mdd;}));
-          var lossMon = s.filter(function(r){return r.avg<0;}).length;
-          return {y:y, months:s.length, tn:tn, wa:wa, ww:ww, pl:pl, mdd:mddMin, loss:lossMon};
-        });
-        tbody.innerHTML = rows.map(function(r) {
-          var waC = r.wa>=6?'var(--green)':r.wa>=4?'var(--accent)':'var(--text)';
-          var lossC = r.loss===0?'color:var(--green);font-weight:700;':'color:var(--yellow);';
-          return '<tr>' +
-            '<td style="font-family:monospace;font-weight:800;color:var(--accent);">'+r.y+'</td>' +
-            '<td style="text-align:right;color:var(--dim);">'+r.months+'</td>' +
-            '<td style="text-align:right;color:var(--dim);">'+r.tn+'건</td>' +
-            '<td style="text-align:right;color:'+waC+';font-weight:700;font-family:monospace;">'+pct(r.wa)+'</td>' +
-            '<td style="text-align:right;color:var(--accent);font-family:monospace;">'+r.ww.toFixed(1)+'%</td>' +
-            '<td style="text-align:right;color:var(--accent);font-family:monospace;font-weight:700;">'+Math.round(r.pl).toLocaleString()+'만</td>' +
-            '<td style="text-align:right;color:'+(r.mdd<=-10?'var(--red)':'var(--orange)')+';font-family:monospace;">'+r.mdd.toFixed(2)+'%</td>' +
-            '<td style="text-align:right;'+lossC+'">'+r.loss+'/'+r.months+'</td>' +
-          '</tr>';
-        }).join('');
-      })();
-
-      /* ── ⑥ Best / Worst 월 ──────────────────── */
-      (function() {
-        function render(id, sorted, key, unit) {
-          var el = document.getElementById(id); if (!el) return;
-          el.innerHTML = sorted.slice(0,5).map(function(r,i) {
-            var v = r[key];
-            var color = (key==='mdd' ? (v<=-10?'var(--red)':v<=-5?'var(--orange)':'var(--yellow)') : (v>=7?'var(--green)':v>=5?'var(--accent)':'var(--yellow)'));
-            return '<div>' +
-              '<span style="display:inline-block;width:18px;color:var(--dim2);">'+(i+1)+'.</span> ' +
-              '<span style="color:var(--text);font-weight:600;">'+r.ym+'</span> ' +
-              '<span style="color:'+color+';font-weight:700;margin-left:6px;">'+ (key==='mdd'?v.toFixed(2):pct(v))+unit+'</span> ' +
-              '<span style="color:var(--dim);margin-left:6px;">n='+r.n+' WR='+r.wr.toFixed(0)+'%</span>' +
-            '</div>';
-          }).join('');
-        }
-        var byAvgDesc = D.slice().sort(function(a,b){return b.avg-a.avg;});
-        var byAvgAsc  = D.slice().sort(function(a,b){return a.avg-b.avg;});
-        var byMddBest = D.slice().sort(function(a,b){return b.mdd-a.mdd;}); // -1 > -10 (best=least drawdown)
-        var byMddWorst= D.slice().sort(function(a,b){return a.mdd-b.mdd;});
-        render('best5-list',  byAvgDesc, 'avg', '');
-        render('worst5-list', byAvgAsc,  'avg', '');
-        render('bestmdd-list', byMddBest, 'mdd', '%');
-        render('worstmdd-list', byMddWorst, 'mdd', '%');
-      })();
-
-      /* ── ⑦ 종합 통계 ──────────────────────── */
-      (function() {
-        var tn = D.reduce(function(s,r){return s+r.n;},0);
-        var wa = D.reduce(function(s,r){return s+r.n*r.avg;},0) / tn;
-        var ww = D.reduce(function(s,r){return s+r.n*r.wr;},0) / tn;
-        var pnl = D.reduce(function(s,r){return s+r.n*r.avg;},0);
-        var avgs = D.map(function(r){return r.avg;});
-        var wrs  = D.map(function(r){return r.wr;});
-        var medAvg = median(avgs), medWr = median(wrs);
-        var stdAvg = stdev(avgs);
-        var sharpeM = stdAvg ? (avgs.reduce(function(s,v){return s+v;},0)/avgs.length) / stdAvg : 0;
-        var worstMdd = D.reduce(function(a,b){return b.mdd<a.mdd?b:a;});
-        var lossMon = D.filter(function(r){return r.avg<0;}).length;
-        var posMon  = D.filter(function(r){return r.avg>0;}).length;
-
-        function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
-        set('ss-trades', tn.toLocaleString());
-        set('ss-trades-mon', (tn/D.length).toFixed(1));
-        set('ss-avg', pct(wa));
-        set('ss-avg-med', pct(medAvg));
-        set('ss-wr', ww.toFixed(1)+'%');
-        set('ss-wr-med', medWr.toFixed(1)+'%');
-        set('ss-pnl', Math.round(pnl).toLocaleString()+'만');
-        set('ss-pnl-yr', Math.round(pnl/D.length*12).toLocaleString());
-        set('ss-std', '±'+stdAvg.toFixed(2)+'%p');
-        set('ss-sharpe', sharpeM.toFixed(2));
-        set('ss-mdd', worstMdd.mdd.toFixed(2)+'%');
-        set('ss-mdd-ym', worstMdd.ym);
-        set('ss-lossmon', lossMon+'/'+D.length);
-        set('ss-posrate', (posMon/D.length*100).toFixed(1)+'%');
-      })();
-
-      /* ── ⑧ 분포 히스토그램 (월 avg) ─────────── */
-      (function() {
-        var el = document.getElementById('hist-bars'); if (!el) return;
-        var bins = [
-          {lo:-Infinity, hi:0,   label:'손실',        color:'#f87171'},
-          {lo:0,         hi:3,   label:'0~3%',       color:'#fbbf24'},
-          {lo:3,         hi:5,   label:'3~5%',       color:'#94a3b8'},
-          {lo:5,         hi:7,   label:'5~7%',       color:'#22d3ee'},
-          {lo:7,         hi:Infinity, label:'7%↑',  color:'#4ade80'}
-        ];
-        bins.forEach(function(b) { b.items = D.filter(function(r){return r.avg>=b.lo && r.avg<b.hi;}); });
-        var maxC = Math.max.apply(null, bins.map(function(b){return b.items.length;}));
-        el.innerHTML = bins.map(function(b) {
-          var c = b.items.length;
-          var pctW = maxC ? (c/maxC*100).toFixed(1) : 0;
-          var months = b.items.map(function(r){return r.ym.slice(2)+'('+r.avg.toFixed(1)+')';}).join(' · ');
-          return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-            '<span style="width:60px;font-size:11px;color:var(--dim);text-align:right;font-family:monospace;">'+b.label+'</span>' +
-            '<div style="flex:1;height:18px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;position:relative;">' +
-              '<div style="width:'+pctW+'%;height:100%;background:'+b.color+';opacity:0.85;border-radius:3px;"></div>' +
-              '<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:10.5px;color:var(--text);font-weight:700;font-family:monospace;">'+c+'개월</span>' +
-            '</div>' +
-            '<span style="width:42px;font-size:10.5px;color:'+b.color+';font-weight:700;font-family:monospace;text-align:right;">'+(c/D.length*100).toFixed(0)+'%</span>' +
-          '</div>' +
-          (months ? '<div style="margin:0 0 10px 68px;font-size:9.5px;color:var(--dim2);line-height:1.6;">'+months+'</div>' : '');
-        }).join('');
-      })();
-    })();
-
-    /* ═══════════════════════════════════════════════════
-       ③ 월별 테이블
-    ═══════════════════════════════════════════════════ */
-    (function () {
-      var tbody = document.getElementById('monthly-tbody');
-      if (!tbody) return;
-      var mddMin = Math.min.apply(null, D.map(function (r) { return r.mdd; }));
-      tbody.innerHTML = D.map(function (r) {
-        var wrC   = r.wr >= 80 ? '#4ade80' : r.wr >= 65 ? '#22d3ee' : r.wr >= 50 ? '#94a3b8' : '#fbbf24';
-        var avgC  = r.avg >= 7 ? '#4ade80' : r.avg >= 5 ? '#22d3ee' : '#94a3b8';
-        var mddC  = r.mdd <= -10 ? '#f87171' : r.mdd <= -5 ? '#fb923c' : '#94a3b8';
-        var badge = r.wr >= 75 && r.avg >= 5
-          ? '<span style="background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);border-radius:4px;padding:1px 6px;font-size:9.5px;">강세</span>'
-          : (r.wr < 55 || r.avg < 3
-            ? '<span style="background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;padding:1px 6px;font-size:9.5px;">약세</span>'
-            : '<span style="background:rgba(34,211,238,0.08);color:#22d3ee;border:1px solid rgba(34,211,238,0.25);border-radius:4px;padding:1px 6px;font-size:9.5px;">보통</span>');
-        var rowBg = r.mdd === mddMin ? 'background:rgba(248,113,113,0.05);' : '';
-        return '<tr style="' + rowBg + '">' +
-          '<td style="font-family:monospace;font-weight:600;">' + r.ym + '</td>' +
-          '<td style="text-align:right;color:var(--dim);">' + r.n + '건</td>' +
-          '<td style="text-align:right;color:' + wrC + ';font-weight:700;">' + r.wr.toFixed(1) + '%</td>' +
-          '<td style="text-align:right;color:' + avgC + ';font-weight:700;">+' + r.avg.toFixed(2) + '%</td>' +
-          '<td style="text-align:right;color:' + avgC + ';font-family:monospace;">+' + r.monthPnl.toFixed(0) + '만</td>' +
-          '<td style="text-align:right;color:var(--accent);font-family:monospace;font-weight:700;">' + Math.round(r.cumPnl).toLocaleString() + '만</td>' +
-          '<td style="text-align:right;color:' + mddC + ';">' + (r.mdd === 0 ? '—' : r.mdd.toFixed(2) + '%') + '</td>' +
-          '<td>' + badge + '</td>' +
-        '</tr>';
-      }).join('');
-    })();
-  })();
-  </script>
-
-  <!-- ─────────────── 리스크 관리 ─────────────── -->
-  <section class="section">
-    <div class="section-header">
-      <div class="section-title">
-        <span class="num-pill">6</span>리스크 관리
-      </div>
-      <div class="section-meta">오버나잇 포지션 위험 통제</div>
-    </div>
-    <div class="section-body">
-      <table class="filter-table">
-        <thead><tr><th>리스크 유형</th><th>대응 방법</th><th>비고</th></tr></thead>
+      <h3 class="sub-h3">h7 핵심 성과 (2024-06 ~ 2026-05)</h3>
+      <table class="data-table">
+        <thead><tr><th>지표</th><th>값</th><th>설명</th></tr></thead>
         <tbody>
-          <tr>
-            <td>갭다운 리스크</td>
-            <td>Top2 50:50 분산으로 단일 종목 영향 50% 제한</td>
-            <td>집중 매수 대비 MDD 절반 수준</td>
-          </tr>
-          <tr>
-            <td>악재 공시 (장 외)</td>
-            <td>T+1 09:01 전량 매도 — 장중 추가 하락 전 청산</td>
-            <td>홀딩 미연장</td>
-          </tr>
-          <tr>
-            <td>유동성 리스크</td>
-            <td>cluster_strength 상위 = 거래량 多 종목 우선</td>
-            <td>시장가 체결 가능 종목만 선정</td>
-          </tr>
-          <tr>
-            <td>연속 손실</td>
-            <td>연속 3거래일 이상 손실 시 관리자 알림 + 자동 일시 중단 옵션</td>
-            <td>설정 모달에서 조정 가능</td>
-          </tr>
-          <tr>
-            <td>상한가 종목</td>
-            <td>등락률 29.5% 이상 종목 자동 제외 (상한가 체결 불가)</td>
-            <td>안전 진입만 허용</td>
-          </tr>
+          <tr><td>매매 건수</td><td class="pos"><strong>250 매매</strong></td><td>2년 총 매매 건수</td></tr>
+          <tr><td>당일 익절 / D+1</td><td><strong>51 / 199</strong></td><td>20.4% 당일 +5% 익절 / 79.6% D+1 보유</td></tr>
+          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+3.01%</strong></td><td>개별 매매 수익률 (중앙값 +1.75%)</td></tr>
+          <tr><td>승률</td><td class="pos"><strong>64.8%</strong></td><td>162 수익 / 88 손실</td></tr>
+          <tr class="key-row"><td>MDD (최대 손실)</td><td style="color:var(--green)"><strong>−2.16%</strong></td><td>2년 누적 최대 낙폭 (매우 안전)</td></tr>
+          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (시드 50만)</strong></td><td class="pos"><strong>280만 (+460%)</strong></td><td>50만 → 280만 (5.6배)</td></tr>
+          <tr><td>3M 윈도우</td><td class="pos"><strong>0/21 손실 ✅</strong></td><td>21개 윈도우 모두 양수 (최악 +7.25%)</td></tr>
+          <tr><td>6M 윈도우</td><td class="pos"><strong>0/18 손실 ✅</strong></td><td>모든 6개월 양수 (최악 +45.2%)</td></tr>
         </tbody>
       </table>
+      <div class="note-box" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.25);">
+        <strong style="color:var(--green);">✅ 결론: 3개월 이상 운영 시 손실 0%, 모든 윈도우 양수.</strong>
+        매매 250건 × 평균 +3.01% = 강력한 매매당 알파. 당일 익절 20.4%로 강한 모멘텀 빨리 포착, D+1 79.6%로 평균회귀 완성.
+      </div>
+
+      <h3 class="sub-h3 mt">vs NEMESIS 비교</h3>
+      <table class="data-table">
+        <thead><tr><th>항목</th><th>h7</th><th>NEMESIS</th><th>우위</th></tr></thead>
+        <tbody>
+          <tr><td>매매당 평균</td><td class="pos"><strong>+3.01%</strong></td><td class="pos">+2.14%</td><td class="pos">h7 +40% 우수</td></tr>
+          <tr><td>매매 빈도</td><td class="pos"><strong>250건</strong></td><td>127건</td><td class="pos">h7 2배</td></tr>
+          <tr class="key-row"><td>MDD</td><td style="color:var(--green)"><strong>−2.16%</strong></td><td style="color:var(--orange);">−10.77%</td><td class="pos">h7 80% 안전</td></tr>
+          <tr><td>2년 누적</td><td class="pos">+460%</td><td class="pos">+514%</td><td style="color:var(--dim);">NEMESIS +54%p</td></tr>
+          <tr><td>역할</td><td style="color:var(--green);">고수익 보조</td><td style="color:var(--dim);">안정 메인</td><td>포트폴리오 분산</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box">
+        <strong>📊 포트폴리오 배치:</strong>
+        h7 (고수익 + 저MDD) 보조 + NEMESIS (안정 메인) 병렬 운영으로 <strong>복합 Sharpe 향상</strong>.
+        h7은 빈도 높은 단기 모멘텀, NEMESIS는 저수익 안정형.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─────────────── 운영 모드 ─────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="num-pill">5</span>운영 모드 & 시작하기</div>
+      <div class="section-meta">실전 전환은 2단계 (모의 → 실전)</div>
+    </div>
+    <div class="section-body">
+      <table class="data-table">
+        <thead><tr><th>단계</th><th>모드</th><th>설명</th><th>권장 기간</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1단계</strong></td><td><code>paper-self</code></td><td>실제 시세 + 가상 매매. 돈 안 나감. 엔진 동작 + 백테 일치율 검증.</td><td><strong>4주</strong></td></tr>
+          <tr class="key-row" style="background:rgba(239,68,68,0.05);"><td><strong>2단계</strong></td><td><code>real</code></td><td><strong style="color:#fca5a5;">실제 돈 사용</strong>. 비중 단계적: 25% → 50% → 100%.</td><td>장기 운영</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box">
+        <strong>📋 현재 상태:</strong>
+        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>매매일에 2종목 50:50 분할 (h7: 갭업 + 클러스터)</strong>
+      </div>
+      <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.3);">
+        <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: paper-self 4주 신호 안정성 → paper-self에서 실측 슬리피지 수집 → real 25% → 50% → 100% 단계적 진입. h7은 MDD -2.16%로 극도로 안전하므로 보조엔진 추가 확인 후 투입.
+      </div>
     </div>
   </section>
 
 </div>
 
 <script>
-  function updateClock() {
-    const d = new Date();
-    const el = document.querySelector('.clock');
-    if (!el) return;
-    const yyyy = d.getFullYear();
-    const MM = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    const hh = String(d.getHours()).padStart(2,'0');
-    const mm = String(d.getMinutes()).padStart(2,'0');
-    const ss = String(d.getSeconds()).padStart(2,'0');
-    el.innerHTML = `<span class="date">${yyyy}-${MM}-${dd}</span>${hh}:${mm}<span class="sec">:${ss}</span>`;
-  }
-  updateClock(); setInterval(updateClock, 1000);
-
-  // 헤더 모드 배지
-  (async function() {
-    try {
-      const r = await fetch('/api/status');
-      if (!r.ok) return;
-      const d = await r.json();
-      const mode = d.mode || '--';
-      const modeEl = document.getElementById('modeLabel');
-      if (modeEl) modeEl.textContent = mode;
-      const badge = document.getElementById('autoStatusBadge');
-      if (badge) {
-        if (mode === 'real') {
-          badge.style.background = 'rgba(34,211,238,0.18)';
-          badge.style.borderColor = 'rgba(34,211,238,0.6)';
-          badge.style.color = 'var(--accent)';
-        } else {
-          badge.style.background = 'rgba(74,222,128,0.12)';
-          badge.style.borderColor = 'rgba(74,222,128,0.35)';
-          badge.style.color = '#4ade80';
-        }
-      }
-    } catch {}
-  })();
+  document.getElementById('cfgMode').textContent = 'paper-self';
+  document.getElementById('cfgBudget').textContent = '100,000원';
 </script>
+
 </body>
 </html>
