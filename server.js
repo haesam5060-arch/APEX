@@ -1,6 +1,11 @@
 // ═══════════════════════════════════════════════════════════════
-// APEX — h7 갭업 + 클러스터 당일익절 엔진 (2026-05-31)
-// 09:00 갭업(10%) + 거래량(5배) + cluster(avg_corr≥0.42) → 09:01 정적 매수 → [당일 +5% 익절 OR D+1 시초가 매도]
+// APEX — 14:30 클러스터 laggard 오버나잇 엔진 (cluster_laggard_1430, 2026-06-01 재설계)
+// 14:30 아침Top10 클러스터(corr≥0.15·size≥8) 내 편차 최저(laggard) → 진입가 1만~5만 → bottom3 중 cap2
+//   → 14:50 close 매수 → T+1 첫분봉 시초가 매도. 손절 없음(알파=오버나잇 갭).
+// 레짐가드: L1 트레일링40 임시휴면 / L2 롤링63<-8% OR 드로다운<-15% 레짐붕괴(래치→재설계).
+// 백테(ap28): 레짐ON(2025-09-01~) 누적 +79%·MDD -12.7%·Sharpe 4.4·승률65% (가드+0.3%슬립).
+//   ⚠️ 레짐 의존 엔진 — 2024식 레짐 복귀 시 L2 발동·재설계. forward 기대 Sharpe ~1.5~2.0.
+// (구 h7 갭업 엔진은 lookahead로 보류, BUY_MODE 분기 보존)
 // NEMESIS 호환 API (대시보드 공용)
 // ═══════════════════════════════════════════════════════════════
 require('dotenv').config();
@@ -18,8 +23,8 @@ const TRADING_MODE   = process.env.TRADING_MODE || 'paper-self';
 const TOTAL_CAPITAL  = parseInt(process.env.TOTAL_CAPITAL) || 500000;
 
 const config = {
-  version: '2.0.0',
-  label:   'APEX v2.0.0 (h7 갭업 + 클러스터 + 당일익절 | 09:01 매수 → 당일+5%익절 OR D+1 시초가 매도)',
+  version: '3.0.0',
+  label:   'APEX v3.0.0 (14:30 클러스터 laggard | corr≥0.15·size≥8·1만~5만·cap2 → 14:50 매수 → T+1 시초가 매도 | 레짐ON 2025-09~, 가드 L1/L2)',
   tradingMode: TRADING_MODE,
   perStockBudget: Math.floor(TOTAL_CAPITAL / 2),  // nPicks=2 기준 50:50
   slots: 2,

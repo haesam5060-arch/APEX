@@ -2,3 +2,7 @@ node_modules/
 data/
 logs/
 .env
+
+# env 백업 (실제 키 포함 — 커밋 금지)
+.env.bak*
+.claude/*.lock

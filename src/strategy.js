@@ -591,11 +591,65 @@ async function selectGapupPicks(scanned, signalDate) {
   };
 }
 
+/**
+ * APEX 14:30 클러스터 laggard 신호 (운영 셀, ap28 채택)
+ *   scripts/apex_laggard_signal.py 호출 → 백테(ap22)와 byte 정합 픽.
+ *   분봉 SSoT = backtest/parquet, 클러스터 = 서랍 (글로벌 §8.4.2).
+ *
+ * @param {string} signalDate - 'YYYYMMDD'
+ * @returns {Promise<Object>} { picks:[{code,buy,rank,weight,...}], excluded, diag, prev_date }
+ */
+function selectClusterLaggard1430(signalDate) {
+  const APEX_SIGNAL_SCRIPT = path.resolve(__dirname, '..', 'scripts', 'apex_laggard_signal.py');
+  return new Promise((resolve) => {
+    const proc = spawn(PYTHON_BIN, [APEX_SIGNAL_SCRIPT], {
+      env: { ...process.env, PYTHONUNBUFFERED: '1' },
+    });
+    let stdout = '', stderr = '';
+    proc.stdout.on('data', d => { stdout += d.toString(); });
+    proc.stderr.on('data', d => { stderr += d.toString(); });
+    proc.on('error', err => resolve({ picks: [], excluded: { reason: `signal spawn 실패: ${err.message}` }, diag: {} }));
+    proc.on('close', () => {
+      try {
+        const line = stdout.trim().split('\n').pop();
+        const r = JSON.parse(line);
+        if (!r.ok) {
+          return resolve({ picks: [], excluded: { reason: r.error || 'signal 실패' }, diag: r.diag || {} });
+        }
+        const picks = (r.picks || []).map((p, i) => ({
+          code: _stripA(p.code),
+          name: '',
+          market: null,
+          rank: i + 1,
+          weight: p.weight,
+          buy: p.entry,                 // 14:50 close 진입가
+          lag_rank: p.lag_rank,
+          deviation: p.deviation,
+          cluster_avg_corr: p.avg_corr,
+          cluster_size: p.cluster_size,
+          signal_source: 'cluster_laggard_1430',
+        }));
+        resolve({
+          picks,
+          excluded: picks.length === 0 ? { reason: r.diag?.reason || '조건 미충족' } : null,
+          diag: r.diag || {},
+          prev_date: r.prev_date,
+        });
+      } catch (e) {
+        resolve({ picks: [], excluded: { reason: `signal 파싱 실패: ${e.message} | ${stderr.slice(0, 200)}` }, diag: {} });
+      }
+    });
+    proc.stdin.write(JSON.stringify({ signal_date: signalDate }));
+    proc.stdin.end();
+  });
+}
+
 module.exports = {
   selectTop10,
   selectPicks,
   selectHighclusterLaggard,
   selectGapupPicks,
+  selectClusterLaggard1430,
   callPythonSignal,
   LIMIT_UP_CUT,
   TOP_N,
