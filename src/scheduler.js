@@ -35,7 +35,7 @@ const { isKrxClosed } = require('./krx-calendar');
 const { PRICE_GUARD_PCT } = require('./strategy');
 const discord = require('./discord-notifier');
 const mail = require('./email-notifier');
-const { log, stmts } = require('./db');
+const { db, log, stmts } = require('./db');
 
 let _config = null;
 
@@ -201,7 +201,7 @@ async function runBuyH7() {
               );
               if (limitResult?.success) {
                 // 포지션 테이블에 limit_order_price 저장 (추적용)
-                stmts.db.prepare(`
+                db.prepare(`
                   UPDATE positions
                   SET limit_order_price = ?
                   WHERE code = ? AND status = 'open' AND buy_date = ?
@@ -251,7 +251,7 @@ async function runBuyH7() {
           // ★ h7 지정가 매도 주문 저장 (2026-06-01)
           // 당일 익절: limit_order_price = buy_price × 1.05
           const limitPrice = Math.round(pending.pick_buy * H7_INTRADAY_TARGET);
-          stmts.db.prepare(`
+          db.prepare(`
             UPDATE positions
             SET limit_order_price = ?
             WHERE id = ?
@@ -300,7 +300,7 @@ async function runH7IntradayCheck() {
     const todayYmd = today.replace(/-/g, '');
 
     // h7_gapup 신호로 매수한 당일 포지션 중 미체결 지정가
-    const h7Positions = stmts.db.prepare(`
+    const h7Positions = db.prepare(`
       SELECT * FROM positions
       WHERE status = 'open' AND signal_source = 'h7_gapup' AND buy_date = ?
         AND limit_order_price > 0 AND limit_order_filled_at IS NULL
@@ -336,10 +336,10 @@ async function runH7IntradayCheck() {
           const returnPct = (sellPrice - pos.buy_price) / pos.buy_price;
 
           // 포지션 + 거래 기록
-          stmts.db.transaction(() => {
-            stmts.db.prepare(`UPDATE positions SET status = 'closed', limit_order_filled_at = ? WHERE id = ?`)
+          db.transaction(() => {
+            db.prepare(`UPDATE positions SET status = 'closed', limit_order_filled_at = ? WHERE id = ?`)
               .run(now.toISOString(), pos.id);
-            stmts.db.prepare(`
+            db.prepare(`
               INSERT INTO trades (
                 code, name, market, qty, buy_price, sell_price, buy_at, sell_at,
                 buy_date, sell_date, pnl, return_pct, exit_reason, fee_paid, mode,
