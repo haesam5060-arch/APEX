@@ -473,7 +473,7 @@
 
     const thStyle = 'padding:6px 10px;font-size:10px;color:var(--dim);border-bottom:1px solid var(--border);font-weight:600;';
     const tdStyle = "padding:5px 10px;font-size:11.5px;font-family:'SF Mono',monospace;";
-    let html = '<td colspan="6"><div style="padding:10px 14px;background:rgba(0,0,0,0.25);border-radius:8px;">';
+    let html = '<td colspan="6" style="max-width:0;"><div style="padding:10px 14px;background:rgba(0,0,0,0.25);border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
     html += '<table style="width:100%;border-collapse:collapse;">';
     html += `<thead><tr style="background:rgba(0,0,0,0.3);">
       <th style="${thStyle}text-align:left;">종목</th>
