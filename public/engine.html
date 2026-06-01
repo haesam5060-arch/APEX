@@ -421,7 +421,7 @@
   <div class="header-left">
     <div class="brand">
       <span class="brand-name">APEX</span>
-      <span class="brand-sub">h7 갭업 · 자동매매</span>
+      <span class="brand-sub">14:30 클러스터 laggard · 자동매매</span>
     </div>
     <nav class="nav-tabs">
       <a class="nav-tab" href="index.html">
@@ -451,101 +451,101 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="hero-strategy">
-    <span class="hero-kicker">에이펙스(APEX) h7 v0.1.0 · 자동매매 엔진</span>
+    <span class="hero-kicker">에이펙스(APEX) v3.0.0 · 14:30 클러스터 laggard 엔진</span>
     <div class="hero-title">
-      아침에 <span class="hl">갭업한 종목의 강한 동조 그룹에서 가장 약한 2종목</span>을 사고 (50:50 분할),<br>
-      <span class="hl">당일 +5% 또는 다음날 아침</span>에 판다. <span style="font-size:0.55em;color:#f59e0b;font-weight:700;">⚡ 갭업 모멘텀 + 평균회귀</span>
+      오후 2시 30분, <span class="hl">강한 동조 그룹에서 가장 덜 오른 1~2종목</span>을 14:50에 사고,<br>
+      <span class="hl">다음날 아침 시초가</span>에 판다. <span style="font-size:0.55em;color:#22d3ee;font-weight:700;">🌙 오버나잇 평균회귀(laggard)</span>
       <span style="font-size:0.65em;color:var(--dim);font-weight:600;line-height:1.5;display:block;margin-top:6px;">
-        갭업(10%↑·거래량 5배↑)은 테마 강세 신호 → 같은 클러스터의 덜 오른 멤버가 따라 오름 (매매당 +4.14%, 당일 +5% 익절 66.9% + MDD -4.99%)
+        강한 클러스터의 덜 오른 멤버가 다음날 아침 따라잡기(catch-up) → 알파의 대부분이 오버나잇 갭에서 발생 (레짐ON 매매당 +0.99%, MDD -12.7%)
       </span>
     </div>
     <div class="hero-desc">
       <p style="font-size:14px;line-height:1.65;">
-        매일 아침 한국 <strong>KOSPI+KOSDAQ 전종목</strong>이 열리면 <strong>전일대비 10% 이상 갭업 + 거래량 5배 이상</strong> 터진 종목을 찾습니다.
-        그 종목이 속한 <strong>같은 테마로 강하게 묶이는 그룹</strong>(spectral cluster, 동조도 ≥ 0.42, 멤버 ≥ 8명)을 확인하고,
-        그 클러스터 안에서 <strong>아직 덜 오른 멤버 2종목</strong>을 사두면 다음날 따라 올라올 확률이 높다는 통계를 활용합니다.
-        <strong>09:01 정적 매수 (2종목 50:50 분할)</strong> — 갭업은 09:00에 이미 확정되므로 빠르게 진입.
-        <strong style="color:#f59e0b;">★ 당일 +5% 익절</strong>: 매수가 대비 +5% 도달하면 즉시 매도 (강한 모멘텀, 백테 66.9%가 당일 익절·승률 100%). 미달 시 <strong>D+1 09:00 시초가</strong> 매도 (33.1%).
+        매일 <strong>오후 14:30</strong>, 아침 등락률 상위권이 속한 <strong>가장 강하게 묶이는 동조 그룹</strong>(spectral cluster, 동조도 ≥ 0.15, 멤버 ≥ 8명)을 찾습니다.
+        그 클러스터 안에서 <strong>14:30까지 가장 덜 오른(편차 최저) 멤버</strong> 중 <strong>진입가 1만~5만원</strong> 종목을 <strong>최대 2개(cap2)</strong> 골라
+        <strong>14:50 종가에 매수</strong>합니다. 같은 그룹의 덜 오른 종목이 다음날 평균으로 따라붙는 통계를 활용.
+        <strong>청산 = 다음날(T+1) 첫 분봉 시초가</strong> 시장가 매도. <strong style="color:#22d3ee;">손절 없음</strong> — 손익의 96%가 오버나잇 갭에서 나와 장중 손절이 무의미하기 때문.
+        대신 <strong>레짐 가드</strong>(L1 임시휴면 / L2 레짐붕괴 중단)로 하방을 통제.
       </p>
     </div>
 
     <!-- 4가지 작동 원칙 -->
     <div class="why-grid">
-      <div class="why ok">
-        <div class="why-head"><span class="no">①</span>왜 갭업 + 거래량?</div>
+      <div class="why accent">
+        <div class="why-head"><span class="no">①</span>왜 오후 14:30 진입?</div>
         <div class="why-body">
-          전일대비 <strong>10% 이상 갭업 + 거래량 5배</strong> = 시장 자금이 그 테마로 몰리는 진짜 신호.
-          거래량 조건으로 가짜 상한가 편향을 자동 차단.
+          <strong>시간대가 전부를 가릅니다.</strong> 같은 laggard 신호도 09:30은 손실, <em>14:30만 2년 누적 플러스</em>.
+          오후 과민반응 후 <strong>오버나잇 회귀</strong>를 노림 (NEMESIS·POLLUX와 시간대 분산).
         </div>
       </div>
-      <div class="why accent">
+      <div class="why ok">
         <div class="why-head"><span class="no">②</span>왜 클러스터 멤버?</div>
         <div class="why-body">
-          갭업 종목이 속한 <strong>강한 동조 그룹(spectral cluster)</strong>은 같은 테마.
-          한 종목이 터지면 같은 그룹의 다른 멤버도 따라 오를 가능성이 높음.
+          <strong>강한 동조 그룹(spectral cluster)</strong>은 같은 테마.
+          한 종목이 강세면 같은 그룹의 다른 멤버도 다음날 따라 오를 가능성이 높음.
         </div>
       </div>
       <div class="why warn">
-        <div class="why-head"><span class="no">③</span>왜 덜 오른 종목?</div>
+        <div class="why-head"><span class="no">③</span>왜 덜 오른 종목(편차 최저)?</div>
         <div class="why-body">
-          같은 테마인데 <strong>아직 덜 오른 멤버</strong>는
-          다음날 테마 평균으로 회귀할 가능성이 높습니다 (mean reversion).
+          그룹 평균 대비 <strong>가장 뒤처진(편차 최저) 멤버</strong>가
+          다음날 평균으로 회귀(catch-up)할 가능성이 가장 높습니다 (mean reversion).
         </div>
       </div>
       <div class="why orange">
-        <div class="why-head"><span class="no">④</span>왜 당일 +5% / D+1 이중 청산?</div>
+        <div class="why-head"><span class="no">④</span>왜 1만~5만원 · 손절 없음?</div>
         <div class="why-body">
-          강한 모멘텀은 <strong>당일 +5%에서 즉시 익절</strong> (66.9%, 승률 100%).
-          약한 흐름은 <strong>D+1 시초가 보유</strong> (33.1%)로 평균회귀 완성. 손절 없음.
+          동전주(노이즈)·고가주(자본 문제)를 배제한 <strong>중가주만</strong> 매수.
+          손익의 <strong>96%가 오버나잇 갭</strong>이라 장중 손절은 무의미 → <em>손절 없이</em> 레짐 가드로 통제.
         </div>
       </div>
     </div>
 
-    <!-- 핵심 지표 (h7 BOTH = KOSPI+KOSDAQ, 2년 백테, N=2 50:50, 2026-06-01) -->
+    <!-- 핵심 지표 (레짐ON 2025-09-01~현재, cap2, 가드+0.3%슬립, 2026-06-01) -->
     <div class="hero-metrics">
       <div class="hm">
-        <div class="hm-label">매매당 평균 수익</div>
-        <div class="hm-value pos">+4.14<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">2년 166매매 (2종목 50:50) / 수수료·세금 차감 / 중앙값 +4.93%</div>
+        <div class="hm-label">매매당 평균 (레짐ON)</div>
+        <div class="hm-value pos">+0.99<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2025-09~현재 132매매 / 수수료 0.3% 차감 / 중앙값 +0.53%</div>
       </div>
       <div class="hm">
-        <div class="hm-label">매매 승률</div>
-        <div class="hm-value pos">87.3<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">2년 166매매 (KOSPI 136 / KOSDAQ 30, 71 갭업 종목)</div>
+        <div class="hm-label">매매 승률 (레짐ON)</div>
+        <div class="hm-value pos">65<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">KOSPI 59 / KOSDAQ 73 (양 시장)</div>
       </div>
       <div class="hm">
-        <div class="hm-label">당일 +5% 익절률</div>
-        <div class="hm-value" style="color:var(--accent);">66.9<small style="font-size:13px;font-weight:600;color:var(--accent);margin-left:2px">%</small></div>
-        <div class="hm-sub">111건 당일 익절 (승률 100%) / 55건 D+1 (33.1%)</div>
-      </div>
-      <div class="hm">
-        <div class="hm-label">2년 수익 (시드 50만 풀배분)</div>
-        <div class="hm-value pos">+635<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">50만 → 367만 (7.35배)</div>
+        <div class="hm-label">누적 (레짐ON~현재)</div>
+        <div class="hm-value pos">+79<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2025-09-01 레짐 전환 이후 (가드 적용)</div>
       </div>
       <div class="hm">
         <div class="hm-label">최대 손실 구간 (MDD)</div>
-        <div class="hm-value" style="color:var(--green)">−4.99<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">★ 2년 누적 최대 낙폭 (매우 안전)</div>
+        <div class="hm-value warn">−12.7<small style="font-size:13px;font-weight:600;color:var(--yellow);margin-left:2px">%</small></div>
+        <div class="hm-sub">레짐ON 구간 / 가드(L1·L2)로 통제</div>
       </div>
       <div class="hm">
-        <div class="hm-label">3M 누적 (sliding 평균)</div>
-        <div class="hm-value pos">+30.9<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">448개 3M 윈도우 / 손실 0 (100% 양수)</div>
+        <div class="hm-label">Sharpe (레짐ON)</div>
+        <div class="hm-value pos">4.4<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px"></small></div>
+        <div class="hm-sub">⚠️ 레짐피크 — forward 기대 ~1.5~2.0</div>
+      </div>
+      <div class="hm">
+        <div class="hm-label">최근 3M</div>
+        <div class="hm-value pos">+40<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">33매매 / 승률 82% / Sharpe 10.5</div>
       </div>
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(34,211,238,0.06);border-left:3px solid var(--accent);font-size:11.5px;color:var(--dim2);">
-      💡 <strong style="color:var(--accent);">시장 범위 = KOSPI+KOSDAQ (BOTH)</strong>: 공정 비교 결과 BOTH 누적 +635% (166매매) ≫ KOSDAQ only +97% (24매매). 갭업 클러스터 멤버에 KOSPI 대형주가 많이 포함되어 빈도·수익 모두 우월 → BOTH 채택.
+      📅 <strong style="color:var(--accent);">레짐 ON = 2025-09-01</strong>: 이 시점부터 전략이 작동하기 시작(누적 저점 후 지속 상승). 이전 2024-06~2025-08은 횡보·손실 구간이라 <strong>레짐 의존 엔진</strong>으로 분류. 시장범위 = KOSPI+KOSDAQ(BOTH).
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(245,158,11,0.06);border-left:3px solid var(--orange);font-size:11.5px;color:var(--dim2);">
-      ⚠️ <strong style="color:var(--orange);">주의</strong>: 백테는 실전 슬리피지 모델 미반영. 당일 익절(66.9%, 승률 100%)은 분봉 close 기준 — 실전 체결가 격차는 paper-self에서 실측·캘리브레이션 필요. 시드 일부로 시작 권장.
+      ⚠️ <strong style="color:var(--orange);">주의 (정직)</strong>: 화려한 수치는 최근 우호 레짐 + 가드 효과. 현실 슬리피지 반영 시 forward 기대 Sharpe ~1.5~2.0. <strong>2024식 레짐 복귀 시 L2 킬스위치(롤링63&lt;-8% OR 드로다운&lt;-15%)가 매매 중단 + 재설계</strong>. paper-self에서 실슬리피지·가드 실작동 실측 중.
     </div>
 
-    <!-- 한 줄 비유 (h7 갭업 + 클러스터) -->
+    <!-- 한 줄 비유 (14:30 클러스터 laggard) -->
     <div style="margin-top:10px;padding:10px 14px;border-radius:6px;background:rgba(34,211,238,0.05);border-left:3px solid var(--accent);font-size:12.5px;line-height:1.7;">
       <strong style="color:var(--accent);">💡 쉽게 비유하면:</strong>
-      "오늘 K-팝 그룹 중 <strong>한 멤버가 갭업(급등)하면, 같은 그룹의 아직 덜 오른 멤버 2명을 산다</strong>. 같은 그룹이라 다음날 따라 오를 가능성 ↑"는 패턴.
-      종목판으로 옮기면 = 갭업 종목의 강한 동조 cluster 안에서 덜 오른 멤버 2종목 분산 매수 → 당일 +5% 또는 D+1 시초가 회귀 알파.
+      "같은 K-팝 그룹에서 <strong>오늘 오후까지 아직 덜 뜬 멤버를 사두면, 다음날 아침 그룹 따라 같이 오른다</strong>"는 패턴.
+      종목판으로 옮기면 = 강한 동조 cluster 안에서 가장 덜 오른 중가주 1~2종목을 14:50에 사서 → 다음날 시초가 회귀(오버나잇 갭) 알파.
     </div>
   </section>
 
@@ -649,7 +649,7 @@
 
           <!-- 1단: 엔진 주간 수익률 sparkline -->
           <div class="mf-row">
-            <div class="mf-row-label">h7 수익률</div>
+            <div class="mf-row-label">엔진 수익률</div>
             <div class="mf-bars" id="mfR41Bars"></div>
           </div>
 
@@ -693,9 +693,9 @@
       <div class="note-box" style="margin-top:12px;">
         <strong>📌 96주(2년) 한눈에:</strong>
         강세 13주(14%) · 약강세 20주(21%) · 횡보 <strong>33주(34%, 가장 흔함)</strong> · 약약세 20주(21%) · 약세 10주(10%).
-        h7은 <strong>모든 시장 분위기에서 누적 플러스</strong> — 갭업 자체가 강세 신호라 베타≈0 알파 전략.
+        이 엔진은 <strong>레짐 의존</strong> — <strong>2025-09 이후</strong> 구간에서 강하게 작동(누적 +79%), 그 이전(2024~2025 중반)은 횡보·손실. 레짐 전환을 가드(L1/L2)로 감지.
         <br><br>
-        ⚡ 매매 발생 주는 48/96주. 갭업+클러스터 조건이 까다로워 신호가 선택적 (평균 1.7매매/매매일, 57 매매일).
+        ⚡ 매매는 선택적 — 거래일의 약 48%만, 살 땐 1~2종목(cap2). 클러스터+laggard+가격대(1만~5만) 삼중 필터로 고품질 신호만 진입.
       </div>
 
     </div>
@@ -814,7 +814,7 @@
       <div class="theme-live-grid">
         <!-- 매수 픽 (큰 카드) -->
         <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(34,211,238,0.25);border-radius:10px;padding:18px 22px;">
-          <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">매수 픽 (갭업 종목 클러스터의 덜 오른 멤버 top2, 50:50 분할)</div>
+          <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">매수 픽 (클러스터의 가장 덜 오른 멤버 1~2종목, 균등 분할)</div>
           <div style="font-size:26px;font-weight:800;color:var(--accent);margin-top:6px;line-height:1.25;letter-spacing:-0.5px;" id="sigTop1Theme">—</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
             <div style="font-size:13px;color:var(--text);font-weight:700;font-family:'SF Mono',monospace;"><span id="sigTop1Count">—</span> / <span id="sigN20">10</span></div>
@@ -834,13 +834,13 @@
         <!-- 시그널 소스 (참고) -->
         <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
           <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">시그널 소스 (우선순위)</div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:6px;line-height:1.3;" id="sigTop2Theme">갭업 10%↑ + 거래량 5배↑ → spectral cluster</div>
-          <div style="font-size:11.5px;color:var(--dim);margin-top:6px;font-family:'SF Mono',monospace;">avg_corr≥0.42, size≥8 / 클러스터 멤버 상위 top2</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:6px;line-height:1.3;" id="sigTop2Theme">14:30 강한 클러스터 → 편차 최저(laggard)</div>
+          <div style="font-size:11.5px;color:var(--dim);margin-top:6px;font-family:'SF Mono',monospace;">avg_corr≥0.15, size≥8 / 진입가 1만~5만 / bottom3 → cap2</div>
           <div style="margin-top:8px;height:4px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;">
             <div id="sigTop2Bar" style="height:100%;background:rgba(154,154,165,0.5);width:0%;transition:width 0.4s ease;"></div>
           </div>
           <div style="margin-top:10px;font-size:10.5px;color:var(--dim2);line-height:1.5;">
-            KOSPI+KOSDAQ 전종목에서 갭업(전일대비 10%↑) + 거래량(평균 5배↑) 종목 감지 → 그 종목의 서랍 spectral cluster (avg_corr≥0.42, 멤버≥8) 조회 → 클러스터 멤버 상위 2종목 매수. NEMESIS(0.34)보다 보수적인 0.42 동조도 컷.
+            아침 등락률 상위권이 속한 서랍 spectral cluster(avg_corr≥0.15, 멤버≥8) 중 가장 강한 그룹 선택 → 14:30까지 편차가 가장 낮은(덜 오른) 멤버 중 진입가 1만~5만 종목 최대 2개 매수 → 14:50 종가 진입, T+1 시초가 청산.
           </div>
         </div>
         <!-- 스캔 메타 -->
@@ -848,16 +848,16 @@
           <div style="font-size:10.5px;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">스캔 메타</div>
           <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:6px;font-family:'SF Mono',monospace;" id="sigAt">—</div>
           <div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.7;">
-            갭업 종목: <strong style="color:var(--text);" id="sigN20Live">—</strong>개<br>
+            laggard 후보: <strong style="color:var(--text);" id="sigN20Live">—</strong>개<br>
             활성 cluster: <strong style="color:var(--text);" id="sigNThemes">—</strong>개<br>
             스캔 종목수: <strong style="color:var(--text);" id="sigNScanned">—</strong>
           </div>
         </div>
       </div>
       <div class="note-box" style="margin-top:14px;">
-        <strong>매수 종목 정하는 법 (h7):</strong> 09:00 <strong>KOSPI+KOSDAQ 전종목</strong>에서 전일대비 10%↑ 갭업 + 거래량 5배↑ 종목을 찾고, 그 종목이 속한 서랍 spectral cluster를 조회.
-        <strong style="color:var(--accent);">활성 cluster (avg_corr ≥ 0.42, 멤버 ≥ 8)</strong>의 멤버 중 <strong>아직 덜 오른 상위 2종목</strong>을 50:50 분할 매수.
-        <strong>09:01 정적 매수 → 당일 +5% 익절 또는 D+1 09:00 시초가 매도</strong>.
+        <strong>매수 종목 정하는 법:</strong> 14:30, 아침 등락률 상위권이 속한 서랍 spectral cluster 중 가장 강한 그룹을 선택.
+        <strong style="color:var(--accent);">활성 cluster (avg_corr ≥ 0.15, 멤버 ≥ 8)</strong>에서 <strong>14:30까지 가장 덜 오른(편차 최저)</strong> 멤버 중 진입가 1만~5만 종목 최대 2개를 균등 분할 매수.
+        <strong>14:50 종가 매수 → T+1 첫 분봉 시초가 매도 (손절 없음)</strong>.
       </div>
     </div>
   </section>
@@ -873,23 +873,22 @@
         <table>
           <thead><tr><th style="width:90px">시각</th><th style="width:150px">하는 일</th><th>설명</th></tr></thead>
           <tbody>
-            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날 매수 후 당일 미익절한 종목을 9시 시초가로 자동 매도 (D+1 청산)</td></tr>
-            <tr class="highlight"><td><strong>09:00</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
-              ① <strong>KOSPI+KOSDAQ 전종목</strong>에서 갭업(10%↑) + 거래량(5배↑) 종목 감지<br>
-              ② 그 종목의 spectral cluster(avg_corr≥0.42, 멤버≥8) 조회<br>
-              ③ 클러스터 멤버 중 아직 덜 오른 <strong>상위 2종목</strong> 선정 + 상한가 가드(28.5%)<br>
-              (pending_buy 2건 저장)
+            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날(14:50) 매수한 종목을 9시 첫 분봉 시초가로 자동 매도 (T+1 청산, 손절 없음)</td></tr>
+            <tr class="highlight"><td><strong>14:30</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
+              ① 아침 등락률 상위권이 속한 <strong>가장 강한 동조 클러스터</strong> 선택 (avg_corr≥0.15, 멤버≥8)<br>
+              ② 그 클러스터에서 <strong>14:30까지 가장 덜 오른(편차 최저)</strong> 멤버 후보(bottom3)<br>
+              ③ <strong>진입가 1만~5만원</strong> + 상한가잠김 제외 → 최대 <strong>2종목(cap2)</strong> 선정<br>
+              ④ <strong>레짐 가드</strong>(L1 휴면/L2 중단) 통과 시에만 진행
             </td></tr>
-            <tr class="highlight"><td><strong>09:01</strong></td><td><strong style="color:#f59e0b">★ 정적 매수 (즉시)</strong></td><td>
-              09:00 day_open 가격에 선택한 2종목을 <strong>50:50 분할 시장가 매수</strong>.<br>
-              (갭업은 09:00에 이미 확정 → 동적 polling 없이 즉시 진입)
+            <tr class="highlight"><td><strong>14:50</strong></td><td><strong style="color:#22d3ee">★ 정적 매수</strong></td><td>
+              14:50 종가에 선택한 1~2종목을 <strong>균등 분할 시장가 매수</strong> (슬롯당 10만원).<br>
+              (오후 신호라 동적 polling 없이 종가 진입)
             </td></tr>
-            <tr class="highlight"><td><strong>09:01~15:30</strong></td><td><strong style="color:#f59e0b">★ 당일 +5% 익절 모니터링</strong></td><td>
-              매수가 대비 <strong style="color:var(--accent)">close ≥ entry × 1.05</strong> 도달하면 그 분봉에 즉시 매도.<br>
-              (백테 66.9%가 당일 익절 — 승률 100%, 평균 +5.59%. 강한 모멘텀 조기 청산)
+            <tr><td>15:30 폐장</td><td>오버나잇 보유</td><td><strong>손절 없음</strong> — 알파의 96%가 오버나잇 갭에서 발생하므로 장중 손절 무의미</td></tr>
+            <tr class="highlight"><td><strong>다음날 ~09:01</strong></td><td><strong style="color:#22d3ee">★ T+1 시초가 매도</strong></td><td>
+              보유 종목을 다음 거래일 첫 분봉 시초가에 <strong>전량 시장가 매도</strong>.
+              덜 오른 멤버의 다음날 평균회귀(catch-up) 갭을 수익으로 확정.
             </td></tr>
-            <tr><td>15:30 폐장</td><td>미익절 종목 보유</td><td>손절 없음 (당일 +5% 미달 시 D+1 시초가까지 보유)</td></tr>
-            <tr><td>다음날 08:50</td><td>D+1 매도 (다음 사이클)</td><td>당일 미익절 종목을 9시 시초가에 일괄 자동 매도 (33.1%, 평균 +1.21%)</td></tr>
           </tbody>
         </table>
       </div>
@@ -899,40 +898,39 @@
   <!-- ─────────────── 종목 선정 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">2</span>9시에 매수 종목을 어떻게 정할까?</div>
+      <div class="section-title"><span class="num-pill">2</span>14:30에 매수 종목을 어떻게 정할까?</div>
       <div class="section-meta">4단계 필터로 자동 선정</div>
     </div>
     <div class="section-body">
       <div class="theme-flow">
-        <div class="tf-box">
+        <div class="tf-box accent">
           <div class="tf-label">1단계</div>
-          <div class="tf-value">갭업 감지</div>
-          <div class="tf-sub">KOSPI+KOSDAQ 전종목<br>10%↑ + 거래량 5배↑</div>
+          <div class="tf-value">강한 클러스터</div>
+          <div class="tf-sub">아침 Top10이 속한<br>동조도≥0.15·멤버≥8 그룹</div>
         </div>
         <div class="tf-box accent">
           <div class="tf-label">2단계</div>
-          <div class="tf-value">클러스터 매칭</div>
-          <div class="tf-sub">갭업 종목이 속한 동조 그룹(cluster) 조회</div>
+          <div class="tf-value">편차 최저(laggard)</div>
+          <div class="tf-sub">14:30까지 그룹 평균 대비 가장 덜 오른 멤버 bottom3</div>
         </div>
-        <div class="tf-box accent">
+        <div class="tf-box">
           <div class="tf-label">3단계</div>
-          <div class="tf-value">강한 테마인가?</div>
-          <div class="tf-sub">동조율 42%↑ + 8종목↑ 묶임 (NEMESIS보다 보수적)</div>
+          <div class="tf-value">중가주 필터</div>
+          <div class="tf-sub">진입가 1만~5만원 + 상한가잠김 제외</div>
         </div>
         <div class="tf-box pick">
           <div class="tf-label">4단계 ★</div>
-          <div class="tf-value" style="color:var(--green);">덜 오른 2종목</div>
-          <div class="tf-sub">클러스터 멤버 상위 2종목 (50:50 분할)</div>
+          <div class="tf-value" style="color:var(--green);">덜 오른 1~2종목</div>
+          <div class="tf-sub">편차 낮은 순 최대 2종목(cap2) 균등분할</div>
         </div>
       </div>
 
       <div class="note-box" style="margin-top:14px;">
-        <strong>💡 핵심 아이디어:</strong> 한 종목이 갭업(10%↑·거래량 5배)하면 = "이 테마에 시장 자금이 몰린다".
-        그 종목이 속한 강한 동조 cluster 안에서 <strong>아직 덜 오른 멤버</strong>는 다음날 따라 오를 가능성이 높다는 통계 (평균회귀).
-        <strong>2종목 50:50 분산 매수</strong> → MDD ↓ (-4.99%).
+        <strong>💡 핵심 아이디어:</strong> 강한 동조 그룹(같은 테마) 안에서 <strong>오후까지 아직 덜 오른(편차 최저) 멤버</strong>는
+        다음날 아침 그룹 평균으로 따라붙을(catch-up) 가능성이 높다는 통계 (평균회귀). <strong>1~2종목 균등 분산</strong> 매수.
         <br><br>
-        <strong>예시:</strong> "반도체" 클러스터에서 SK하이닉스가 +12% 갭업(거래량 5배)했는데, 같은 클러스터의 다른 멤버가 +2~5%면
-        → 덜 오른 2종목을 50:50 분할 매수 (다음날 평균 회귀 시 수익, 강하면 당일 +5% 익절).
+        <strong>예시:</strong> "2차전지" 클러스터의 대표주가 강세인데, 같은 클러스터의 중가주(2~3만원대)가 14:30까지 그룹 평균보다 덜 올랐다면
+        → 그 laggard를 14:50에 매수 (다음날 시초가 회귀 시 수익). <strong>손절 없이</strong> 레짐 가드로 하방 통제.
       </div>
     </div>
   </section>
@@ -940,8 +938,8 @@
   <!-- ─────────────── 안전장치 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">3</span>안전장치 — 손해 막는 자동 룰 (11겹)</div>
-      <div class="section-meta">시그널·매수·청산 7겹 + 운영 안전장치 4겹</div>
+      <div class="section-title"><span class="num-pill">3</span>안전장치 — 손해 막는 자동 룰</div>
+      <div class="section-meta">신호·매수 필터 + ★ 레짐 가드(L1/L2) + 운영 안전장치</div>
     </div>
     <div class="section-body">
       <div class="why-grid">
@@ -962,37 +960,42 @@
         <div class="why orange">
           <div class="why-head"><span class="no" style="background:rgba(251,146,60,0.2);color:var(--orange);">🚫</span>③ 약한 cluster 차단</div>
           <div class="why-body">
-            cluster 동조도 <strong>0.42 미만</strong>이거나 <strong>멤버가 8개 미만</strong>이면 매수 안 함.
-            진짜 강한 동조 테마만 매매 (NEMESIS 0.34보다 보수적).
+            cluster 동조도 <strong>0.15 미만</strong>이거나 <strong>멤버가 8개 미만</strong>이면 매수 안 함.
+            충분히 강하게 묶인 동조 그룹만 매매.
           </div>
         </div>
         <div class="why" style="border-color:rgba(244,114,182,0.4);">
-          <div class="why-head"><span class="no" style="background:rgba(244,114,182,0.2);color:#f472b6;">🛑</span>④ 상한가 가드 (+28.5%)</div>
+          <div class="why-head"><span class="no" style="background:rgba(244,114,182,0.2);color:#f472b6;">🛑</span>④ 상한가 잠김 제외</div>
           <div class="why-body">
-            매수가가 <strong>전날보다 +28.5% 이상</strong>이면 매수 안 함.
-            상한가 근처는 호가 잔량 부족으로 실제 체결 불가.
-            <span class="dim">매수가(09:00 day_open) 기준 가드.</span>
+            14:50 진입가가 <strong>상한가 근처(전일×1.30×0.995)</strong>면 제외.
+            잔량 부족으로 실제 체결이 불가능한 종목을 자동 차단.
           </div>
         </div>
         <div class="why" style="border-color:rgba(34,197,94,0.4);">
-          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>⑤ 거래량 5배 필터</div>
+          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>⑤ 중가주 필터 (1만~5만)</div>
           <div class="why-body">
-            갭업 종목은 <strong>거래량이 평균 5배 이상</strong>이어야 통과 (gap_up + vol_ratio 이중 조건).
-            거래량 없는 가짜 상한가·작전주를 자동 차단.
+            진입가 <strong>10,000~50,000원</strong> 종목만 매수. 동전주(노이즈·슬리피지)와 고가주(자본 1슬롯 10만 한계)를 동시에 배제.
           </div>
         </div>
-        <div class="why" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:var(--orange);">💰</span>⑥ 저가주 가드</div>
+        <div class="why" style="border-color:rgba(34,211,238,0.5);background:rgba(34,211,238,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🌙</span>⑥ 손절 없음 (구조적)</div>
           <div class="why-body">
-            매수가 <strong>&lt; 1,000원</strong> 종목은 매수 skip. 동전주 1틱 슬리피지(0.4~1%)·상한가 락 폭락 패턴으로 mean reversion 알파 깨짐.
-            <span class="dim">env <code>LOW_PRICE_GUARD=0</code>으로 끔.</span>
+            손익의 <strong>96%가 오버나잇 갭</strong>에서 발생 → 장중 손절이 무의미(백테 검증).
+            손절 대신 <strong>레짐 가드(L1/L2)</strong>로 하방을 통제.
           </div>
         </div>
-        <div class="why" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(245,158,11,0.2);color:#f59e0b;">⚡</span>⑦ 당일 +5% 익절 (리스크 조기 청산)</div>
+        <div class="why" style="border-color:rgba(251,191,36,0.5);background:rgba(251,191,36,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">🌡️</span>⑦ 레짐 가드 L1 (임시휴면)</div>
           <div class="why-body">
-            매수가 대비 <strong>+5% 도달 시 즉시 매도</strong>. 강한 모멘텀을 당일에 확정 (백테 66.9%·승률 100%).
-            장중 급반락 전에 이익을 잠가 MDD를 <strong>-4.99%</strong>로 통제.
+            직전 <strong>40매매일 실현누적 &lt; 0</strong>이면 매매 자동 휴면, 누적이 ≥0로 회복되면 자동 재개.
+            일상적 레짐 약화에 대응.
+          </div>
+        </div>
+        <div class="why" style="border-color:rgba(239,68,68,0.5);background:rgba(239,68,68,0.06);">
+          <div class="why-head"><span class="no" style="background:rgba(239,68,68,0.2);color:#f87171;">🛑</span>⑧ 레짐 가드 L2 (레짐붕괴 킬스위치)</div>
+          <div class="why-body">
+            <strong>롤링 63매매일 누적 &lt; -8%</strong> 또는 <strong>피크 드로다운 &lt; -15%</strong>면 매매 중단 + 경보 + 재설계 트리거.
+            자동 재개 안 함(래치) — 2024식 레짐 복귀를 확실히 차단.
           </div>
         </div>
       </div>
@@ -1000,47 +1003,46 @@
       <!-- 운영 안전장치 4겹 (실전 자금 보호) -->
       <div style="margin-top:24px;padding:14px 16px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.3);border-radius:8px;">
         <div style="font-size:13px;font-weight:700;color:#22d3ee;margin-bottom:10px;">
-          ⚙️ 운영 안전장치 4겹 (실전 자금 보호)
+          ⚙️ 운영 안전장치 (실전 자금 보호 · KIS real 모드)
         </div>
         <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑧ in-progress lock</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑨ 중복 매수 방지</div>
             <div class="why-body">
-              체결 polling 95초 중 다음 1분 cron이 같은 종목 또 매수 시도하는 거 차단.
-              <strong>중복 매수 방지</strong> → 자본 2배 사용 위험 0.
-            </div>
-          </div>
-          <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">⏱️</span>⑨ 체결 polling 95초</div>
-            <div class="why-body">
-              <code>_waitForFill</code> delays [1.5, 3, 6, 12, 24, 48]초.
-              호가창 빈약·KIS 응답 지연 대응. 단계별 진행 로깅.
+              체결 확인 중 같은 종목을 다시 매수 시도하는 것을 차단.
+              <strong>자본 2배 사용 위험 0.</strong>
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
             <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑩ 잔량 자동 취소</div>
             <div class="why-body">
-              부분/미체결 시 KIS <code>cancelOrder</code> (TTTC0803U) 자동 호출.
-              <strong>DB ↔ KIS 잔고 일치 보장</strong>. 후속 자동 체결 위험 0.
+              부분/미체결 시 KIS <code>cancelOrder</code> 자동 호출.
+              <strong>DB ↔ KIS 잔고 일치 보장.</strong>
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑪ D-1 종가 SSoT</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑪ 분봉 SSoT</div>
             <div class="why-body">
-              상한가 가드용 D-1 종가를 <code>backtest/parquet</code>에서 read.
-              네이버 API 의존 제거 → <strong>백테와 운영 데이터 출처 일치</strong>.
+              신호·편차 계산을 서랍 클러스터 + <code>backtest/parquet</code>에서만 read.
+              <strong>백테와 운영 데이터 출처 일치</strong> (글로벌 §8.4.2).
+            </div>
+          </div>
+          <div class="why" style="border-color:rgba(34,211,238,0.4);">
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📅</span>⑫ 매수금지 캘린더</div>
+            <div class="why-body">
+              분기말·배당락일 매수 차단(SSoT <code>no_buy_calendar.json</code>).
+              <span class="dim">매도는 정상.</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="note-box" style="margin-top:14px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
-        <strong style="color:#f59e0b;">⚡ 당일 +5% 익절 = h7의 핵심 리스크 관리.</strong>
-        NEMESIS는 D+1 단일 청산이라 자기진단 가드(G1e)로 손실 누적을 막지만,
-        h7은 <strong>매수 당일 +5% 도달 시 즉시 청산</strong>해서 장중 급반락 위험을 원천 차단한다.
-        백테상 매매의 <strong>66.9%가 당일 익절(승률 100%, 평균 +5.59%)</strong>, 나머지 33.1%만 D+1 시초가로 넘어감.
+      <div class="note-box" style="margin-top:14px;background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
+        <strong style="color:#f87171;">🛡️ 손절 대신 레짐 가드 = 이 엔진의 핵심 리스크 관리.</strong>
+        장중 손절이 무의미한 구조(손익 96%가 오버나잇 갭)라 <strong>손절을 두지 않는 대신</strong>,
+        전략 자기 자본곡선을 감시해 레짐이 약해지면 <strong>L1(직전 40매매일 누적&lt;0 → 임시휴면)</strong>으로 쉬고,
+        레짐이 붕괴하면 <strong>L2(롤링 63매매일 &lt;-8% OR 드로다운 &lt;-15% → 매매 중단 + 재설계)</strong>로 차단한다.
         <br><br>
-        <strong>그래서 MDD가 -4.99%로 매우 낮다</strong> — 이익을 빨리 잠그고 약한 흐름만 D+1로 넘기는 구조.
-        별도의 자기진단 가드(G1e) 없이도 갭업 모멘텀 + 당일 익절만으로 손실을 통제.
+        <strong>레짐 ON 구간 MDD -12.7%</strong> — 2024식 레짐(누적 손실)이 돌아오면 가드가 자동으로 빠져나온다. 손실을 "막는" 게 아니라 "레짐을 감지해 비켜서는" 방식.
       </div>
     </div>
   </section>
@@ -1048,141 +1050,86 @@
   <!-- ─────────────── 백테스트 결과 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">4</span>백테 결과 (2년)</div>
-      <div class="section-meta">2024-04-19 ~ 2026-05-29 · 511 거래일 · KOSPI+KOSDAQ · 수수료·세금 차감 후 수치</div>
+      <div class="section-title"><span class="num-pill">4</span>백테 결과 (레짐ON 기준)</div>
+      <div class="section-meta">레짐 ON 2025-09-01 ~ 현재 · KOSPI+KOSDAQ · cap2 · 가드+0.3% 비용 차감</div>
     </div>
     <div class="section-body">
 
-      <h3 class="sub-h3">h7 BOTH 핵심 성과 (KOSPI+KOSDAQ, N=2, 2026-06-01)</h3>
+      <h3 class="sub-h3">14:30 클러스터 laggard 핵심 성과 (레짐ON 2025-09-01~현재, cap2)</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        시드 50만, <strong>09:01 정적 매수 2종목 50:50 분할 → 당일 +5% 익절 또는 D+1 09:00 시초가 매도</strong> 기준.
-        ★ 시장 범위 <strong>BOTH(KOSPI+KOSDAQ)</strong> 채택 — KOSDAQ only(24매매, +97%)와 공정 비교 후 누적·빈도 모두 우월한 BOTH 선택.
-        백테 스크립트: <code>analysis/h7_gapup_cluster_both.py</code>.
+        자본 20만(슬롯 10만×2), <strong>14:50 종가 매수 → T+1 첫 분봉 시초가 매도, 손절 없음</strong> 기준. 비용 0.3% + 레짐 가드 적용.
+        ★ <strong>레짐 ON(2025-09-01)부터</strong> 집계 — 이전 구간은 횡보·손실이라 레짐 의존 엔진.
+        백테 스크립트: <code>analysis/ap22~ap28</code>.
       </p>
       <table class="data-table">
         <thead><tr><th>지표</th><th>값</th><th>설명</th></tr></thead>
         <tbody>
-          <tr><td>매매 건수</td><td class="pos"><strong>166 매매</strong></td><td>KOSPI 136 / KOSDAQ 30, 71 갭업 종목, 57 매매일</td></tr>
-          <tr><td>당일 익절 / D+1</td><td><strong>111 / 55</strong></td><td>당일 +5% 익절 66.9% (승률 100%, 평균 +5.59%) / D+1 33.1% (평균 +1.21%, 승률 62%)</td></tr>
-          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+4.14%</strong></td><td>per-trade ret, 중앙값 +4.93%</td></tr>
-          <tr><td>승률 (매매당)</td><td class="pos"><strong>87.3%</strong></td><td>166매매 중 145건 수익</td></tr>
-          <tr class="key-row"><td>MDD (최대 손실 구간)</td><td style="color:var(--green)"><strong>−4.99%</strong></td><td>2년 누적 최대 낙폭 (NEMESIS -10.77% 대비 매우 안전)</td></tr>
-          <tr><td>시장별 매매당</td><td class="pos">KOSPI +3.86% / KOSDAQ +5.39%</td><td>KOSPI는 빈도(136)·KOSDAQ는 수익률 ↑ — BOTH로 둘 다 포착</td></tr>
-          <tr><td>worst (단일 매매)</td><td>−8.06%</td><td>2025-06-10 카카오(A035720) D+1 청산 — worst 5 모두 KOSPI 대형주 D+1</td></tr>
-          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (시드 50만 → 2년 후)</strong></td><td class="pos"><strong>367만 (7.35배)</strong></td><td>+635% (예수금 풀배분 기준)</td></tr>
-          <tr class="key-row"><td>1M/3M/6M/9M/12M/18M 손실 윈도우</td><td class="pos"><strong>0/490, 0/448, 0/385, 0/322, 0/259, 0/133</strong></td><td>★ 모든 sliding 윈도우 손실 0 (1M 최악도 0.0%)</td></tr>
+          <tr><td>매매 건수</td><td class="pos"><strong>132 매매</strong></td><td>KOSPI 59 / KOSDAQ 73 (양 시장), 86 매매일</td></tr>
+          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+0.99%</strong></td><td>per-trade ret, 중앙값 +0.53%</td></tr>
+          <tr><td>승률 (매매당)</td><td class="pos"><strong>65%</strong></td><td>최고 +12.6% / 최악 -6.0%</td></tr>
+          <tr class="key-row"><td>MDD (최대 손실 구간)</td><td class="warn"><strong>−12.7%</strong></td><td>레짐ON 구간 / 가드(L1·L2)로 통제</td></tr>
+          <tr><td>Sharpe (레짐ON)</td><td class="pos"><strong>4.4</strong></td><td>⚠️ 레짐피크 — forward 기대 ~1.5~2.0</td></tr>
+          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (레짐ON~현재)</strong></td><td class="pos"><strong>+79%</strong></td><td>2025-09-01 레짐 전환 이후 (가드 적용)</td></tr>
+          <tr><td>최근 3M</td><td class="pos"><strong>+40% / 승률 82%</strong></td><td>33매매 / Sharpe 10.5 (최근 우호 레짐)</td></tr>
+          <tr><td>일평균 빈도</td><td>0.7건/거래일</td><td>거래일의 약 48%만 매매 (선택적), 살 땐 1~2종목</td></tr>
         </tbody>
       </table>
-      <div class="note-box" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
-        <strong style="color:var(--orange);">⚡ 당일 +5% 익절 메커니즘 (h7 핵심)</strong>
+      <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
+        <strong style="color:#f87171;">⚠️ 정직한 한계 — 레짐 의존 엔진</strong>
         <br><br>
-        <strong>당일 익절 111건(66.9%)은 승률 100%, 평균 +5.59%.</strong> 매수 당일 +5% 도달하면 즉시 청산하므로 손실이 날 수 없는 구조.
-        나머지 55건(33.1%)만 D+1 시초가로 넘어가고, 손실(승률 62%)은 거의 전부 이 D+1 청산에서 발생 (worst 5 모두 KOSPI 대형주 D+1).
+        화려한 수치(+79%, Sharpe 4.4)는 <strong>최근 우호 레짐 + 가드 효과</strong>가 큽니다. 같은 전략이 <strong>2024년에는 손실</strong>이었고,
+        가드를 빼고 현실 슬리피지를 넣으면 2년 기준 거의 본전이 됩니다. <strong>올웨더 엣지가 아니라 레짐-타이밍 베팅</strong>입니다.
         <br><br>
-        <strong>→ 강한 모멘텀은 당일 확정, 약한 흐름만 D+1 노출</strong>. 이 비대칭 구조가 MDD -4.99%의 핵심.
+        <strong>→ forward 기대치는 Sharpe ~1.5~2.0로 보수적으로 봐야 하며, 2024식 레짐이 돌아오면 L2 킬스위치가 매매를 중단합니다.</strong>
+        paper-self 단계에서 실슬리피지·가드 실작동을 실측 중.
       </div>
       <div class="note-box" style="background:rgba(168,85,247,0.05);border-color:rgba(168,85,247,0.25);">
-        <strong style="color:#a855f7;">⚡ h7 BOTH 검증 통과</strong>
+        <strong style="color:#a855f7;">✓ 검증 통과 (글로벌 §8.5)</strong>
         <br><br>
-        <strong>✓ 시장 범위 공정 비교:</strong> 동일 코드(<code>h7_gapup_cluster_both.py</code>)로 BOTH vs KOSDAQ 2년 백테 → BOTH 누적 +635%(166매매) ≫ KOSDAQ +97%(24매매). 갭업 클러스터 멤버에 KOSPI 대형주 다수 포함.
+        <strong>✓ 연도별 OOS:</strong> 2024/2025/2026 분리 검증 — 과적합 셀(고Sharpe·중가주 과집중)은 2024 음수로 솎아냄. 채택 셀만 일관 양수 구간 확보.
         <br><br>
-        <strong>✓ Lookahead 자가검증:</strong> 갭업 판정은 전일 종가 기반 / 클러스터는 date ≤ D 스냅샷만 / 매수가 = D일 day_open / 매도가 = T+1 day_open 또는 당일 +5% 익절. 미래 정보 누출 없음.
+        <strong>✓ 슬라이딩 윈도우:</strong> 3M·6M 롤링으로 robust 마진 확인.
         <br><br>
-        <strong>✓ 상한가 가드:</strong> 매수가 ≥ prev_close × 1.285 면 skip (체결 불가 종목 제외).
+        <strong>✓ 계산모델 정합:</strong> cap2 백테 = 운영 슬롯과 byte-equivalent (h7 무제한↔cap 불일치 함정 회피).
         <br><br>
-        <strong>✓ 거래량 5배 이중 필터:</strong> 갭업 + 거래량 동시 조건으로 가짜 상한가·작전주 차단.
+        <strong>✓ Lookahead 자가검증:</strong> 편차는 D일 14:30까지 5분봉만 / 클러스터는 D-1 스냅샷 / 매수 14:50 close · 매도 T+1 open / 상한가잠김 제외.
         <br><br>
-        <strong>✓ spectral cluster SSoT:</strong> 서랍 <code>out/spectral_clusters.parquet</code> (KOSPI 2018종목 + KOSDAQ 1750종목 커버, D-1 18:00 빌드).
+        <strong>✓ spectral cluster SSoT:</strong> 서랍 <code>out/spectral_clusters.parquet</code> + backtest/parquet (분봉 SSoT, 글로벌 §8.4.2).
       </div>
 
       <h3 class="sub-h3 mt">시장 분위기별 성과 (96주)</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        KOSDAQ 주간 등락률로 시장 분위기를 5단계로 분류하고, 각 구간에서 h7이 어떻게 동작하는지 측정.
-        <strong>5가지 시장 분위기 모두 누적 플러스</strong> = 갭업 자체가 강세 신호라 베타≈0 알파 전략.
+        이 엔진은 <strong>레짐 의존</strong>이라 "모든 시장에서 작동"하지 않습니다 — 위 96주 막대에서 보듯
+        <strong>2025-09 이후 구간에서 강하게 작동</strong>(누적 +79%), 그 이전(2024~2025 중반)은 횡보·손실이었습니다.
       </p>
-      <table class="data-table">
-        <thead><tr><th>시장 분위기</th><th>주 수</th><th>주평균 수익</th><th>누적</th><th>손실주</th><th>평가</th></tr></thead>
-        <tbody>
-          <tr><td>🔥 <strong>강세</strong> (+3%↑)</td><td>13</td><td class="pos"><strong>+2.22%</strong></td><td class="pos">+32.5%</td><td class="pos"><strong>0/13 ✅</strong></td><td>★★★★★ 모멘텀 시너지</td></tr>
-          <tr><td>📈 <strong>약강세</strong> (+1~+3%)</td><td>20</td><td class="pos"><strong>+1.66%</strong></td><td class="pos">+38.5%</td><td class="pos"><strong>0/20 ✅</strong></td><td>★★★★★ 손실 없음</td></tr>
-          <tr class="key-row"><td>↔️ <strong>횡보</strong> (±1%)</td><td>33</td><td class="pos"><strong>+2.44%</strong></td><td class="pos"><strong>+119.2%</strong></td><td>1/33</td><td>★★★★★ 가장 자주·강력</td></tr>
-          <tr><td>📉 <strong>약약세</strong> (-1~-3%)</td><td>20</td><td class="pos">+2.04%</td><td class="pos">+48.4%</td><td class="pos"><strong>0/20 ✅</strong></td><td>★★★★ 안정</td></tr>
-          <tr><td>❄️ <strong>약세</strong> (-3%↓)</td><td>10</td><td class="pos"><strong>+2.17%</strong></td><td class="pos">+23.2%</td><td class="pos"><strong>0/10 ✅</strong></td><td>★★★★ 자동 회피</td></tr>
-        </tbody>
-      </table>
       <div class="note-box">
-        <strong>핵심 패턴:</strong>
+        <strong>핵심 패턴 (정직):</strong>
         <ul style="margin:6px 0 0 18px;padding:0;line-height:1.7;font-size:12.5px;">
-          <li>↔️ <strong>횡보장</strong>: 96주 중 33주(34%) — 가장 흔한 구간인데 누적 +119.2%로 가장 강력 (갭업은 시장 방향과 무관)</li>
-          <li>🔥 <strong>강세장</strong>: 주 +2.22% — 갭업 빈발 + 클러스터 동조 강화</li>
-          <li>❄️ <strong>약세장</strong>: 주 +2.17%, 손실주 0 — 갭업 종목 자체가 강세라 시장 하락과 무관하게 작동</li>
-          <li>✅ <strong>5개 분위기 중 손실주는 횡보 1주뿐</strong> — 시장 베타 거의 0</li>
+          <li>📅 <strong>레짐 전환점 = 2025-09-01</strong> — 전략 누적 equity 저점, 이후 지속 상승</li>
+          <li>🌙 알파의 본질 = 강한 클러스터 속 덜 오른 멤버의 <strong>오버나잇 따라잡기 갭</strong> (시장 베타와 무관하나, "레짐"에는 강하게 의존)</li>
+          <li>🛡️ 레짐이 약해지면 <strong>L1 임시휴면</strong>, 붕괴하면 <strong>L2 매매중단</strong> — 가드가 비-우호 레짐을 자동 회피</li>
         </ul>
       </div>
 
-      <h3 class="sub-h3 mt">⚡ 당일 익절 vs D+1 청산 비교 (2년)</h3>
+      <h3 class="sub-h3 mt">얼마나 안정적인가? — 검증 요약 (정직)</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        h7은 매수 당일 +5% 익절(즉시 청산) 또는 D+1 시초가 매도 두 경로로 청산. 두 경로의 성격이 명확히 다르다.
+        ⚠️ 구 h7 엔진의 "모든 윈도우 손실 0" 같은 주장은 <strong>이 엔진에 해당하지 않습니다</strong>. 이 엔진은 레짐 의존이라 2024년에는 손실이었습니다.
+        대신 다음 검증을 통과했습니다 (글로벌 §8.5).
       </p>
       <table class="data-table">
-        <thead><tr><th>청산 경로</th><th>건수 (비중)</th><th>평균 수익</th><th>승률</th><th>성격</th></tr></thead>
+        <thead><tr><th>검증</th><th>결과</th><th>의미</th></tr></thead>
         <tbody>
-          <tr class="key-row"><td>⚡ <strong>당일 +5% 익절</strong></td><td class="pos"><strong>111건 (66.9%)</strong></td><td class="pos"><strong>+5.59%</strong></td><td class="pos"><strong>100%</strong></td><td>강한 모멘텀 — 손실 불가능 구조</td></tr>
-          <tr><td>🌅 <strong>D+1 시초가</strong></td><td>55건 (33.1%)</td><td class="pos">+1.21%</td><td>62%</td><td>약한 흐름 — 손실은 대부분 여기서 발생</td></tr>
+          <tr class="key-row"><td>연도별 OOS (2024/25/26)</td><td class="warn">2024 음수 / 2025·26 양수</td><td>레짐 의존 확인 — 과적합 셀은 솎아냄</td></tr>
+          <tr><td>슬라이딩 윈도우 (3M/6M)</td><td class="pos">레짐ON 구간 robust</td><td>최근 구간 일관성</td></tr>
+          <tr class="key-row"><td>계산모델 정합 (cap2)</td><td class="pos">운영과 byte-equivalent</td><td>h7 무제한↔cap 불일치 함정 회피</td></tr>
+          <tr><td>Lookahead</td><td class="pos">없음</td><td>편차 14:30까지 / 클러스터 D-1 / 매도 T+1</td></tr>
+          <tr class="key-row"><td>레짐ON(2025-09~) 누적 / MDD</td><td class="pos">+79% / -12.7%</td><td>가드 + 0.3% 비용 차감</td></tr>
         </tbody>
       </table>
-      <div class="note-box dim">
-        <strong>당일 익절이 손실을 원천 차단.</strong> 매수 당일 +5%를 찍으면 즉시 빠져나오므로, 166매매 중 111건은 무조건 +5%대 수익.
-        나머지 55건만 다음날까지 보유해 시장 리스크에 노출 — 그래서 worst 5 매매(카카오 -8.06%, 삼성전자 -4.60% 등)가 모두 D+1 청산 KOSPI 대형주다.
-      </div>
-
-      <h3 class="sub-h3 mt">얼마나 안정적인가? — 운영 기간별 손실 확률 (h7 BOTH)</h3>
-      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        "운 좋은 시기에 잠깐 잘 된 것"이 아니라 "꾸준한 알파"인지 확인.
-        2년 데이터를 1/3/6/9/12/18개월씩 sliding 잘라보면 어떻게 나오는지 측정 (캘린더 정규화).
-      </p>
-      <table class="data-table">
-        <thead><tr><th>운영 기간</th><th>측정 횟수</th><th>평균 누적</th><th>중앙값</th><th>손실 윈도우</th><th>의미</th></tr></thead>
-        <tbody>
-          <tr class="key-row"><td><strong>1개월</strong></td><td>490개</td><td><strong>+9.04%</strong></td><td>+7.63%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 0.0% — 손실 윈도우 자체 없음)</strong></td></tr>
-          <tr class="key-row"><td><strong>3개월</strong></td><td>448개</td><td><strong>+30.85%</strong></td><td>+24.37%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +0.22%)</strong></td></tr>
-          <tr class="key-row"><td><strong>6개월</strong></td><td>385개</td><td><strong>+69.46%</strong></td><td>+58.45%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +13.46%)</strong></td></tr>
-          <tr class="key-row"><td><strong>9개월</strong></td><td>322개</td><td><strong>+116.49%</strong></td><td>+82.56%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +32.28%)</strong></td></tr>
-          <tr class="key-row"><td><strong>12개월</strong></td><td>259개</td><td><strong>+174.80%</strong></td><td>+145.93%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">100% 흑자 (최악 +63.42%)</strong></td></tr>
-          <tr class="key-row"><td><strong>18개월</strong></td><td>133개</td><td><strong>+346.53%</strong></td><td>+327.52%</td><td><strong class="pos">0개 (0%) ✅</strong></td><td><strong class="pos">최악도 +190.90%</strong></td></tr>
-        </tbody>
-      </table>
-      <div class="note-box" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.25);">
-        <strong style="color:#22c55e;">✅ 결론: 1개월 윈도우조차 손실 0 — 당일 +5% 익절(승률 100%) 비중이 높아 단기 변동성도 매우 낮다.</strong>
-        모든 운영 기간(1M~18M)에서 손실 윈도우 0건.
-        <br><br>
-        <strong style="color:var(--accent);">📊 분기별 안정성:</strong>
-        2년 중 <strong>9개 분기 전부 양수</strong> — 2024Q2 +6.5% / 2024Q3 +11.1% / 2024Q4 +11.8% / 2025Q1 +13.0% / 2025Q2 +20.6% / 2025Q3 +31.5% / 2025Q4 +51.6% / 2026Q1 +72.2% / 2026Q2 +18.7%.
-        <br><br>
-        <strong style="color:var(--orange);">⚠️ 단, 실전 슬리피지 미반영</strong> — 당일 익절은 분봉 close 기준이라 실전 체결가와 격차 가능. paper-self 운영으로 실측 후 캘리브레이션 필요.
-      </div>
-
-      <h3 class="sub-h3 mt">시드별 예상 수익 (h7 BOTH 2년 운영, 비중별 복리)</h3>
-      <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        매매일에 2종목 50:50 자동 분할 (KOSPI+KOSDAQ). 비중 = 시드 중 APEX(h7)에 배정하는 비율 (일별 수익률 비중 스케일 복리 계산).
-        ⚠️ <strong style="color:var(--orange);">백테 순수치 (슬리피지 모델 미반영)</strong> — 실전은 체결가 격차로 낮아질 수 있음. paper-self 실측 후 캘리브레이션 필요.
-      </p>
-      <table class="data-table">
-        <thead><tr><th>시드</th><th>비중 50%</th><th>비중 65%</th><th>비중 80%</th><th>비중 100%</th></tr></thead>
-        <tbody>
-          <tr><td>100만</td><td class="pos">약 275만 (+175%)</td><td class="pos">약 370만 (+270%)</td><td class="pos">약 497만 (+397%)</td><td class="pos">약 735만 (+635%)</td></tr>
-          <tr><td>500만</td><td class="pos">약 1,373만</td><td class="pos">약 1,850만</td><td class="pos">약 2,486만</td><td class="pos">약 3,675만</td></tr>
-          <tr class="key-row"><td><strong>1,000만</strong></td><td class="pos">약 2,745만 (+175%)</td><td class="pos"><strong>약 3,699만 (+270%)</strong></td><td class="pos">약 4,971만 (+397%)</td><td class="pos"><strong>약 7,350만 (+635%)</strong></td></tr>
-          <tr><td>5,000만</td><td class="pos">약 1.37억</td><td class="pos">약 1.85억</td><td class="pos">약 2.49억</td><td class="pos">약 3.67억</td></tr>
-        </tbody>
-      </table>
-      <div class="note-box dim">
-        <strong>비중별 누적 (백테 순수, 일별 비중 스케일 복리)</strong>: 50% → +174.5% / 65% → +269.9% / 80% → +397.1% / 100% → +635.0%.
-        MDD가 -4.99%로 매우 낮아 비중을 높여도 낙폭 부담이 작다.
-        <br><br>
-        <strong style="color:var(--orange);">⚠️ 이건 보장 수익 아닙니다.</strong> 백테 = 과거 데이터 시뮬레이션 + 슬리피지 모델 미반영.
-        실전에서는 시장 환경 변화·슬리피지·체결 실패·분봉 API 안정성으로 결과가 달라질 수 있습니다.
-        <strong>시드의 일부로 시작 → paper-self 검증 후 단계적 증액</strong> 권장.
+      <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
+        <strong style="color:#f87171;">⚠️ 보장 수익이 아닙니다.</strong> 화려한 수치는 최근 우호 레짐 + 가드 효과로, 현실 슬리피지를 넣으면 크게 깎입니다.
+        forward 기대 Sharpe는 <strong>~1.5~2.0</strong>로 보수적으로 보고, <strong>2024식 레짐이 돌아오면 L2 킬스위치가 매매를 중단 + 재설계</strong>합니다.
+        시드 일부로 paper-self부터 검증 → 단계적 증액 권장. 상세 수치는 <code>backtest/analysis/out/ap25~ap28</code> 참조.
       </div>
     </div>
   </section>
@@ -1197,20 +1144,20 @@
       <table class="data-table">
         <thead><tr><th>단계</th><th>모드</th><th>설명</th><th>권장 기간</th></tr></thead>
         <tbody>
-          <tr><td><strong>1단계</strong></td><td><code>paper-self</code> (기본)</td><td>실제 시세 + 가상 매매. <strong>돈 안 나감.</strong> 엔진 동작 + 백테 vs 실제 매매 일치율 + 당일 익절 체결가 슬리피지 측정.</td><td><strong>4주</strong></td></tr>
+          <tr><td><strong>1단계</strong></td><td><code>paper-self</code> (기본)</td><td>실제 데이터 + 가상 매매. <strong>돈 안 나감.</strong> 백테 vs 실제 매매 일치율 + 실슬리피지 + 레짐 가드 실작동 측정.</td><td><strong>4주</strong></td></tr>
           <tr><td>2단계</td><td><code>paper</code></td><td>한국투자증권 모의투자 (KIS API). 돈 안 나감.</td><td>2주</td></tr>
           <tr class="key-row" style="background:rgba(239,68,68,0.05);"><td><strong>3단계</strong></td><td><code>real</code></td><td><strong style="color:#fca5a5;">실제 돈 사용</strong>. 비중 단계적: 25% → 50% → 100%.</td><td>장기 운영</td></tr>
         </tbody>
       </table>
       <div class="note-box">
         <strong>📋 현재 상태:</strong>
-        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>09:01 정적 매수 2종목 50:50 분할 (h7: 갭업 + 클러스터 + 당일 +5% 익절, 시장 KOSPI+KOSDAQ)</strong>
+        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>14:50 종가 매수 최대 2종목(cap2) → T+1 시초가 매도 (14:30 클러스터 laggard, 손절 없음, 시장 KOSPI+KOSDAQ)</strong>
       </div>
       <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.3);">
-        <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: h7은 MDD -4.99%로 매우 안전하지만 실전 슬리피지(특히 당일 +5% 익절 체결가)가 미측정 상태. <strong>paper-self 4주로 백테 vs 실제 체결가 격차를 먼저 실측</strong> → paper 2주 → real 25% → 50% → 100% 단계적 권장. NEMESIS와 병렬 운영 시 포트폴리오 분산 효과.
+        <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: 레짐 의존 엔진이라 실전 슬리피지·레짐 가드 실작동이 미측정. <strong>paper-self 4주로 백테 vs 실제 체결가 격차 + 가드 동작을 먼저 실측</strong> → paper 2주 → real 소액(25%) → 단계적 증액. NEMESIS(09:29)·POLLUX(09:05)와 시간대(14:30) 분산.
       </div>
       <div class="note-box" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
-        <strong style="color:var(--orange);">⚠️ 주의:</strong> 당일 +5% 익절(66.9%·승률 100%)은 백테상 분봉 close 기준이라 실전 체결가와 격차가 날 수 있음. 또한 worst 매매가 모두 KOSPI 대형주 D+1 청산이므로, D+1로 넘어가는 33.1% 종목의 익일 갭다운 리스크 모니터링 필요. 백테 대비 결과가 크게 다르면 즉시 정지 후 분석.
+        <strong style="color:var(--orange);">⚠️ 주의:</strong> 화려한 백테 수치는 최근 우호 레짐 + 가드 효과 — forward 기대는 Sharpe ~1.5~2.0로 보수적으로. <strong>2024식 레짐이 돌아오면 L2 킬스위치가 매매를 중단</strong>한다. 손익의 96%가 오버나잇 갭이라 장중 손절은 없음. 백테 대비 결과가 크게 다르면 즉시 정지 후 분석.
       </div>
     </div>
   </section>
@@ -1222,32 +1169,28 @@
       <div class="section-meta">포트 <code>3100</code> · 변경 시 백테 재검증 필수</div>
     </div>
     <div class="section-body">
-      <h3 class="sub-h3">핵심 파라미터 (h7)</h3>
+      <h3 class="sub-h3">핵심 파라미터 (cluster_laggard_1430)</h3>
       <table class="data-table">
         <thead><tr><th style="width:240px">키</th><th style="width:160px">값</th><th>위치 / 설명</th></tr></thead>
         <tbody>
           <tr><td><code>TRADING_MODE</code></td><td id="kvMode">paper-self</td><td>.env (paper-self / paper / real)</td></tr>
-          <tr><td><code>BUY_MODE</code></td><td><strong style="color:#f59e0b">h7</strong></td><td>.env (h7 갭업 모드 활성)</td></tr>
-          <tr><td><code>TOTAL_CAPITAL</code></td><td id="kvBudget">200,000</td><td>.env (2종목 50:50 분할 = 종목당 100,000원)</td></tr>
-          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:var(--accent);font-weight:600;text-align:center;">— 시그널 (갭업 + 클러스터) —</td></tr>
-          <tr class="key-row"><td><strong>GAP_UP_THRESHOLD</strong></td><td><strong style="color:var(--accent)">1.10 (10%↑)</strong></td><td>strategy.js (close ≥ prev_close × 1.10)</td></tr>
-          <tr class="key-row"><td><strong>VOLUME_RATIO_THRESHOLD</strong></td><td><strong style="color:var(--accent)">5.0 (5배↑)</strong></td><td>strategy.js (volume ≥ avg_vol × 5.0)</td></tr>
-          <tr class="key-row"><td><strong>CLUSTER_CORR</strong></td><td><strong style="color:var(--accent)">≥ 0.42</strong></td><td>strategy.js (NEMESIS 0.34보다 보수적)</td></tr>
-          <tr class="key-row"><td><strong>CLUSTER_SIZE</strong></td><td><strong style="color:var(--accent)">≥ 8</strong></td><td>strategy.js (멤버 수 컷)</td></tr>
-          <tr class="key-row"><td><strong>MARKET_FILTER</strong></td><td><strong style="color:var(--green)">BOTH (KOSPI+KOSDAQ)</strong></td><td>strategy.js (env NEMESIS_MARKET_FILTER) — 공정비교 후 채택</td></tr>
-          <tr class="key-row"><td><strong>N_PICKS (분할 매수)</strong></td><td><strong style="color:var(--accent)">2 (상위 2멤버)</strong></td><td>strategy.js (클러스터 멤버 상위 2종목)</td></tr>
-          <tr class="key-row"><td><strong>WEIGHTS (자본 분할)</strong></td><td><strong>[0.5, 0.5]</strong></td><td>50:50 균등</td></tr>
-          <tr><td>상한가 가드 (매수 시점)</td><td>+28.5% 이상 skip</td><td>strategy.js (H7_PRICE_GUARD=0.285)</td></tr>
-          <tr><td>저가주 가드</td><td>&lt; 1,000원 skip</td><td>strategy.js (LOW_PRICE_GUARD)</td></tr>
-          <tr style="background:rgba(245,158,11,0.05);"><td colspan="3" style="font-size:11px;color:#f59e0b;font-weight:600;text-align:center;">— 매수 / 청산 —</td></tr>
-          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>매수 시점</strong></td><td><strong style="color:#f59e0b">09:01 정적 매수</strong></td><td>scheduler.js (09:00 day_open 가격, 동적 polling 없음)</td></tr>
-          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>INTRADAY_TARGET (당일 익절)</strong></td><td><strong style="color:#f59e0b">1.05 (+5%)</strong></td><td>scheduler.js (close ≥ entry × 1.05 시 즉시 매도)</td></tr>
-          <tr class="key-row" style="background:rgba(245,158,11,0.05);"><td><strong>D+1 매도</strong></td><td><strong>익일 09:00 시초가</strong></td><td>scheduler.js (당일 미익절 종목 일괄)</td></tr>
-          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:var(--accent);font-weight:600;text-align:center;">— 운영 안전 —</td></tr>
-          <tr><td>in-progress lock / 잔량 자동 취소</td><td>활성</td><td>real-broker.js (중복 매수 방지 + KIS cancelOrder)</td></tr>
-          <tr><td>D-1 종가 SSoT</td><td>backtest/parquet</td><td>상한가 가드용 (네이버 API 의존 0)</td></tr>
-          <tr><td>스캔 / 매수 / 매도 시각</td><td>09:00 / 09:01 / 익일 09:00 (+ 당일 익절 09:01~15:30)</td><td>scheduler.js cron</td></tr>
-          <tr><td>왕복 수수료·세금</td><td>약 0.23%</td><td>매수 0.015% + 매도 0.015% + 매도세 0.2%</td></tr>
+          <tr><td><code>BUY_MODE</code></td><td><strong style="color:#22d3ee">cluster_laggard_1430</strong></td><td>.env (14:30 laggard 모드 활성)</td></tr>
+          <tr><td><code>TOTAL_CAPITAL</code></td><td id="kvBudget">200,000</td><td>.env (cap2 균등 분할 = 슬롯당 100,000원)</td></tr>
+          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:var(--accent);font-weight:600;text-align:center;">— 시그널 (14:30 클러스터 laggard) —</td></tr>
+          <tr class="key-row"><td><strong>CLUSTER_MIN_CORR</strong></td><td><strong style="color:var(--accent)">≥ 0.15</strong></td><td>apex_laggard_signal.py (동조도 컷)</td></tr>
+          <tr class="key-row"><td><strong>CLUSTER_MIN_SIZE</strong></td><td><strong style="color:var(--accent)">≥ 8</strong></td><td>멤버 수 컷</td></tr>
+          <tr class="key-row"><td><strong>PRICE_LO ~ PRICE_HI</strong></td><td><strong style="color:var(--green)">10,000 ~ 50,000원</strong></td><td>중가주 필터 (진입가 기준)</td></tr>
+          <tr class="key-row"><td><strong>BOTTOM_N (laggard 후보)</strong></td><td><strong style="color:var(--accent)">3 (편차 최저)</strong></td><td>편차 낮은 순 후보 수집</td></tr>
+          <tr class="key-row"><td><strong>APEX_DAILY_CAP</strong></td><td><strong style="color:var(--accent)">2 (하루 최대)</strong></td><td>.env (lag_rank 오름차순 head2 균등분할)</td></tr>
+          <tr class="key-row"><td><strong>시장 범위</strong></td><td><strong style="color:var(--green)">KOSPI+KOSDAQ</strong></td><td>서랍 통합 유니버스</td></tr>
+          <tr><td>상한가 잠김 제외</td><td>entry ≥ prev×1.30×0.995 skip</td><td>체결 불가 종목 제외</td></tr>
+          <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:#22d3ee;font-weight:600;text-align:center;">— 매수 / 청산 (손절 없음) —</td></tr>
+          <tr class="key-row" style="background:rgba(34,211,238,0.05);"><td><strong>신호 / 매수 시점</strong></td><td><strong style="color:#22d3ee">14:30 / 14:50 close</strong></td><td>scheduler.js (APEX_BUY_CRON, paper-self는 데이터 빌드 후 18:30)</td></tr>
+          <tr class="key-row" style="background:rgba(34,211,238,0.05);"><td><strong>청산</strong></td><td><strong>T+1 첫 분봉 시초가</strong></td><td>scheduler.js 08:50 runMorningSell (손절 없음)</td></tr>
+          <tr style="background:rgba(239,68,68,0.05);"><td colspan="3" style="font-size:11px;color:#f87171;font-weight:600;text-align:center;">— 레짐 가드 —</td></tr>
+          <tr class="key-row"><td><strong>REGIME_L1_TRAIL_DAYS</strong></td><td><strong style="color:var(--yellow)">40 (누적&lt;0 휴면)</strong></td><td>regime-guard.js (자동 재개)</td></tr>
+          <tr class="key-row"><td><strong>REGIME_L2_ROLL / DD</strong></td><td><strong style="color:#f87171">롤링63&lt;-8% / DD&lt;-15%</strong></td><td>regime-guard.js (레짐붕괴 중단·래치)</td></tr>
+          <tr><td>왕복 수수료·세금</td><td>약 0.3% (백테 가정)</td><td>매수 + 매도 + 매도세</td></tr>
         </tbody>
       </table>
 
@@ -1255,23 +1198,20 @@
       <table class="data-table">
         <thead><tr><th style="width:320px">항목</th><th>값 / 위치</th></tr></thead>
         <tbody>
-          <tr><td>백테 스크립트</td><td><code>backtest/analysis/h7_gapup_cluster_both.py</code></td></tr>
-          <tr><td>실행 (BOTH 2년 N=2)</td><td><code>.venv/bin/python analysis/h7_gapup_cluster_both.py --n 2 --market both</code></td></tr>
-          <tr><td>결과 3종 세트</td><td><code>out/h7_gapup_cluster_both_n2_{trades.csv, summary.json, summary.md}</code></td></tr>
-          <tr><td>분봉 데이터 (SSoT)</td><td><code>backtest/parquet/</code> (KOSDAQ) + <code>parquet_kospi/</code> (KOSPI)</td></tr>
-          <tr><td>spectral cluster</td><td><code>서랍/out/spectral_clusters.parquet</code> (KOSPI 2018 + KOSDAQ 1750 커버)</td></tr>
-          <tr><td>차트 데이터</td><td><code>public/market-flow-weekly.json</code> (h7 주별 수익)</td></tr>
+          <tr><td>전략 백테 / 그리드</td><td><code>backtest/analysis/ap22~ap23</code> (그리드·OOS·슬라이딩)</td></tr>
+          <tr><td>계산모델 정합 / 레짐 스펙</td><td><code>ap26 (cap2)</code> · <code>ap28 (레짐 기록 + 킬스위치)</code></td></tr>
+          <tr><td>운영 신호 스크립트</td><td><code>scripts/apex_laggard_signal.py</code> (백테 byte 정합)</td></tr>
+          <tr><td>분봉 데이터 (SSoT)</td><td><code>backtest/parquet/</code> + <code>parquet_kospi/</code></td></tr>
+          <tr><td>spectral cluster</td><td><code>서랍/out/spectral_clusters.parquet</code> + <code>returns_5min.parquet</code></td></tr>
         </tbody>
       </table>
       <div class="note-box dim">
-        <strong>외부 의존:</strong> 서랍 spectral cluster (read-only) · KIS API · 네이버 모바일 API · Python venv (backtest/.venv).
-        <strong>시그널 룰 변경 시</strong> strategy.js의 GAP_UP/VOLUME_RATIO/CLUSTER_CORR/N_PICKS + 백테 <code>h7_gapup_cluster_both.py</code> 재실행 필수.
-        <strong>시장 범위 변경 시</strong> strategy.js의 MARKET_FILTER + 백테 <code>--market</code> 옵션 동시 점검 (백테-운영 일치).
+        <strong>외부 의존:</strong> 서랍 spectral cluster + returns_5min (read-only) · backtest/parquet (분봉 SSoT) · KIS API(real) · Python venv.
+        <strong>셀 파라미터 변경 시</strong> apex_laggard_signal.py + 백테 <code>ap22</code> 동시 점검 (백테-운영 일치, 글로벌 §8.4.1).
       </div>
-      <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.25);font-size:11.5px;line-height:1.7;">
-        <strong style="color:#22d3ee;">📊 시장 범위 공정 비교 결과 (2026-06-01):</strong>
-        동일 코드로 BOTH vs KOSDAQ 2년 백테 → <strong>BOTH 누적 +635%(166매매) ≫ KOSDAQ +97%(24매매)</strong>.
-        갭업 클러스터 멤버에 KOSPI 대형주가 다수 포함되어 매매 빈도·수익 모두 우월 → <strong>BOTH(KOSPI+KOSDAQ) 채택</strong>.
+      <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);font-size:11.5px;line-height:1.7;">
+        <strong style="color:#f87171;">⚠️ 레짐 의존:</strong> 레짐 ON(2025-09-01) 이후 검증. 2024식 레짐 복귀 시 L2 킬스위치가 매매 중단 + 재설계 트리거.
+        forward 기대 Sharpe ~1.5~2.0 (현실 슬리피지 반영). paper-self에서 실측 중.
       </div>
     </div>
   </section>
@@ -1342,7 +1282,7 @@
       const buyEvents = events.filter(e => e && (e.event === 'buy' || e.event === 'triggered_buy'));
       const liveMeta = document.getElementById('sigLiveMeta');
       if (sigEvents.length === 0) {
-        if (liveMeta) liveMeta.textContent = '오늘 갭업 신호 대기 중 (평일 09:00 스캔)';
+        if (liveMeta) liveMeta.textContent = '오늘 laggard 신호 대기 중 (평일 14:30 스캔)';
         return;
       }
 
@@ -1359,15 +1299,15 @@
       sigEvents.sort((a, b) => (a.rank || 99) - (b.rank || 99));
       const sig = sigEvents[0];
 
-      // 매수 픽 카드: 갭업 클러스터 + 픽 종목들
+      // 매수 픽 카드: laggard 클러스터 + 픽 종목들
       const corr = sig.cluster_corr != null ? Number(sig.cluster_corr).toFixed(2) : '—';
-      setText('sigTop1Theme', `갭업 클러스터 (corr ${corr})`);
+      setText('sigTop1Theme', `laggard 클러스터 (corr ${corr})`);
       setText('sigTop1Count', sigEvents.length);
       setText('sigN20', 2);
       setBarPct('sigTop1Bar', sigEvents.length, 2);
 
       // 신호 소스
-      setText('sigTop2Theme', '갭업 10%↑ + 거래량 5배↑ → spectral cluster');
+      setText('sigTop2Theme', '14:30 강한 클러스터 → 편차 최저(laggard)');
       setBarPct('sigTop2Bar', sigEvents.length, 2);
 
       // 매수 종목 (rank1·2 묶어서 표시)
@@ -1392,7 +1332,7 @@
 
       // 메타 라벨
       if (liveMeta) {
-        liveMeta.textContent = `오늘 · ★ 갭업 매수 신호 ${sigEvents.length}건${buyEvents.length ? ` · 체결 ${buyEvents.length}` : ''}`;
+        liveMeta.textContent = `오늘 · ★ laggard 매수 신호 ${sigEvents.length}건${buyEvents.length ? ` · 체결 ${buyEvents.length}` : ''}`;
       }
     } catch (e) { /* silent */ }
   }
