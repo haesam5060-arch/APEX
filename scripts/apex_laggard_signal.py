@@ -46,11 +46,105 @@ def _fail(msg, diag=None):
     sys.exit(0)
 
 
+def _A(c):
+    c = str(c).upper().strip()
+    return c if c.startswith("A") else f"A{c}"
+
+
+def run_live(payload):
+    """★ 라이브 원시(raw) 모드 (ap29 검증). 장중 14:30 실시간.
+    입력: { signal_date, morning_rets:{code6:ret}, today_change:{code6:changeRate} }
+      - morning_rets: poll_morning_change (09:00~09:29 장중 등락률) → 아침 Top10 → 클러스터
+      - today_change: scanAllStocks (14:30 전일대비 등락률) → 원시 편차 today-piece
+    편차 = parquet 원시 일별 로그수익 20일(D-1까지) + 오늘 ln(1+today_change). [중립화 안 씀]
+    """
+    import numpy as np, pandas as pd
+    signal_date = str(payload.get("signal_date") or "").strip()
+    if len(signal_date) != 8:
+        _fail("signal_date 필요")
+    morning_rets = payload.get("morning_rets") or {}
+    today_change = payload.get("today_change") or {}
+    if not morning_rets:
+        _fail("morning_rets 비어있음 (poll_morning_change 실패?)")
+
+    import s10_seorab_morning_topbot as s10
+    s10.SPECTRAL_PATH = BACKTEST.parent / "서랍" / "out" / "spectral_clusters.parquet"
+    from s10_seorab_morning_topbot import load_spectral, all_trading_dates, pick_drawer, WINDOW
+    from analysis.loader import day_close
+
+    c2c, m2c, a2c = load_spectral(WINDOW)
+    spec_dates = set(c2c.keys())
+    tds = all_trading_dates()
+    if signal_date not in tds:
+        _fail("거래일 아님")
+    i = tds.index(signal_date)
+    prev = next((tds[j] for j in range(i-1, -1, -1) if tds[j] in spec_dates), None)
+    if prev is None:
+        _fail("직전 spectral 스냅샷 없음")
+
+    # 아침 Top10 (장중 등락률 내림차순)
+    top = sorted(morning_rets.items(), key=lambda kv: -kv[1])[:TOP_N_MORNING_LIVE]
+    top10 = pd.DataFrame({"code": [_A(c) for c, _ in top]})
+    pick = pick_drawer(top10, c2c.get(prev, {}), m2c.get(prev, {}), a2c.get(prev, {}))
+    if pick is None:
+        print(json.dumps({"ok": True, "signal_date": signal_date, "prev_date": prev,
+                          "picks": [], "diag": {"reason": "활성 클러스터 없음"}}, ensure_ascii=False)); return
+    cid, cnt = pick
+    members = m2c[prev][cid]
+    avg_corr = float(a2c.get(prev, {}).get(cid, float("nan")))
+    if (avg_corr == avg_corr and avg_corr < CORR_MIN) or len(members) < SIZE_MIN:
+        print(json.dumps({"ok": True, "signal_date": signal_date, "prev_date": prev, "picks": [],
+                          "diag": {"reason": f"클러스터 필터 미달 corr={avg_corr:.3f} size={len(members)}"}},
+                         ensure_ascii=False)); return
+
+    # 20일 원시 일별 로그수익 (D-1까지 parquet) + 오늘 ln(1+today_change)
+    win = [d for d in tds if d < signal_date][-WINDOW:]   # D-WINDOW..D-1
+    panel = {}
+    for d in win:
+        for mk in ("kospi", "kosdaq"):
+            try:
+                s = day_close(d, market=mk)
+                for code in members:
+                    if code in s.index and s[code] > 0:
+                        panel.setdefault(code, {})[d] = float(s[code])
+            except Exception:
+                pass
+    rows = {}
+    for code in members:
+        tc = today_change.get(code[1:]) if code[1:] in today_change else today_change.get(code)
+        if tc is None:
+            continue
+        closes = [panel.get(code, {}).get(d) for d in win]
+        closes = [c for c in closes if c]
+        if len(closes) < 2:
+            continue
+        rets = [np.log(closes[k]/closes[k-1]) for k in range(1, len(closes))]
+        rets.append(np.log(1.0 + float(tc)))   # 오늘 14:30 (전일대비)
+        rows[code] = float(100.0 * np.exp(np.cumsum(rets))[-1])
+    if len(rows) < 2:
+        _fail("편차 계산 멤버 부족 (today_change/history 매칭 실패)")
+    last = pd.Series(rows); dev = (last - float(last.mean())).sort_values(ascending=False)
+    lag = list(dev.items())[::-1][:BOTTOM_N]   # 편차 최저 N
+    picks = [{"code": code[1:], "deviation": float(dv), "lag_rank": r,
+              "avg_corr": avg_corr, "cluster_size": len(members),
+              "today_change": today_change.get(code[1:], today_change.get(code))}
+             for r, (code, dv) in enumerate(lag)]
+    print(json.dumps({"ok": True, "signal_date": signal_date, "prev_date": prev, "picks": picks,
+                      "diag": {"cluster_id": int(cid), "avg_corr": avg_corr, "cluster_size": len(members),
+                               "n_candidates": len(picks), "mode": "live_raw"}},
+                     ensure_ascii=False, default=str))
+
+
+TOP_N_MORNING_LIVE = 10
+
+
 def main():
     try:
         payload = json.loads(sys.stdin.read() or "{}")
     except Exception as e:
         _fail(f"입력 파싱 실패: {e}")
+    if payload.get("mode") == "live":
+        return run_live(payload)
     signal_date = str(payload.get("signal_date") or "").strip()
     if len(signal_date) != 8:
         _fail(f"signal_date(YYYYMMDD) 필요: {signal_date!r}")

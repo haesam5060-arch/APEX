@@ -644,12 +644,87 @@ function selectClusterLaggard1430(signalDate) {
   });
 }
 
+/**
+ * ★ 라이브 14:30 클러스터 laggard 신호 (원시/raw, ap29 검증) — 장중 실시간.
+ *   1) 전일대비 등락률 상위 N 프리필터 → poll_morning_change(09:00~09:29 장중 등락률)
+ *   2) scanned[].changeRate (14:30 전일대비) = 원시 편차 today-piece
+ *   3) apex_laggard_signal.py --live → laggard 픽 (가격필터·cap은 14:50 매수 단계서)
+ * @param {Array} scanned - scanAllStocks() 결과 (14:30 시점)
+ * @param {string} signalDate - 'YYYYMMDD'
+ */
+function _spawnMorningChange(codesA, signalDate) {
+  const UV_BIN = process.env.UV_BIN || '/opt/homebrew/bin/uv';
+  const COLLECTOR_DIR = path.resolve(__dirname, '..', '..', 'backtest', 'collector');
+  return new Promise((resolve) => {
+    const proc = spawn(UV_BIN, ['run', 'poll_morning_change.py', ...codesA, '--date', signalDate],
+      { cwd: COLLECTOR_DIR });
+    let out = '', err = '';
+    proc.stdout.on('data', d => { out += d.toString(); });
+    proc.stderr.on('data', d => { err += d.toString(); });
+    proc.on('error', () => resolve({}));
+    proc.on('close', () => {
+      try { resolve(JSON.parse(out.trim().split('\n').pop()).data || {}); }
+      catch { resolve({}); }
+    });
+  });
+}
+
+async function selectClusterLaggard1430Live(scanned, signalDate) {
+  const PREFILTER_N = parseInt(process.env.MORNING_PREFILTER_N || '150', 10);
+  // 1) 프리필터: 전일대비 등락률 상위 N → 아침 등락률 수집
+  const cand = scanned.filter(s => s.code && Number.isFinite(s.changeRate))
+    .slice().sort((a, b) => b.changeRate - a.changeRate).slice(0, PREFILTER_N);
+  const morningMap = await _spawnMorningChange(cand.map(s => _withA(s.code)), signalDate);
+  const morning_rets = {};
+  for (const [codeA, m] of Object.entries(morningMap)) {
+    if (m && m.vi_ok && typeof m.ret === 'number') morning_rets[_stripA(codeA)] = m.ret;
+  }
+  if (Object.keys(morning_rets).length === 0) {
+    return { picks: [], excluded: { reason: '아침 등락률 수집 실패 → 노매매(안전)' }, diag: {} };
+  }
+  // 2) 14:30 전일대비 등락률 (원시 편차 today-piece)
+  const today_change = {};
+  for (const s of scanned) if (s.code && Number.isFinite(s.changeRate)) today_change[_stripA(s.code)] = s.changeRate;
+
+  // 3) 라이브 신호 호출
+  const APEX_SIGNAL_SCRIPT = path.resolve(__dirname, '..', 'scripts', 'apex_laggard_signal.py');
+  return new Promise((resolve) => {
+    const proc = spawn(PYTHON_BIN, [APEX_SIGNAL_SCRIPT], { env: { ...process.env, PYTHONUNBUFFERED: '1' } });
+    let out = '', err = '';
+    proc.stdout.on('data', d => { out += d.toString(); });
+    proc.stderr.on('data', d => { err += d.toString(); });
+    proc.on('error', e => resolve({ picks: [], excluded: { reason: `signal spawn 실패: ${e.message}` }, diag: {} }));
+    proc.on('close', () => {
+      try {
+        const r = JSON.parse(out.trim().split('\n').pop());
+        if (!r.ok) return resolve({ picks: [], excluded: { reason: r.error || '신호 실패' }, diag: r.diag || {} });
+        const codeToScan = new Map(scanned.map(s => [s.code, s]));
+        const picks = (r.picks || []).map((p, i) => {
+          const sc = codeToScan.get(p.code);
+          return {
+            code: p.code, name: sc?.name || '', market: sc?.market || null,
+            rank: i + 1, lag_rank: p.lag_rank, deviation: p.deviation,
+            cluster_avg_corr: p.avg_corr, cluster_size: p.cluster_size,
+            signal_source: 'cluster_laggard_1430', buy: sc?.close ?? null,  // 14:30 현재가(참고), 실매수는 14:50
+          };
+        });
+        resolve({ picks, excluded: picks.length ? null : { reason: r.diag?.reason || '조건 미충족' }, diag: r.diag || {}, prev_date: r.prev_date });
+      } catch (e) {
+        resolve({ picks: [], excluded: { reason: `파싱 실패: ${e.message} | ${err.slice(0, 200)}` }, diag: {} });
+      }
+    });
+    proc.stdin.write(JSON.stringify({ mode: 'live', signal_date: signalDate, morning_rets, today_change }));
+    proc.stdin.end();
+  });
+}
+
 module.exports = {
   selectTop10,
   selectPicks,
   selectHighclusterLaggard,
   selectGapupPicks,
   selectClusterLaggard1430,
+  selectClusterLaggard1430Live,
   callPythonSignal,
   LIMIT_UP_CUT,
   TOP_N,

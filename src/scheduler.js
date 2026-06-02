@@ -29,11 +29,17 @@ try {
 } catch (e) {
   // real-broker 없음 (paper-self 모드에서는 사용 안 함)
 }
-const { fetchStockDetail } = require('./stock-fetcher');
+const { fetchStockDetail, scanAllStocks, pollPrices } = require('./stock-fetcher');
 const { isBuyBlocked } = require('./no-buy-calendar');
 const { isKrxClosed } = require('./krx-calendar');
-const { PRICE_GUARD_PCT, selectClusterLaggard1430 } = require('./strategy');
+const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live } = require('./strategy');
 const regimeGuard = require('./regime-guard');
+
+// cluster_laggard_1430 라이브: 14:30 신호 → 14:50 매수 (그 사이 픽 보관)
+const APEX_PRICE_LO = parseInt(process.env.APEX_PRICE_LO || '10000', 10);
+const APEX_PRICE_HI = parseInt(process.env.APEX_PRICE_HI || '50000', 10);
+const APEX_DAILY_CAP = parseInt(process.env.APEX_DAILY_CAP || '2', 10);
+let _laggardPending = null;  // { date, picks:[...] }
 const discord = require('./discord-notifier');
 const mail = require('./email-notifier');
 const { db, log, stmts } = require('./db');
@@ -578,86 +584,106 @@ async function runDynamicFallback() {
   }
 }
 
-// ── cluster_laggard_1430: 14:30 신호 → 14:50 매수 (레짐가드 적용) ─────────────────────
-//   청산은 08:50 runMorningSell(T+1 시초가) 재사용 — 모든 모드 공통.
-//   paper-self: 분봉 SSoT(backtest/parquet)+서랍 클러스터 읽음 → 데이터 가용(서랍 빌드) 이후 실행.
-async function runClusterLaggardBuy() {
+// ── cluster_laggard_1430 라이브: 14:30 신호 (실시간) ─────────────────────
+//   scanAllStocks(14:30) + poll_morning_change(09:00~09:29) → 원시 laggard 픽 → _laggardPending 보관.
+//   레짐 가드(L1/L2)는 여기서 체크 — 막히면 픽 안 만듦. 청산은 08:50 runMorningSell(T+1) 재사용.
+async function runLaggardSignal14() {
   const krx = isKrxClosed();
-  if (krx.closed) {
-    log.info('SCHED', `[KRX 폐장] cluster_laggard 매수 skip — ${krx.reason}${krx.name ? ` (${krx.name})` : ''}`);
-    return;
-  }
-  const blockCheck = isBuyBlocked();
-  if (blockCheck.blocked) {
-    log.warn('SCHED', `매수 금지일 — ${blockCheck.desc}. 매수 skip`);
-    await discord.sendBuyBlocked?.(blockCheck);
-    return;
-  }
+  if (krx.closed) { log.info('SCHED', `[KRX 폐장] 14:30 신호 skip — ${krx.reason}`); return; }
+  const blk = isBuyBlocked();
+  if (blk.blocked) { log.warn('SCHED', `매수 금지일 — ${blk.desc}. 신호 skip`); await discord.sendBuyBlocked?.(blk); return; }
 
   // ★ 레짐 가드 (L1 임시휴면 / L2 레짐붕괴 킬스위치)
   const regime = regimeGuard.checkRegime({ stmts, mode: _config.tradingMode });
   if (!regime.canTrade) {
     const tag = regime.halted ? 'L2 레짐붕괴(중단)' : 'L1 임시휴면';
-    log.warn('SCHED', `[레짐가드] ${tag} — 매수 skip. ${regime.reasons.join('; ')}`);
-    if (regime.halted) {
-      await discord.sendError?.(`🛑 [APEX 레짐붕괴 L2] 매매 중단 + 재설계 필요. ${regime.reasons.join('; ')} (수동 reset 전까지 유지)`);
-    } else {
-      await discord.sendGuardSkip?.([], { action: 'regime_dormant', reason: regime.reasons.join('; ') });
-    }
+    log.warn('SCHED', `[레짐가드] ${tag} — 신호 skip. ${regime.reasons.join('; ')}`);
+    if (regime.halted) await discord.sendError?.(`🛑 [APEX 레짐붕괴 L2] 매매 중단 + 재설계 필요. ${regime.reasons.join('; ')}`);
+    else await discord.sendGuardSkip?.([], { action: 'regime_dormant', reason: regime.reasons.join('; ') });
     return;
   }
 
   const todayYmd = todayKstYmd();
-  log.info('SCHED', `14:30 cluster_laggard 신호 시작 (date=${todayYmd})`);
+  log.info('SCHED', `14:30 cluster_laggard 라이브 신호 시작 (date=${todayYmd})`);
   try {
-    const result = await selectClusterLaggard1430(todayYmd);
+    const scanned = await scanAllStocks();
+    const result = await selectClusterLaggard1430Live(scanned, todayYmd);
     if (!result.picks || result.picks.length === 0) {
-      log.info('SCHED', `cluster_laggard — 신호 없음 (${result.excluded?.reason || '조건 미충족'})`);
+      log.info('SCHED', `14:30 신호 — 없음 (${result.excluded?.reason || '조건 미충족'})`);
       await discord.sendNoSignal?.(result);
+      _laggardPending = null;
       return;
     }
+    _laggardPending = { date: todayYmd, picks: result.picks, cluster_id: result.diag?.cluster_id };
     const summary = result.picks.map(p =>
-      `${p.code}(@${p.buy}, lag${p.lag_rank}, corr=${p.cluster_avg_corr?.toFixed(2)}, size=${p.cluster_size})`
-    ).join(' / ');
-    log.info('SCHED', `14:30 신호 — ${result.picks.length}종목: ${summary}`);
+      `${p.code}(lag${p.lag_rank}, @${p.buy}, corr=${p.cluster_avg_corr?.toFixed(2)}, size=${p.cluster_size})`).join(' / ');
+    log.info('SCHED', `14:30 신호 — ${result.picks.length}후보(14:50 매수 대기): ${summary}`);
     await discord.sendSignal?.(result);
+  } catch (e) {
+    log.error('SCHED', `14:30 신호 오류: ${e.message}`);
+    await discord.sendError?.(`14:30 cluster_laggard 신호 오류: ${e.message}`);
+  }
+}
 
-    for (const pick of result.picks) {
+// ── cluster_laggard_1430 라이브: 14:50 매수 ─────────────────────
+//   14:30 후보 → 현재가(14:50) 조회 → 가격필터(1만~5만)·상한가잠김 제외 → lag_rank 순 cap2 균등 매수.
+async function runLaggardBuy1450() {
+  const krx = isKrxClosed();
+  if (krx.closed) return;
+  const todayYmd = todayKstYmd();
+  if (!_laggardPending || _laggardPending.date !== todayYmd || !_laggardPending.picks?.length) {
+    log.info('SCHED', `14:50 매수 — 대기 픽 없음 (신호 없거나 가드 차단)`);
+    return;
+  }
+  log.info('SCHED', `14:50 cluster_laggard 매수 시작 — 후보 ${_laggardPending.picks.length}`);
+  try {
+    // 현재가(14:50) 조회 — 가격필터·진입가
+    const codes = _laggardPending.picks.map(p => p.code);
+    const priceMap = await pollPrices(codes);
+    const px = {};
+    for (const r of (priceMap || [])) if (r && r.code) px[r.code.replace(/^A/, '')] = r.close || r.open;
+
+    // lag_rank 오름차순 → 가격필터 통과분 cap2
+    const ranked = _laggardPending.picks.slice().sort((a, b) => (a.lag_rank ?? 9) - (b.lag_rank ?? 9));
+    const buyList = [];
+    for (const p of ranked) {
+      const price = px[p.code] ?? p.buy;
+      if (!price || price < APEX_PRICE_LO || price > APEX_PRICE_HI) {
+        log.info('SCHED', `  skip ${p.code} — 가격 ${price} (1만~5만 밖)`);
+        continue;
+      }
+      buyList.push({ ...p, entry: price });
+      if (buyList.length >= APEX_DAILY_CAP) break;
+    }
+    if (buyList.length === 0) { log.info('SCHED', `14:50 매수 — 가격필터 통과 0`); return; }
+
+    const weight = 1.0 / buyList.length;
+    for (const p of buyList) {
       try {
-        const capital = Math.floor(_config.strategy.totalCapital * (pick.weight || 0.5));
+        const capital = Math.floor(_config.strategy.totalCapital * weight);
         if (_isRealMode()) {
-          const buyResult = await realBroker.openPositionReal(
-            { code: pick.code, name: pick.name || pick.code },
-            { rank: pick.rank, weight: pick.weight },
-            capital, _config.strategy, _kisCfg(), 'cluster_laggard_1430'
-          );
-          if (buyResult.success) {
-            log.info('SCHED', `  [KIS] 매수 성공: ${pick.code} @${buyResult.price}`);
-            await discord.sendBuy?.({ code: pick.code.replace(/^A/, ''), name: pick.name || pick.code, theme: 'laggard1430' },
-              { qty: buyResult.qty ?? 0, buy_price: buyResult.price ?? 0 }, _config.tradingMode);
-          } else {
-            log.error('SCHED', `  [KIS] 매수 실패: ${pick.code} — ${buyResult.error}`);
-            await discord.sendError?.(`매수 실패: ${pick.code}: ${buyResult.error}`);
-          }
+          const r = await realBroker.openPositionReal({ code: p.code, name: p.name || p.code },
+            { rank: p.rank, weight }, capital, _config.strategy, _kisCfg(), 'cluster_laggard_1430');
+          if (r.success) {
+            log.info('SCHED', `  [KIS] 매수 ${p.code} @${r.price}`);
+            await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, { qty: r.qty ?? 0, buy_price: r.price ?? 0 }, _config.tradingMode);
+          } else { log.error('SCHED', `  [KIS] 매수 실패 ${p.code}: ${r.error}`); }
         } else {
           const opened = paperBroker.openPosition({
-            code: pick.code, name: pick.name || pick.code, market: pick.market || 'KOSDAQ',
-            buy: pick.buy, rank: pick.rank, weight: pick.weight,
-            cluster_id: result.diag?.cluster_id, signal_source: 'cluster_laggard_1430',
-            signal_date: todayYmd,
+            code: p.code, name: p.name || p.code, market: p.market || 'KOSDAQ', buy: p.entry,
+            rank: p.rank, weight, cluster_id: _laggardPending.cluster_id,
+            signal_source: 'cluster_laggard_1430', signal_date: todayYmd,
           }, capital);
-          log.info('SCHED', `  [paper] 매수 성공: ${pick.code} @${pick.buy} (자본=${capital})`);
-          await discord.sendBuy?.({ code: pick.code.replace(/^A/, ''), name: pick.name || pick.code, theme: 'laggard1430' },
-            opened, _config.tradingMode);
+          log.info('SCHED', `  [paper] 매수 ${p.code} @${p.entry} (lag${p.lag_rank}, 자본=${capital})`);
+          await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, opened, _config.tradingMode);
         }
-      } catch (e) {
-        log.error('SCHED', `  매수 오류 (${pick.code}): ${e.message}`);
-        await discord.sendError?.(`매수 오류: ${pick.code}: ${e.message}`);
-      }
+      } catch (e) { log.error('SCHED', `  매수 오류 ${p.code}: ${e.message}`); }
     }
   } catch (e) {
-    log.error('SCHED', `cluster_laggard 매수 함수 오류: ${e.message}`);
-    await discord.sendError?.(`14:30 cluster_laggard 매수 오류: ${e.message}`);
+    log.error('SCHED', `14:50 매수 오류: ${e.message}`);
+    await discord.sendError?.(`14:50 cluster_laggard 매수 오류: ${e.message}`);
+  } finally {
+    _laggardPending = null;
   }
 }
 
@@ -678,15 +704,16 @@ function start(config) {
   cron.schedule('50 8 * * 1-5', runMorningSell, { timezone: 'Asia/Seoul' });
 
   if (BUY_MODE === 'cluster_laggard_1430') {
-    // ★ APEX 재설계 엔진 (14:30 클러스터 laggard + 중가주 + 레짐가드)
-    //   paper-self: 분봉 SSoT(backtest/parquet)+서랍 클러스터 읽음 → 데이터 가용(서랍 빌드 ~18:00) 이후 실행.
-    //   APEX_BUY_CRON 으로 트리거 시각 조정 (기본 18:30). real 모드 전환 시 실시간 14:48로 변경 + KIS 현재가.
-    const buyCron = process.env.APEX_BUY_CRON || '30 18 * * 1-5';
-    cron.schedule(buyCron, runClusterLaggardBuy, { timezone: 'Asia/Seoul' });
-    // 청산: 08:50 runMorningSell (위에서 공통 등록) — T+1 첫 분봉 시초가 매도
+    // ★ APEX 재설계 엔진 (14:30 클러스터 laggard, 원시/raw, ap29 검증) — 장중 실시간 매매
+    //   14:30 신호(scanAllStocks + poll_morning_change) → 14:50 매수(현재가, 가격필터 1만~5만, cap2)
+    //   청산: 08:50 runMorningSell(T+1 첫분봉 시초가). 레짐가드 L1/L2는 14:30 신호 단계서 체크.
+    const sigCron = process.env.APEX_SIGNAL_CRON || '30 14 * * 1-5';   // 14:30 신호
+    const buyCron = process.env.APEX_BUY_CRON || '50 14 * * 1-5';      // 14:50 매수
+    cron.schedule(sigCron, runLaggardSignal14, { timezone: 'Asia/Seoul' });
+    cron.schedule(buyCron, runLaggardBuy1450, { timezone: 'Asia/Seoul' });
     log.info('SCHED',
-      `cron 등록 완료 — 08:50 매도(T+1 시초가) / ★ CLUSTER_LAGGARD_1430 ★ 신호+매수 [${buyCron}] ` +
-      `(mode=${config.tradingMode}, cap=${process.env.APEX_DAILY_CAP || 2}, ` +
+      `cron 등록 완료 — 08:50 매도(T+1) / ★ CLUSTER_LAGGARD_1430 (raw·live) ★ 신호[${sigCron}] + 매수[${buyCron}] ` +
+      `(mode=${config.tradingMode}, 가격 ${APEX_PRICE_LO}~${APEX_PRICE_HI}, cap=${APEX_DAILY_CAP}, ` +
       `레짐가드 L1=${regimeGuard.L1_TRAIL_DAYS}일/L2 롤링${regimeGuard.L2_ROLL_DAYS}<${(regimeGuard.L2_ROLL_CUT*100)}%·DD<${(regimeGuard.L2_DD_CUT*100)}%)`);
 
   } else if (BUY_MODE === 'h7') {
@@ -756,7 +783,8 @@ module.exports = {
   runGapupH7Scan,
   runBuyH7,
   runH7IntradayCheck,
-  runClusterLaggardBuy,
+  runLaggardSignal14,
+  runLaggardBuy1450,
   reloadMail,
   reloadKis,
   BUY_MODE,
