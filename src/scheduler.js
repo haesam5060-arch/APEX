@@ -113,6 +113,29 @@ function getOpenPositions() {
   return paperBroker.getOpenPositions();
 }
 
+// ── 슬리피지 계측 (2026-06-03, 로깅 전용 — 매매에 절대 영향 없음) ──
+//   ref(가정가) vs fill(실체결가) 기록. paper-self는 ref=fill(폴가)이라 slip_bp≈0이지만
+//   fill_price+ts를 parquet과 교차검증하면 데이터/타이밍 슬립 측정 가능.
+//   KIS(paper/real) 모드에서 ref(폴가) vs fill(체결가) = 실집행 슬립.
+function _logSlip({ code, side, refPrice, fillPrice, qty, signalDate }) {
+  try {
+    if (!fillPrice || fillPrice <= 0) return;
+    const ref = refPrice && refPrice > 0 ? refPrice : fillPrice;
+    const slipBp = Math.round((fillPrice / ref - 1) * 10000 * 100) / 100;
+    stmts.insertSlippage.run({
+      ts: new Date().toISOString(),
+      signal_date: signalDate || null,
+      code: String(code).replace(/^A/, ''),
+      side,
+      mode: _config?.tradingMode || 'paper-self',
+      ref_price: ref,
+      fill_price: fillPrice,
+      slip_bp: slipBp,
+      qty: qty || null,
+    });
+  } catch (e) { /* 계측 실패는 매매에 영향 없음 (무시) */ }
+}
+
 // ── h7 09:00 갭업 스캔 ─────────────────────
 async function runGapupH7Scan() {
   const krx = isKrxClosed();
@@ -484,6 +507,8 @@ async function runMorningSell() {
         if (!sellPrice) throw new Error('매도가 폴 실패');
         closed = paperBroker.closePosition(pos, sellPrice, _config.strategy.feeRoundTrip || 0.003, 'next_day_open');
       }
+      // 슬리피지 계측 (체결가 기록 — paper-self는 폴가, KIS는 체결가)
+      _logSlip({ code: pos.code, side: 'sell', refPrice: closed?.sell_price, fillPrice: closed?.sell_price, qty: pos.qty, signalDate: pos.signal_date });
       // sendSell(trade, mode) — trade에 sell_price/pnl/return_pct 필요 (close 반환값 사용)
       await discord.sendSell?.(closed || { ...pos }, _config.tradingMode);
     } catch (e) {
@@ -665,6 +690,7 @@ async function runLaggardBuy1450() {
           const r = await realBroker.openPositionReal({ code: p.code, name: p.name || p.code },
             { rank: p.rank, weight }, capital, _config.strategy, _kisCfg(), 'cluster_laggard_1430');
           if (r.success) {
+            _logSlip({ code: p.code, side: 'buy', refPrice: p.entry, fillPrice: r.price, qty: r.qty, signalDate: todayYmd });
             log.info('SCHED', `  [KIS] 매수 ${p.code} @${r.price}`);
             await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, { qty: r.qty ?? 0, buy_price: r.price ?? 0 }, _config.tradingMode);
           } else { log.error('SCHED', `  [KIS] 매수 실패 ${p.code}: ${r.error}`); }
@@ -674,6 +700,7 @@ async function runLaggardBuy1450() {
             rank: p.rank, weight, cluster_id: _laggardPending.cluster_id,
             signal_source: 'cluster_laggard_1430', signal_date: todayYmd,
           }, capital);
+          _logSlip({ code: p.code, side: 'buy', refPrice: p.entry, fillPrice: opened?.buy_price, qty: opened?.qty, signalDate: todayYmd });
           log.info('SCHED', `  [paper] 매수 ${p.code} @${p.entry} (lag${p.lag_rank}, 자본=${capital})`);
           await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, opened, _config.tradingMode);
         }

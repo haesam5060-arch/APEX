@@ -86,6 +86,24 @@ db.exec(`
     win_rate        REAL NOT NULL
   );
 
+  -- 슬리피지 계측 (2026-06-03) — 가정가(ref) vs 실체결가(fill) 기록.
+  --   paper-self: ref=fill(폴 가격)이라 slip_bp≈0 — fill_price+ts로 parquet 교차검증(데이터/타이밍 슬립)용.
+  --   paper/real(KIS): ref=신호시점 폴가, fill=KIS 체결가 → 실집행 슬립(slip_bp).
+  --   목적: 실왕복비용 측정 → T+1 래치위험·T+2 채택 결정의 입력. 매매 로직과 무관(로깅 전용).
+  CREATE TABLE IF NOT EXISTS slippage_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts            TEXT NOT NULL,                        -- ISO 타임스탬프 (체결 시점)
+    signal_date   TEXT,                                 -- 신호일 YYYYMMDD
+    code          TEXT NOT NULL,
+    side          TEXT NOT NULL,                        -- buy | sell
+    mode          TEXT NOT NULL,                        -- paper-self | paper | real
+    ref_price     REAL,                                 -- 가정가 (buy=14:50 폴, sell=T+1 시초 폴)
+    fill_price    REAL NOT NULL,                        -- 실체결가 (paper-self=폴, KIS=체결)
+    slip_bp       REAL,                                 -- (fill/ref-1)*10000 (buy 양수=불리)
+    qty           INTEGER
+  );
+  CREATE INDEX IF NOT EXISTS idx_slip_ts ON slippage_log(ts DESC);
+
   -- 09:29 Top10 snapshot (사후 분석/리뷰)
   --   매일 09:29 cron: 09:00~09:29 등락률 Top10 저장
   CREATE TABLE IF NOT EXISTS top10_snapshot (
@@ -309,6 +327,13 @@ const stmts = {
       avg_pct=excluded.avg_pct, win_rate=excluded.win_rate
   `),
   recentDailyPnl: db.prepare(`SELECT * FROM daily_pnl ORDER BY sell_date DESC LIMIT ?`),
+
+  // ── slippage 계측 ──
+  insertSlippage: db.prepare(`
+    INSERT INTO slippage_log (ts, signal_date, code, side, mode, ref_price, fill_price, slip_bp, qty)
+    VALUES (@ts, @signal_date, @code, @side, @mode, @ref_price, @fill_price, @slip_bp, @qty)
+  `),
+  recentSlippage: db.prepare(`SELECT * FROM slippage_log ORDER BY ts DESC LIMIT ?`),
 
   // ── top10_snapshot ──
   insertTop10: db.prepare(`
