@@ -713,7 +713,7 @@ async function runLaggardBuy1450() {
     const codes = _laggardPending.picks.map(p => p.code);
     const priceMap = await pollPrices(codes);
     const px = {};
-    for (const r of (priceMap || [])) if (r && r.code) px[r.code.replace(/^A/, '')] = r.close || r.open;
+    for (const r of Object.values(priceMap || {})) if (r && r.code) px[r.code.replace(/^A/, '')] = r.close || r.open;
 
     // lag_rank 오름차순 → 가격필터 통과분 cap2
     const ranked = _laggardPending.picks.slice().sort((a, b) => (a.lag_rank ?? 9) - (b.lag_rank ?? 9));

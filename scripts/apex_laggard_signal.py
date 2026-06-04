@@ -75,10 +75,11 @@ def run_live(payload):
     c2c, m2c, a2c = load_spectral(WINDOW)
     spec_dates = set(c2c.keys())
     tds = all_trading_dates()
-    if signal_date not in tds:
-        _fail("거래일 아님")
-    i = tds.index(signal_date)
-    prev = next((tds[j] for j in range(i-1, -1, -1) if tds[j] in spec_dates), None)
+    # 라이브: 당일(signal_date) 분봉 parquet은 EOD 수집이라 14:30 시점엔 tds에 없음.
+    # 거래일 여부는 scheduler가 isKrxClosed()로 상위에서 이미 가드함 → 여기선 당일이
+    # tds에 있을 것을 요구하지 않고 직전 거래일(prev)만 구한다.
+    # (구 'signal_date not in tds → 거래일 아님' 가드는 라이브에서 매일 오작동: APEX#4)
+    prev = next((d for d in reversed(tds) if d < signal_date and d in spec_dates), None)
     if prev is None:
         _fail("직전 spectral 스냅샷 없음")
 
