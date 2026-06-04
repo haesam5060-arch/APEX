@@ -104,6 +104,24 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_slip_ts ON slippage_log(ts DESC);
 
+  -- 당일 스캔 흐름 (대시보드 '당일 스캔 흐름' 패널용, 2026-06-04)
+  --   09:31 스냅샷(Top10) → 14:30 스캔(클러스터 laggard 후보) → 14:50 매수 흐름 기록.
+  --   phase: snapshot | scanned | bought | sold. 표시 전용 — 매매 로직 무관(기록만).
+  CREATE TABLE IF NOT EXISTS scan_flow (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    signal_date      TEXT NOT NULL,                     -- YYYYMMDD
+    ts               TEXT NOT NULL,                     -- ISO
+    phase            TEXT NOT NULL,                     -- snapshot|scanned|bought|sold
+    rank             INTEGER,
+    code             TEXT,
+    name             TEXT,
+    change_rate      REAL,
+    cluster_strength REAL,                              -- cluster avg_corr (scanned 단계)
+    entry_price      REAL,
+    mode             TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_scanflow_date ON scan_flow(signal_date, id);
+
   -- 09:29 Top10 snapshot (사후 분석/리뷰)
   --   매일 09:29 cron: 09:00~09:29 등락률 Top10 저장
   CREATE TABLE IF NOT EXISTS top10_snapshot (
@@ -334,6 +352,14 @@ const stmts = {
     VALUES (@ts, @signal_date, @code, @side, @mode, @ref_price, @fill_price, @slip_bp, @qty)
   `),
   recentSlippage: db.prepare(`SELECT * FROM slippage_log ORDER BY ts DESC LIMIT ?`),
+
+  // ── scan_flow (당일 스캔 흐름 패널) ──
+  insertScanFlow: db.prepare(`
+    INSERT INTO scan_flow (signal_date, ts, phase, rank, code, name, change_rate, cluster_strength, entry_price, mode)
+    VALUES (@signal_date, @ts, @phase, @rank, @code, @name, @change_rate, @cluster_strength, @entry_price, @mode)
+  `),
+  getScanFlowByDate: db.prepare(`SELECT * FROM scan_flow WHERE signal_date = ? ORDER BY id`),
+  clearScanFlowPhase: db.prepare(`DELETE FROM scan_flow WHERE signal_date = ? AND phase = ?`),
 
   // ── top10_snapshot ──
   insertTop10: db.prepare(`

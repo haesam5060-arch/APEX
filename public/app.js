@@ -186,15 +186,8 @@ async function refreshStatus() {
     }
   }
 
-  // 시그널 렌더 — recent_signals (NEMESIS 스타일 이벤트 모델) 또는 scan_log (APEX 클러스터 로그)
-  const recentSignals = data.recent_signals || [];
-  if (recentSignals.length > 0 && recentSignals[0].event) {
-    // NEMESIS 스타일 이벤트 모델 (signal/buy/buy_skip 등)
-    renderRecentSignals(recentSignals);
-  } else {
-    // APEX 클러스터 스캔 로그 (기존 renderApexSignals)
-    renderApexSignals(data.scan_log || data.scanLog || []);
-  }
+  // 당일 스캔 흐름 — scan_flow(scan_log) 단일 소스 렌더 (09:31 스냅샷 → 14:30 스캔 → 14:50 매수)
+  renderApexSignals(data.scan_log || data.scanLog || []);
 
   // 당일 손익
   await _renderTodayPnlAndKpi(data);
@@ -210,7 +203,7 @@ function renderApexSignals(items) {
   if (cnt) cnt.textContent = `${arr.length}건`;
 
   if (arr.length === 0) {
-    body.innerHTML = '<tr><td colspan="6" class="empty-msg">아직 오늘 스캔 없음 — 평일 14:30 스캔 대기</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="empty-msg">대기 중 — 평일 09:31 모닝 스냅샷 → 14:30 클러스터 스캔 → 14:50 매수 순으로 누적됩니다</td></tr>';
     return;
   }
 

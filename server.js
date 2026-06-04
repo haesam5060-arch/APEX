@@ -281,10 +281,15 @@ app.get('/api/status', async (req, res) => {
     slots:            config.slots,
     strategy:         config.strategy,
     schedule:         config.schedule,
-    scan_log: {
-      snapshot_date:  todayYmdStr,
-      n_snapshot:     snapCount?.cnt ?? 0,
-    },
+    scan_log: stmts.getScanFlowByDate.all(todayYmdStr).map(r => ({
+      time:             r.ts,
+      code:             r.code,
+      name:             r.name,
+      cluster_strength: r.cluster_strength,
+      change_rate:      r.change_rate,
+      entry_price:      r.entry_price,
+      status:           r.phase,   // snapshot|scanned|bought|sold → 패널 배지
+    })),
     positions,
     positions_summary: {
       n:           positions.length,

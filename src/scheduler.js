@@ -136,6 +136,47 @@ function _logSlip({ code, side, refPrice, fillPrice, qty, signalDate }) {
   } catch (e) { /* 계측 실패는 매매에 영향 없음 (무시) */ }
 }
 
+// ── 당일 스캔 흐름 기록 (대시보드 패널용, 2026-06-04, 표시 전용·try/catch) ──
+function _logScanFlow(phase, rows) {
+  try {
+    const today = todayKstYmd();
+    const nowIso = new Date().toISOString();
+    const mode = _config?.tradingMode || 'paper-self';
+    stmts.clearScanFlowPhase.run(today, phase);
+    rows.forEach((r, i) => stmts.insertScanFlow.run({
+      signal_date: today, ts: nowIso, phase,
+      rank: r.rank ?? (i + 1),
+      code: String(r.code || '').replace(/^A/, ''),
+      name: r.name || r.code || null,
+      change_rate: r.change_rate ?? null,
+      cluster_strength: r.cluster_strength ?? null,
+      entry_price: r.entry_price ?? null,
+      mode,
+    }));
+  } catch (e) { /* 기록 실패는 매매에 영향 없음 */ }
+}
+
+// ── 09:31 모닝 스냅샷 (당일 Top10 핫종목 — 14:30 클러스터를 시드하는 종목들) ──
+async function runMorningSnapshotJob() {
+  const krx = isKrxClosed();
+  if (krx.closed) { log.info('SCHED', `[KRX 폐장] 09:31 스냅샷 skip — ${krx.reason}`); return; }
+  log.info('SCHED', '09:31 모닝 스냅샷 시작');
+  try {
+    const scanned = await scanAllStocks();
+    const arr = Array.isArray(scanned) ? scanned : [];
+    if (arr.length === 0) { log.warn('SCHED', '09:31 스냅샷 — scanAllStocks 빈 결과'); return; }
+    const top = arr.filter(s => s && s.changeRate != null)
+                   .sort((a, b) => b.changeRate - a.changeRate).slice(0, 10);
+    _logScanFlow('snapshot', top.map((s, i) => ({
+      rank: i + 1, code: s.code, name: s.name,
+      change_rate: s.changeRate, entry_price: s.close,
+    })));
+    log.info('SCHED', `09:31 스냅샷 기록 — Top${top.length}${top[0] ? ` (1위 ${top[0].name})` : ''}`);
+  } catch (e) {
+    log.error('SCHED', `09:31 스냅샷 오류: ${e.message}`);
+  }
+}
+
 // ── h7 09:00 갭업 스캔 ─────────────────────
 async function runGapupH7Scan() {
   const krx = isKrxClosed();
@@ -643,6 +684,12 @@ async function runLaggardSignal14() {
     const summary = result.picks.map(p =>
       `${p.code}(lag${p.lag_rank}, @${p.buy}, corr=${p.cluster_avg_corr?.toFixed(2)}, size=${p.cluster_size})`).join(' / ');
     log.info('SCHED', `14:30 신호 — ${result.picks.length}후보(14:50 매수 대기): ${summary}`);
+    // 대시보드 '당일 스캔 흐름' 기록 (14:30 스캔 후보)
+    _logScanFlow('scanned', result.picks.map((p, i) => ({
+      rank: (p.lag_rank ?? i) + 1, code: p.code, name: p.name || p.code,
+      change_rate: p.change_rate ?? null, cluster_strength: p.cluster_avg_corr ?? null,
+      entry_price: p.buy ?? null,
+    })));
     await discord.sendSignal?.(result);
   } catch (e) {
     log.error('SCHED', `14:30 신호 오류: ${e.message}`);
@@ -706,6 +753,12 @@ async function runLaggardBuy1450() {
         }
       } catch (e) { log.error('SCHED', `  매수 오류 ${p.code}: ${e.message}`); }
     }
+    // 대시보드 '당일 스캔 흐름' 기록 (14:50 매수)
+    _logScanFlow('bought', buyList.map((p, i) => ({
+      rank: (p.lag_rank ?? i) + 1, code: p.code, name: p.name || p.code,
+      change_rate: p.change_rate ?? null, cluster_strength: p.cluster_avg_corr ?? null,
+      entry_price: p.entry ?? p.buy ?? null,
+    })));
   } catch (e) {
     log.error('SCHED', `14:50 매수 오류: ${e.message}`);
     await discord.sendError?.(`14:50 cluster_laggard 매수 오류: ${e.message}`);
@@ -736,6 +789,7 @@ function start(config) {
     //   청산: 08:50 runMorningSell(T+1 첫분봉 시초가). 레짐가드 L1/L2는 14:30 신호 단계서 체크.
     const sigCron = process.env.APEX_SIGNAL_CRON || '30 14 * * 1-5';   // 14:30 신호
     const buyCron = process.env.APEX_BUY_CRON || '50 14 * * 1-5';      // 14:50 매수
+    cron.schedule('31 9 * * 1-5', runMorningSnapshotJob, { timezone: 'Asia/Seoul' });  // 09:31 모닝 스냅샷(표시용)
     cron.schedule(sigCron, runLaggardSignal14, { timezone: 'Asia/Seoul' });
     cron.schedule(buyCron, runLaggardBuy1450, { timezone: 'Asia/Seoul' });
     log.info('SCHED',
@@ -812,6 +866,9 @@ module.exports = {
   runH7IntradayCheck,
   runLaggardSignal14,
   runLaggardBuy1450,
+  runMorningSnapshotJob,
+  runAfternoonScanJob: runLaggardSignal14,  // server.js 수동 엔드포인트 별칭
+  runBuy: runLaggardBuy1450,                // server.js 수동 엔드포인트 별칭
   reloadMail,
   reloadKis,
   BUY_MODE,
