@@ -708,7 +708,9 @@ async function selectClusterLaggard1430Live(scanned, signalDate) {
             signal_source: 'cluster_laggard_1430', buy: sc?.close ?? null,  // 14:30 현재가(참고), 실매수는 14:50
           };
         });
-        resolve({ picks, excluded: picks.length ? null : { reason: r.diag?.reason || '조건 미충족' }, diag: r.diag || {}, prev_date: r.prev_date });
+        // 추종 시드주에 종목명 보강 (scanned 매칭)
+        const seed = (r.seed || []).map(s => ({ code: s.code, name: codeToScan.get(s.code)?.name || s.code, ret: s.ret }));
+        resolve({ picks, excluded: picks.length ? null : { reason: r.diag?.reason || '조건 미충족' }, diag: r.diag || {}, prev_date: r.prev_date, window: r.window, seed });
       } catch (e) {
         resolve({ picks: [], excluded: { reason: `파싱 실패: ${e.message} | ${err.slice(0, 200)}` }, diag: {} });
       }

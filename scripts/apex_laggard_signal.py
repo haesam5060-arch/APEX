@@ -130,7 +130,11 @@ def run_live(payload):
               "avg_corr": avg_corr, "cluster_size": len(members),
               "today_change": today_change.get(code[1:], today_change.get(code))}
              for r, (code, dv) in enumerate(lag)]
+    # 추종 대상(아침 강세 시드주): 아침 Top10 ∩ 클러스터 멤버 (등락률 내림차순)
+    _mset = set(members)
+    seed = [{"code": c, "ret": float(r)} for c, r in top if _A(c) in _mset]
     print(json.dumps({"ok": True, "signal_date": signal_date, "prev_date": prev, "picks": picks,
+                      "seed": seed, "window": int(WINDOW),
                       "diag": {"cluster_id": int(cid), "avg_corr": avg_corr, "cluster_size": len(members),
                                "n_candidates": len(picks), "mode": "live_raw"}},
                      ensure_ascii=False, default=str))

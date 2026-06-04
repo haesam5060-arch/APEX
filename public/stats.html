@@ -333,6 +333,37 @@
     } catch (e) { return null; }
   }
 
+  // ── 서랍(얼린 클러스터) 딥링크 — 매매 종목의 추종 메타 ──
+  function seorabBase() {
+    const h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || /^192\.168\./.test(h) || /^10\./.test(h)) return 'http://localhost:3201';
+    return location.origin + '/seorab';
+  }
+  function seorabDrawerUrl(cid, date, win) {
+    if (cid == null || !date) return null;
+    return `${seorabBase()}/drawer?cluster_id=${cid}&window=${win || 20}&date=${date}`;
+  }
+  function fmtFrozen(ymd) {
+    ymd = String(ymd || '');
+    if (ymd.length < 8) return ymd;
+    return `${+ymd.slice(4, 6)}/${+ymd.slice(6, 8)}`;
+  }
+  function seorabMetaHtml(row) {
+    const cid = row.cluster_id, date = row.frozen_date;
+    if (cid == null || !date) return '';
+    const win = row.cluster_window || 20;
+    const corr = row.cluster_avg_corr != null ? Number(row.cluster_avg_corr).toFixed(2) : '?';
+    const size = row.cluster_size != null ? row.cluster_size : '?';
+    let seed = [];
+    try { seed = Array.isArray(row.seed) ? row.seed : JSON.parse(row.seed || '[]'); } catch (_) {}
+    const names = seed.map(s => s.name || s.code);
+    const seedShort = names.length ? (names.slice(0, 2).join(', ') + (names.length > 2 ? ` 외 ${names.length - 2}` : '')) : '—';
+    const seedFull = seed.length ? seed.map(s => `· ${s.name || s.code} +${(s.ret * 100).toFixed(1)}%`).join('\n') : '시드 없음';
+    const url = seorabDrawerUrl(cid, date, win);
+    const title = `얼린 서랍 ${date} (W${win}) · 클러스터 #${cid} · 동조 ${corr} · ${size}종목\n추종 시드주:\n${seedFull}\n\n클릭 → 서랍에서 이 클러스터 열기`;
+    return `<br><a href="${url}" target="_blank" rel="noopener" title="${title}" style="font-size:10px;color:var(--accent);text-decoration:none;">🧊 ${fmtFrozen(date)} #${cid} ▸ 추종 ${seedShort}</a>`;
+  }
+
   function fmtTradeMD(dateStr) {
     if (!dateStr) return '-';
     const m = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
@@ -514,7 +545,7 @@
       html += `<tr>
         <td style="${tdStyle}">
           <span class="stock-link" data-code="${s.code}" data-name="${s.name || s.code}"
-            style="cursor:pointer;border-bottom:1px dashed var(--dim);">${s.name || s.code}</span>
+            style="cursor:pointer;border-bottom:1px dashed var(--dim);">${s.name || s.code}</span>${seorabMetaHtml(s)}
         </td>
         <td style="${tdStyle}">${badge}</td>
         <td style="${tdStyle}text-align:right;">${qty.toLocaleString()}</td>

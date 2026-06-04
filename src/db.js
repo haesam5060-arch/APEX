@@ -279,6 +279,18 @@ _safeAlter(`ALTER TABLE trades ADD COLUMN signal_source TEXT`);
 _safeAlter(`ALTER TABLE trades ADD COLUMN rank         INTEGER DEFAULT 1`);
 _safeAlter(`ALTER TABLE trades ADD COLUMN weight       REAL DEFAULT 1.0`);
 
+// 서랍 추종·딥링크 메타 (2026-06-04) — 얼린서랍 날짜/윈도우/동조도/사이즈/추종 시드주(JSON)
+_safeAlter(`ALTER TABLE positions ADD COLUMN frozen_date      TEXT`);     // 사용한 spectral 스냅샷 날짜(=얼린 서랍) YYYYMMDD
+_safeAlter(`ALTER TABLE positions ADD COLUMN cluster_window   INTEGER`); // spectral window (5/10/15/20)
+_safeAlter(`ALTER TABLE positions ADD COLUMN cluster_avg_corr REAL`);    // 클러스터 평균 동조도
+_safeAlter(`ALTER TABLE positions ADD COLUMN cluster_size     INTEGER`); // 클러스터 멤버 수
+_safeAlter(`ALTER TABLE positions ADD COLUMN seed             TEXT`);    // 추종 대상(아침 강세 시드주) JSON [{code,name,ret}]
+_safeAlter(`ALTER TABLE trades ADD COLUMN frozen_date      TEXT`);
+_safeAlter(`ALTER TABLE trades ADD COLUMN cluster_window   INTEGER`);
+_safeAlter(`ALTER TABLE trades ADD COLUMN cluster_avg_corr REAL`);
+_safeAlter(`ALTER TABLE trades ADD COLUMN cluster_size     INTEGER`);
+_safeAlter(`ALTER TABLE trades ADD COLUMN seed             TEXT`);
+
 // h7 갭업 신호 지원 (2026-05-31)
 _safeAlter(`ALTER TABLE signal_log ADD COLUMN signal_type TEXT DEFAULT 'spectral'`);  // 'spectral' | 'h7_gapup'
 _safeAlter(`ALTER TABLE pending_buy ADD COLUMN signal_type TEXT DEFAULT 'spectral'`);  // 동일
@@ -309,11 +321,13 @@ const stmts = {
     INSERT INTO positions
       (code, name, market, qty, buy_price, buy_at, buy_date, mode, status,
        cluster_id, signal_source, deviation, abs_dev, top10_rank, change_rate_929,
-       rank, weight, signal_date)
+       rank, weight, signal_date,
+       frozen_date, cluster_window, cluster_avg_corr, cluster_size, seed)
     VALUES
       (@code, @name, @market, @qty, @buy_price, @buy_at, @buy_date, @mode, 'open',
        @cluster_id, @signal_source, @deviation, @abs_dev, @top10_rank, @change_rate_929,
-       @rank, @weight, @signal_date)
+       @rank, @weight, @signal_date,
+       @frozen_date, @cluster_window, @cluster_avg_corr, @cluster_size, @seed)
   `),
   closePosition: db.prepare(`UPDATE positions SET status = 'closed' WHERE id = ?`),
   getOpenPositions: db.prepare(`SELECT * FROM positions WHERE status = 'open' ORDER BY buy_at`),
@@ -325,12 +339,14 @@ const stmts = {
       (code, name, market, qty, buy_price, sell_price,
        buy_at, sell_at, buy_date, sell_date,
        pnl, return_pct, exit_reason, fee_paid, mode,
-       signal_date, cluster_id, signal_source, rank, weight)
+       signal_date, cluster_id, signal_source, rank, weight,
+       frozen_date, cluster_window, cluster_avg_corr, cluster_size, seed)
     VALUES
       (@code, @name, @market, @qty, @buy_price, @sell_price,
        @buy_at, @sell_at, @buy_date, @sell_date,
        @pnl, @return_pct, @exit_reason, @fee_paid, @mode,
-       @signal_date, @cluster_id, @signal_source, @rank, @weight)
+       @signal_date, @cluster_id, @signal_source, @rank, @weight,
+       @frozen_date, @cluster_window, @cluster_avg_corr, @cluster_size, @seed)
   `),
   recentTrades: db.prepare(`SELECT * FROM trades ORDER BY sell_at DESC LIMIT ?`),
   tradesByDate: db.prepare(`SELECT * FROM trades WHERE sell_date = ? ORDER BY sell_at`),

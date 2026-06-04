@@ -680,10 +680,15 @@ async function runLaggardSignal14() {
       _laggardPending = null;
       return;
     }
-    _laggardPending = { date: todayYmd, picks: result.picks, cluster_id: result.diag?.cluster_id };
+    _laggardPending = {
+      date: todayYmd, picks: result.picks, cluster_id: result.diag?.cluster_id,
+      frozen_date: result.prev_date ?? null, window: result.window ?? null, seed: result.seed || [],
+      avg_corr: result.picks[0]?.cluster_avg_corr ?? null, size: result.picks[0]?.cluster_size ?? null,
+    };
     const summary = result.picks.map(p =>
       `${p.code}(lag${p.lag_rank}, @${p.buy}, corr=${p.cluster_avg_corr?.toFixed(2)}, size=${p.cluster_size})`).join(' / ');
-    log.info('SCHED', `14:30 신호 — ${result.picks.length}후보(14:50 매수 대기): ${summary}`);
+    const seedStr = (result.seed || []).map(s => `${s.name || s.code}(${(s.ret * 100).toFixed(1)}%)`).join(', ') || '없음';
+    log.info('SCHED', `14:30 신호 — ${result.picks.length}후보(14:50 매수 대기): ${summary} | 얼린서랍 ${result.prev_date}(W${result.window}) 추종시드: ${seedStr}`);
     // 대시보드 '당일 스캔 흐름' 기록 (14:30 스캔 후보)
     _logScanFlow('scanned', result.picks.map((p, i) => ({
       rank: (p.lag_rank ?? i) + 1, code: p.code, name: p.name || p.code,
@@ -746,6 +751,12 @@ async function runLaggardBuy1450() {
             code: p.code, name: p.name || p.code, market: p.market || 'KOSDAQ', buy: p.entry,
             rank: p.rank, weight, cluster_id: _laggardPending.cluster_id,
             signal_source: 'cluster_laggard_1430', signal_date: todayYmd,
+            deviation: p.deviation ?? null,
+            frozen_date: _laggardPending.frozen_date ?? null,
+            cluster_window: _laggardPending.window ?? null,
+            cluster_avg_corr: _laggardPending.avg_corr ?? null,
+            cluster_size: _laggardPending.size ?? null,
+            seed: _laggardPending.seed ? JSON.stringify(_laggardPending.seed) : null,
           }, capital);
           _logSlip({ code: p.code, side: 'buy', refPrice: p.entry, fillPrice: opened?.buy_price, qty: opened?.qty, signalDate: todayYmd });
           log.info('SCHED', `  [paper] 매수 ${p.code} @${p.entry} (lag${p.lag_rank}, 자본=${capital})`);

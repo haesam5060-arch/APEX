@@ -65,6 +65,12 @@ function openPosition(pick, budget) {
     rank:               pick.rank ?? 1,
     weight:             pick.weight ?? 1.0,
     signal_date:        pick.signal_date ?? null,
+    // 서랍 추종·딥링크 메타 (laggard 전용 — 다른 신호원은 null)
+    frozen_date:        pick.frozen_date ?? null,
+    cluster_window:     pick.cluster_window ?? null,
+    cluster_avg_corr:   pick.cluster_avg_corr ?? null,
+    cluster_size:       pick.cluster_size ?? null,
+    seed:               pick.seed ?? null,
   };
 
   let opened = null;
@@ -118,6 +124,12 @@ function closePosition(pos, sellPrice, feeRoundTripPct = 0.0035, exitReason = 'n
       signal_source:    pos.signal_source  ?? null,
       rank:             pos.rank           ?? 1,
       weight:           pos.weight         ?? 1.0,
+      // 서랍 추종·딥링크 메타 (매도 이력에도 보존)
+      frozen_date:      pos.frozen_date      ?? null,
+      cluster_window:   pos.cluster_window   ?? null,
+      cluster_avg_corr: pos.cluster_avg_corr ?? null,
+      cluster_size:     pos.cluster_size     ?? null,
+      seed:             pos.seed             ?? null,
     });
     stmts.closePosition.run(pos.id);
     _addPaperCash(sellPrice * pos.qty - fee);

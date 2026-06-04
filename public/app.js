@@ -66,6 +66,45 @@ function setLoading(btn, loading) {
   }
 }
 
+// ── 서랍(얼린 클러스터) 딥링크 ──────────────────────────────
+//   로컬(이 맥)에서 보면 서랍 로컬 포트(3201), 원격(게이트웨이)에서 보면 같은 오리진 + /seorab
+function seorabBase() {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || /^192\.168\./.test(h) || /^10\./.test(h)) {
+    return 'http://localhost:3201';
+  }
+  return location.origin + '/seorab';
+}
+function seorabDrawerUrl(clusterId, date, win) {
+  if (clusterId == null || !date) return null;
+  return `${seorabBase()}/drawer?cluster_id=${clusterId}&window=${win || 20}&date=${date}`;
+}
+function fmtFrozen(ymd) {
+  if (!ymd || String(ymd).length < 8) return ymd || '';
+  ymd = String(ymd);
+  return `${+ymd.slice(4, 6)}/${+ymd.slice(6, 8)}`;
+}
+function parseSeed(seedStr) {
+  if (!seedStr) return [];
+  if (Array.isArray(seedStr)) return seedStr;
+  try { return JSON.parse(seedStr); } catch (_) { return []; }
+}
+// 보유/매매 행의 '얼린서랍·추종' 메타 라인 (클릭 시 서랍 딥링크). laggard 외 신호원은 메타 없어 빈 문자열.
+function seorabMetaHtml(row) {
+  const cid = row.cluster_id, date = row.frozen_date;
+  if (cid == null || !date) return '';
+  const win  = row.cluster_window || 20;
+  const corr = row.cluster_avg_corr != null ? Number(row.cluster_avg_corr).toFixed(2) : '?';
+  const size = row.cluster_size != null ? row.cluster_size : '?';
+  const seed = parseSeed(row.seed);
+  const names = seed.map(s => s.name || s.code);
+  const seedShort = names.length ? (names.slice(0, 2).join(', ') + (names.length > 2 ? ` 외 ${names.length - 2}` : '')) : '—';
+  const seedFull  = seed.length ? seed.map(s => `· ${s.name || s.code} +${(s.ret * 100).toFixed(1)}%`).join('\n') : '시드 없음';
+  const url   = seorabDrawerUrl(cid, date, win);
+  const title = `얼린 서랍 ${date} (W${win}) · 클러스터 #${cid} · 동조 ${corr} · ${size}종목\n추종 시드주:\n${seedFull}\n\n클릭 → 서랍에서 이 클러스터 열기`;
+  return `<br><a href="${url}" target="_blank" rel="noopener" title="${title}" style="display:inline-block;max-width:160px;white-space:normal;font-size:10px;color:var(--accent);text-decoration:none;line-height:1.45;margin-top:2px;">🧊 ${fmtFrozen(date)} #${cid} ▸ 추종 ${seedShort}</a>`;
+}
+
 // ── paper-self 보유 종목 렌더링 ──────────────────────────────
 function renderPaperPositions(positions) {
   const posBody = document.getElementById('positionsTable');
@@ -89,16 +128,17 @@ function renderPaperPositions(positions) {
     const pnlPctStr = !hasPrice ? '-' : `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`;
     const pnlAmtStr = !hasPrice ? '시세 조회 중' : `${pnlAmt >= 0 ? '+' : ''}${Math.round(pnlAmt).toLocaleString()}원`;
 
-    const clusterLabel = p.cluster_strength
-      ? `<span style="font-size:10.5px;color:var(--accent);">x${Number(p.cluster_strength).toFixed(2)}</span>`
+    const corrVal = p.cluster_strength ?? p.cluster_avg_corr;
+    const clusterLabel = corrVal
+      ? `<span style="font-size:10.5px;color:var(--accent);" title="클러스터 평균 동조도">${Number(corrVal).toFixed(2)}</span>`
       : '-';
 
     const curPriceStr = hasPrice ? p.cur_price.toLocaleString() : '--';
 
     return `<tr style="white-space:nowrap;">
-      <td style="max-width:96px;">
-        <span class="stock-link" data-code="${p.code}" data-name="${p.name}" title="${p.name}" style="display:inline-block;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;">${p.name}</span>
-        <br><span style="font-size:11px;color:var(--dim);">${p.code}</span>
+      <td style="max-width:170px;vertical-align:top;">
+        <span class="stock-link" data-code="${p.code}" data-name="${p.name}" title="${p.name}" style="display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;">${p.name}</span>
+        <br><span style="font-size:11px;color:var(--dim);">${p.code}</span>${seorabMetaHtml(p)}
       </td>
       <td style="max-width:70px;">${clusterLabel}</td>
       <td>${p.qty}</td>
