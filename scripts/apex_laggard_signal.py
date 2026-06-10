@@ -5,6 +5,7 @@ apex_laggard_signal.py — APEX 14:30 클러스터 laggard 신호 (운영용)
 검증 대상 백테: backtest/analysis/ap22_cluster_laggard_midprice.py (운영 셀)
   - 채택 스펙(ap28): corr≥0.15 · cluster_size≥8 · 진입가 10,000~50,000 · bottom_n=3 · cap2
   - 14:30 신호 / 14:50 close 진입 / T+1 첫분봉 청산 / 상한가잠김 제외
+  - +ETF 매수후보 제외 (2026-06-10 채택, aprev1full 검증 — 라이브 run_live에만 적용, APEX#13)
 
 ★ 백테-운영 byte 정합 (글로벌 §8.4.1):
   ap21/ap22가 쓰는 동일 기계(s10.load_spectral / load_returns_5m / pick_drawer /
@@ -21,13 +22,31 @@ apex_laggard_signal.py — APEX 14:30 클러스터 laggard 신호 (운영용)
 사용(엔진 strategy.js가 spawn):
   echo '{"signal_date":"20260529"}' | python apex_laggard_signal.py
 """
-import sys, json
+import sys, json, os
 from pathlib import Path
 
 # backtest 프로젝트 경로 (검증된 백테 기계 import)
 BACKTEST = Path("/Users/sean/Desktop/project/backtest")
 sys.path.insert(0, str(BACKTEST))
 sys.path.insert(0, str(BACKTEST / "analysis"))
+
+# ── ETF 매수후보 제외 (APEX#13, 2026-06-10) ─────────────────────
+# 근거: aprev1/aprev1full 백테 — ETF laggard는 무알파 (per-trade -0.15% vs 개별주 +0.51%,
+#   p=0.008, 2024/25/26 전 연도 일관). 후보 제외 시 2년 누적 +93→+117%, Sharpe 2.97→3.74.
+# 정의(B안): 편차 '평균' 계산에는 ETF 멤버 유지, bottom_n 후보에서만 제거 (원래 lag_rank 보존).
+# 리스트: data/etf_codes.json — scheduler가 14:30 신호 직전 네이버 etfItemList로 일 1회 갱신.
+ETF_CODES_PATH = Path(__file__).resolve().parent.parent / "data" / "etf_codes.json"
+
+
+def _load_etf_set():
+    """APEX_ETF_FILTER=0이면 비활성. 파일 없음/파싱실패 → 빈 셋(필터 미작동, scheduler가 경고)."""
+    if os.environ.get("APEX_ETF_FILTER", "1") == "0":
+        return set()
+    try:
+        d = json.loads(ETF_CODES_PATH.read_text(encoding="utf-8"))
+        return set(d.get("etf_codes") or [])
+    except Exception:
+        return set()
 
 # ── 운영 셀 파라미터 (ap28 채택) ─────────────────────
 CORR_MIN = 0.15
@@ -125,18 +144,26 @@ def run_live(payload):
     if len(rows) < 2:
         _fail("편차 계산 멤버 부족 (today_change/history 매칭 실패)")
     last = pd.Series(rows); dev = (last - float(last.mean())).sort_values(ascending=False)
-    lag = list(dev.items())[::-1][:BOTTOM_N]   # 편차 최저 N
+    lag_all = list(dev.items())[::-1][:BOTTOM_N]   # 편차 최저 N
+    # ★ ETF 매수후보 제외 (APEX#13, aprev1 B안) — lag_rank는 제거 전 원래 순위 유지
+    etf_set = _load_etf_set()
+    lag = [(r, code, dv) for r, (code, dv) in enumerate(lag_all) if code not in etf_set]
+    n_etf_excluded = len(lag_all) - len(lag)
     picks = [{"code": code[1:], "deviation": float(dv), "lag_rank": r,
               "avg_corr": avg_corr, "cluster_size": len(members),
               "today_change": today_change.get(code[1:], today_change.get(code))}
-             for r, (code, dv) in enumerate(lag)]
+             for r, code, dv in lag]
     # 추종 대상(아침 강세 시드주): 아침 Top10 ∩ 클러스터 멤버 (등락률 내림차순)
     _mset = set(members)
     seed = [{"code": c, "ret": float(r)} for c, r in top if _A(c) in _mset]
+    diag = {"cluster_id": int(cid), "avg_corr": avg_corr, "cluster_size": len(members),
+            "n_candidates": len(picks), "n_etf_excluded": n_etf_excluded,
+            "etf_filter_active": len(etf_set) > 0, "mode": "live_raw"}
+    if not picks and lag_all and n_etf_excluded == len(lag_all):
+        diag["reason"] = f"bottom{len(lag_all)} 전부 ETF — 후보 제외(APEX#13)로 노매매"
     print(json.dumps({"ok": True, "signal_date": signal_date, "prev_date": prev, "picks": picks,
                       "seed": seed, "window": int(WINDOW),
-                      "diag": {"cluster_id": int(cid), "avg_corr": avg_corr, "cluster_size": len(members),
-                               "n_candidates": len(picks), "mode": "live_raw"}},
+                      "diag": diag},
                      ensure_ascii=False, default=str))
 
 

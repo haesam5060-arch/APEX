@@ -179,6 +179,27 @@ async function pollPrices(codes, batchSize = 5) {
   return out;
 }
 
+// ── 네이버 ETF 전체 리스트 (laggard ETF 매수후보 제외 필터용) ──────
+// finance.naver.com etfItemList — 현행 상장 ETF 전체 (~1,100개).
+// 14:30 신호 직전 일 1회 갱신 (scheduler._refreshEtfCodes).
+const ETF_LIST_URL = 'https://finance.naver.com/api/sise/etfItemList.nhn?etfType=0';
+
+function _parseEtfList(json) {
+  const items = json?.result?.etfItemList || [];
+  return items
+    .map(it => String(it.itemcode || '').trim())
+    .filter(c => c.length === 6)
+    .map(c => `A${c}`);
+}
+
+async function fetchEtfCodes() {
+  const data = await fetchJsonRetry(ETF_LIST_URL);
+  const codes = _parseEtfList(data);
+  // API 응답 형태가 바뀌어 리스트가 비정상으로 쪼그라들면 기존 파일 유지가 낫다
+  if (codes.length < 100) throw new Error(`ETF 리스트 비정상 (${codes.length}개)`);
+  return codes;
+}
+
 // ── 네이버 호가 (슬리피지 측정용) ────────────────────────────────
 // API: /api/stock/{code}/orderbook
 // ask1~ask5 호가 + 잔량을 반환. 5단계만 사용 (보통 14:50 KOSDAQ 소형주 충분).
@@ -237,4 +258,6 @@ module.exports = {
   estimateFillPrice,
   pollPrice,
   pollPrices,
+  fetchEtfCodes,
+  _parseEtfList,
 };

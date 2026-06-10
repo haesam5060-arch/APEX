@@ -20,6 +20,8 @@
 'use strict';
 
 const cron = require('node-cron');
+const fs = require('fs');
+const path = require('path');
 const { runScan, runGapupScan } = require('./scanner');
 const paperBroker = require('./paper-broker');
 // real-broker는 paper-self 모드에서 불필요 (조건부 로드)
@@ -29,7 +31,7 @@ try {
 } catch (e) {
   // real-broker 없음 (paper-self 모드에서는 사용 안 함)
 }
-const { fetchStockDetail, scanAllStocks, pollPrices } = require('./stock-fetcher');
+const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes } = require('./stock-fetcher');
 const { isBuyBlocked } = require('./no-buy-calendar');
 const { isKrxClosed } = require('./krx-calendar');
 const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live } = require('./strategy');
@@ -40,6 +42,29 @@ const APEX_PRICE_LO = parseInt(process.env.APEX_PRICE_LO || '10000', 10);
 const APEX_PRICE_HI = parseInt(process.env.APEX_PRICE_HI || '50000', 10);
 const APEX_DAILY_CAP = parseInt(process.env.APEX_DAILY_CAP || '2', 10);
 let _laggardPending = null;  // { date, picks:[...] }
+
+// ETF 매수후보 제외용 현행 ETF 리스트 (aprev1 B안, APEX#13)
+//   14:30 신호 직전 일 1회 갱신. 실패 시 기존 파일 유지 (stale 허용 — 신규상장 ETF만 늦게 반영).
+//   apex_laggard_signal.py run_live가 이 파일을 읽어 bottom_n에서 ETF를 후보 제외.
+const ETF_CODES_PATH = path.resolve(__dirname, '..', 'data', 'etf_codes.json');
+
+async function _refreshEtfCodes() {
+  try {
+    const codes = await fetchEtfCodes();
+    fs.writeFileSync(ETF_CODES_PATH, JSON.stringify({
+      updated_at: new Date().toISOString(),
+      source: 'naver etfItemList',
+      etf_codes: codes,
+    }));
+    log.info('SCHED', `ETF 리스트 갱신 — ${codes.length}개 (${ETF_CODES_PATH})`);
+    return true;
+  } catch (e) {
+    const exists = fs.existsSync(ETF_CODES_PATH);
+    log.warn('SCHED', `ETF 리스트 갱신 실패 — ${exists ? '기존 파일 사용' : '파일 없음(ETF 필터 미작동)'}: ${e.message}`);
+    if (!exists) await discord.sendError?.(`ETF 리스트 없음 — 오늘 laggard ETF 후보 제외 필터가 작동하지 않습니다`);
+    return false;
+  }
+}
 const discord = require('./discord-notifier');
 const mail = require('./email-notifier');
 const { db, log, stmts } = require('./db');
@@ -672,6 +697,7 @@ async function runLaggardSignal14() {
   const todayYmd = todayKstYmd();
   log.info('SCHED', `14:30 cluster_laggard 라이브 신호 시작 (date=${todayYmd})`);
   try {
+    await _refreshEtfCodes();  // ETF 매수후보 제외 필터용 (실패해도 신호는 진행)
     const scanned = await scanAllStocks();
     const result = await selectClusterLaggard1430Live(scanned, todayYmd);
     if (!result.picks || result.picks.length === 0) {
