@@ -208,6 +208,32 @@ db.exec(`
     UNIQUE(signal_date, rank)
   );
 
+  -- 그림자 체결 (APEX#9, 2026-06-10) — L1 휴면 중 "매수했다면"의 가상 기록.
+  --   실매수 없이 entry(14:50 폴가)·exit(T+1 시초가)만 기록 → guard_daily 시계열 입력.
+  --   백테 가드(ap29: 휴면 중에도 r 시계열 지속)와 동학 일치 — 휴면 자동 재개 가능.
+  CREATE TABLE IF NOT EXISTS shadow_trades (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    signal_date     TEXT NOT NULL,                     -- 진입 신호일 YYYYMMDD
+    code            TEXT NOT NULL,
+    lag_rank        INTEGER,
+    entry           REAL NOT NULL,                     -- 14:50 폴가 (가상 진입)
+    exit            REAL,                              -- T+1 시초가 (가상 청산)
+    ret             REAL,                              -- exit/entry - 1 - fee
+    status          TEXT NOT NULL DEFAULT 'open',      -- open | closed
+    created_at      TEXT,
+    closed_at       TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_shadow_status ON shadow_trades(status, signal_date);
+
+  -- 레짐가드 일별 시계열 (APEX#9) — 실현(real) + 그림자(shadow) 통합. 키 = 진입 신호일.
+  --   regime-guard가 daily_pnl 대신 이 테이블을 읽음 (백테 r 시계열과 동일 의미).
+  CREATE TABLE IF NOT EXISTS guard_daily (
+    date            TEXT PRIMARY KEY,                  -- 신호일(진입일) YYYYMMDD
+    r               REAL NOT NULL,                     -- 그날 cap2 매매 평균 수익률 (비용 차감)
+    kind            TEXT NOT NULL,                     -- real | shadow
+    updated_at      TEXT
+  );
+
   -- paper-self 가상 잔고 (싱글톤)
   CREATE TABLE IF NOT EXISTS paper_balance (
     id              INTEGER PRIMARY KEY CHECK (id = 1),
@@ -314,6 +340,24 @@ _safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_buy    INTEGER`);           
 // h7 지정가 매도 지원 (2026-06-01) — 폴링 제거, 지정가 주문 관리
 _safeAlter(`ALTER TABLE positions ADD COLUMN limit_order_price  INTEGER`);              // h7 지정가 가격 (buy_price × 1.05)
 _safeAlter(`ALTER TABLE positions ADD COLUMN limit_order_filled_at TEXT`);              // 지정가 체결 시각 (ISO 타임스탬프)
+
+// laggard 14:30 픽 영속화 (APEX#11, 2026-06-10) — 재시작 시 14:50 매수 복구용 메타
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN shadow              INTEGER DEFAULT 0`); // 1 = L1 휴면 그림자 (APEX#9)
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_lag_rank       INTEGER`);
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_frozen_date    TEXT`);
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_cluster_window INTEGER`);
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_cluster_corr   REAL`);
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_cluster_size   INTEGER`);
+_safeAlter(`ALTER TABLE pending_buy ADD COLUMN pick_seed           TEXT`);
+
+// guard_daily 백필 (APEX#9, idempotent) — 과거 laggard 실현 거래를 신호일 기준 시계열로
+db.exec(`
+  INSERT OR IGNORE INTO guard_daily (date, r, kind, updated_at)
+  SELECT signal_date, AVG(return_pct), 'real', datetime('now', 'localtime')
+  FROM trades
+  WHERE signal_source = 'cluster_laggard_1430' AND signal_date IS NOT NULL
+  GROUP BY signal_date
+`);
 
 // ── helpers ─────────────────────────────────────
 function logMsg(level, category, message) {
@@ -458,6 +502,42 @@ const stmts = {
     UPDATE pending_buy SET consumed = 1, buy_time = ?, exit_type = ?, cum_vol = ?
     WHERE id = ?
   `),
+
+  // ── laggard 픽 영속화 (APEX#11) ──
+  insertLaggardPending: db.prepare(`
+    INSERT OR REPLACE INTO pending_buy
+      (signal_date, signal_type, rank, weight, pick_code, pick_name, pick_cluster_id,
+       pick_signal_source, pick_deviation, pick_market, pick_buy, vol_threshold, created_at, consumed,
+       shadow, pick_lag_rank, pick_frozen_date, pick_cluster_window, pick_cluster_corr, pick_cluster_size, pick_seed)
+    VALUES
+      (@signal_date, 'laggard1430', @rank, @weight, @pick_code, @pick_name, @pick_cluster_id,
+       'cluster_laggard_1430', @pick_deviation, @pick_market, @pick_buy, 0, @created_at, 0,
+       @shadow, @pick_lag_rank, @pick_frozen_date, @pick_cluster_window, @pick_cluster_corr, @pick_cluster_size, @pick_seed)
+  `),
+  getLaggardPendings: db.prepare(`
+    SELECT * FROM pending_buy
+    WHERE signal_date = ? AND signal_type = 'laggard1430' AND consumed = 0
+    ORDER BY pick_lag_rank
+  `),
+  consumeLaggardPendings: db.prepare(`
+    UPDATE pending_buy SET consumed = 1 WHERE signal_date = ? AND signal_type = 'laggard1430'
+  `),
+
+  // ── shadow_trades + guard_daily (APEX#9) ──
+  insertShadowTrade: db.prepare(`
+    INSERT INTO shadow_trades (signal_date, code, lag_rank, entry, status, created_at)
+    VALUES (@signal_date, @code, @lag_rank, @entry, 'open', @created_at)
+  `),
+  openShadowTrades: db.prepare(`SELECT * FROM shadow_trades WHERE status = 'open' AND signal_date < ? ORDER BY signal_date, lag_rank`),
+  closeShadowTrade: db.prepare(`
+    UPDATE shadow_trades SET status = 'closed', exit = @exit, ret = @ret, closed_at = @closed_at WHERE id = @id
+  `),
+  upsertGuardDaily: db.prepare(`
+    INSERT INTO guard_daily (date, r, kind, updated_at)
+    VALUES (@date, @r, @kind, datetime('now', 'localtime'))
+    ON CONFLICT(date) DO UPDATE SET r = excluded.r, kind = excluded.kind, updated_at = excluded.updated_at
+  `),
+  recentGuardDaily: db.prepare(`SELECT * FROM guard_daily ORDER BY date DESC LIMIT ?`),
 
   // ── guard_state (G1e'' 가드) ──
   getGuardState: db.prepare(`SELECT * FROM guard_state WHERE id = 1`),

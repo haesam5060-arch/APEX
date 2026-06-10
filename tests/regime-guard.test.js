@@ -25,9 +25,26 @@ function t(name, fn) {
 
 console.log('[regime-guard] evaluate() 순수 로직');
 
-t('콜드스타트(표본<40) → 가드 미작동(매매 허용)', () => {
-  const ev = rg.evaluate(Array(10).fill(-0.05)); // 10일 연속 -5%여도 표본 부족(드로다운 게이트)
+t('표본 0 → 가드 미작동(첫 매매 허용, 백테 len(p)<1 동일)', () => {
+  const ev = rg.evaluate([]);
   assert.strictEqual(ev.l1Dormant, false);
+  assert.strictEqual(ev.l2Breach, false);
+});
+
+t('★ APEX#9: 표본 1개 음수 → 즉시 L1 휴면 (백테 콜드스타트 정합)', () => {
+  const ev = rg.evaluate([-0.0035]);
+  assert.strictEqual(ev.l1Dormant, true);
+  assert.strictEqual(ev.l2Breach, false, 'L2 콜드스타트 보호는 유지');
+});
+
+t('표본 1개 양수 → 휴면 아님', () => {
+  const ev = rg.evaluate([0.01]);
+  assert.strictEqual(ev.l1Dormant, false);
+});
+
+t('표본<40 연속 손실 → L1 휴면 + L2(롤링·DD)는 콜드스타트 보호 유지', () => {
+  const ev = rg.evaluate(Array(10).fill(-0.05));
+  assert.strictEqual(ev.l1Dormant, true);
   assert.strictEqual(ev.l2Breach, false);
 });
 
@@ -76,15 +93,15 @@ t('굿레짐 실측 근사(롤링63 +31% 수준) → 붕괴 없음', () => {
 
 console.log('[regime-guard] checkRegime() + L2 래치 (db stub)');
 
-function stubStmts(avgPcts) {
-  // recentDailyPnl.all(limit) → 최신순 rows [{avg_pct}]
-  const rows = avgPcts.map((p, i) => ({ sell_date: `2026-01-${String(i + 1).padStart(2, '0')}`, avg_pct: p }));
-  return { recentDailyPnl: { all: () => rows.slice().reverse() } };
+function stubStmts(rets) {
+  // recentGuardDaily.all(limit) → 최신순 rows [{date, r(소수), kind}] — APEX#9
+  const rows = rets.map((r, i) => ({ date: `202601${String(i + 1).padStart(2, '0')}`, r, kind: 'real' }));
+  return { recentGuardDaily: { all: () => rows.slice().reverse() } };
 }
 
 t('checkRegime: 굿레짐 → canTrade=true', () => {
   cleanup();
-  const r = rg.checkRegime({ stmts: stubStmts(Array(70).fill(1.0)) }); // +1%/일
+  const r = rg.checkRegime({ stmts: stubStmts(Array(70).fill(0.01)) }); // +1%/일
   assert.strictEqual(r.canTrade, true);
   assert.strictEqual(r.layer, 'OK');
   cleanup();
@@ -92,8 +109,8 @@ t('checkRegime: 굿레짐 → canTrade=true', () => {
 
 t('checkRegime: L1 → dormant(canTrade=false, halted=false)', () => {
   cleanup();
-  // avg_pct 단위(%) — L1 격리: 앞30일 +0.5%, 최근40일 -0.2%
-  const r = rg.checkRegime({ stmts: stubStmts([...Array(30).fill(0.5), ...Array(40).fill(-0.2)]) });
+  // 소수 단위 — L1 격리: 앞30일 +0.5%, 최근40일 -0.2%
+  const r = rg.checkRegime({ stmts: stubStmts([...Array(30).fill(0.005), ...Array(40).fill(-0.002)]) });
   assert.strictEqual(r.canTrade, false);
   assert.strictEqual(r.dormant, true);
   assert.strictEqual(r.halted, false);
@@ -103,17 +120,17 @@ t('checkRegime: L1 → dormant(canTrade=false, halted=false)', () => {
 
 t('checkRegime: L2 → halted + 래치(다음 호출도 중단)', () => {
   cleanup();
-  const r1 = rg.checkRegime({ stmts: stubStmts(Array(63).fill(-0.2)), now: '2026-02-01T15:00:00' });
+  const r1 = rg.checkRegime({ stmts: stubStmts(Array(63).fill(-0.002)), now: '2026-02-01T15:00:00' });
   assert.strictEqual(r1.halted, true);
   assert.strictEqual(r1.layer, 'L2');
   assert.strictEqual(rg.isHalted(), true, '래치 파일 생성돼야');
   // 래치 후엔 굿레짐 데이터여도 계속 중단
-  const r2 = rg.checkRegime({ stmts: stubStmts(Array(70).fill(1.0)) });
+  const r2 = rg.checkRegime({ stmts: stubStmts(Array(70).fill(0.01)) });
   assert.strictEqual(r2.halted, true, '래치 유지');
   // reset 후 재개
   rg.reset();
   assert.strictEqual(rg.isHalted(), false);
-  const r3 = rg.checkRegime({ stmts: stubStmts(Array(70).fill(1.0)) });
+  const r3 = rg.checkRegime({ stmts: stubStmts(Array(70).fill(0.01)) });
   assert.strictEqual(r3.canTrade, true, 'reset 후 재개');
   cleanup();
 });

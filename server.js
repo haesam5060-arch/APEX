@@ -112,6 +112,17 @@ function verifyConfig() {
     if (!config.kis.paperAppKey || !config.kis.paperAppSecret || !config.kis.paperCano)
       errs.push('TRADING_MODE=paper 인데 KIS_PAPER_APP_KEY/SECRET/CANO 미설정');
   }
+  // ★ real-broker 안전핀 (APEX#10): KIS 모드인데 주문 오케스트레이터가 없으면 기동 차단.
+  //   없이 기동하면 매수는 전건 실패(안전 방향)지만 "매도 불능"으로 포지션이 방치됨.
+  if (config.tradingMode === 'real' || config.tradingMode === 'paper') {
+    try {
+      require('./src/real-broker');
+    } catch (e) {
+      errs.push(`TRADING_MODE=${config.tradingMode} 인데 src/real-broker.js 없음 — ` +
+        `매수·매도 모두 불능 (특히 매도 불능 = 포지션 방치 위험). ` +
+        `paper-self로 두거나 real-broker 구현 후 전환 (APEX#10)`);
+    }
+  }
   return errs;
 }
 

@@ -6,18 +6,22 @@
 //   - 배드레짐(2024) 롤링40 최저 -17%, MDD -19%.
 //
 // 2단 구조:
-//   L1 (자동 임시휴면): 직전 L1_TRAIL_DAYS(40) 매매일 실현 누적 < 0 → 매매 휴면.
-//                       이후 누적 ≥ 0 되면 자동 재개. (일상적 레짐 약화 대응)
+//   L1 (자동 임시휴면): 직전 L1_TRAIL_DAYS(40) 매매일 누적 < 0 → 실매수 휴면.
+//                       표본 1개부터 작동 (백테 ap29 가드 `len(p)<1 or sum>=0`와 동일, APEX#9).
+//                       ★ 휴면 중에도 scheduler가 신호·그림자 체결(shadow_trades)을 기록해
+//                       guard_daily 시계열이 계속 굴러감 → 누적 ≥ 0 복귀 시 자동 재개.
+//                       (구버전: daily_pnl 입력 + 휴면 시 신규 행 없음 → 영구휴면 결함)
 //   L2 (레짐붕괴 킬스위치, 자동재개 X): 롤링 L2_ROLL_DAYS(63) 매매일 누적 < L2_ROLL_CUT(-8%)
 //                       OR 피크대비 드로다운 < L2_DD_CUT(-15%)
 //                       → 매매 중단 + 경보 + "레짐 기반 재설계" 트리거.
 //                       래치(JSON 파일)되어 수동 reset() 전까지 유지.
+//                       L2는 백테에 없는 운영 추가 안전장치라 콜드스타트 보호(표본 하한) 유지.
 //
 // 임계 근거: 굿레짐은 절대 안 건드리고(롤링63 +31%/MDD -13%) 배드레짐은 확실히 잡도록
 //            둘 사이(-8% / -15%)에 설정.
 //
-// 일별 수익 = daily_pnl.avg_pct/100 (그날 거래들의 매수금액가중 평균 수익률).
-//   백테는 단순평균이라 미세 차이 있으나 레짐 판정 목적엔 충분 (방향성·크기 동일).
+// 일별 수익 입력 = guard_daily.r (신호일 키, 실현 real + 그림자 shadow 통합, 비용 차감 — APEX#9).
+//   백테 r 시계열(cap2 매매 평균, 신호일 인덱스)과 동일 의미.
 // ═══════════════════════════════════════════════════════════════
 
 'use strict';
@@ -48,9 +52,11 @@ function evaluate(rets) {
   // L1: 직전 L1_TRAIL_DAYS 누적 (단순합 ≈ 로그누적, 작은 값에서 동등)
   const trail = rets.slice(Math.max(0, n - L1_TRAIL_DAYS));
   const trailingSum = trail.reduce((s, r) => s + r, 0);
-  // 표본이 L1_TRAIL_DAYS 미만이면 가드 미작동(콜드스타트) — 매매 허용
-  const l1Dormant = n >= L1_TRAIL_DAYS && trailingSum < 0;
-  if (l1Dormant) reasons.push(`L1: 직전 ${L1_TRAIL_DAYS}매매일 누적 ${(trailingSum * 100).toFixed(1)}% < 0 → 임시휴면`);
+  // ★ 백테(ap29/aprev2b 가드: len(p)<1 or sum>=0)와 동일 — 표본 1개부터 작동 (APEX#9).
+  //   (구버전 n>=40 콜드스타트 보호는 백테에 없는 임의 완화였음. 휴면 중에도
+  //    그림자 추적(guard_daily kind=shadow)이 시계열을 굴려 자동 재개 가능.)
+  const l1Dormant = n >= 1 && trailingSum < 0;
+  if (l1Dormant) reasons.push(`L1: 직전 ${Math.min(n, L1_TRAIL_DAYS)}매매일 누적 ${(trailingSum * 100).toFixed(1)}% < 0 → 임시휴면(그림자 추적)`);
 
   // L2-A: 롤링 L2_ROLL_DAYS 복리누적
   const roll = rets.slice(Math.max(0, n - L2_ROLL_DAYS));
@@ -111,9 +117,11 @@ function checkRegime({ stmts, mode = 'paper-self', now = null }) {
   }
 
   // 최근 일별수익 로드 (충분히 길게: max(L1,L2)+여유)
+  //   ★ 입력 = guard_daily (실현 real + 그림자 shadow 통합, 신호일 키) — APEX#9.
+  //   휴면 중에도 shadow 행이 쌓여 시계열이 굴러감 (구 daily_pnl 입력은 휴면 시 동결 → 영구휴면).
   const limit = Math.max(L1_TRAIL_DAYS, L2_ROLL_DAYS) + 10;
-  const rows = (stmts.recentDailyPnl.all(limit) || []).slice().reverse(); // 오래된→최신
-  const rets = rows.map(r => (typeof r.avg_pct === 'number' ? r.avg_pct : 0) / 100);
+  const rows = (stmts.recentGuardDaily.all(limit) || []).slice().reverse(); // 오래된→최신
+  const rets = rows.map(r => (typeof r.r === 'number' ? r.r : 0));
 
   const ev = evaluate(rets);
 

@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node tests/regime-guard.test.js && node tests/etf-filter.test.js && node tests/morning-rets.test.js && node tests/strategy.test.js && node tests/scheduler.test.js && node tests/db.test.js && node tests/no-buy-calendar.test.js && node tests/buyability.test.js && node tests/strategy-v3.test.js && node tests/cluster-loader.test.js && npx mocha tests/h7-gapup-apex.test.js"
+    "test": "node tests/regime-guard.test.js && node tests/etf-filter.test.js && node tests/morning-rets.test.js && node tests/laggard-buylist.test.js && node tests/shadow-guard.test.js && node tests/strategy.test.js && node tests/scheduler.test.js && node tests/db.test.js && node tests/no-buy-calendar.test.js && node tests/buyability.test.js && node tests/cluster-loader.test.js && npx mocha tests/h7-gapup-apex.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.5.0",

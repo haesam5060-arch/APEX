@@ -183,6 +183,11 @@ async function run() {
   await t('insertPendingBuy: 정상 INSERT', async () => {
     stmts.insertPendingBuy.run({
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
       signal_type: 'spectral',  // h7 신호 추가 (2026-05-31)
       rank: 1,
       weight: 0.5,
@@ -245,6 +250,11 @@ async function run() {
     const now = new Date().toISOString();
     stmts.insertSignalLog.run({
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
       signal_at: now,
       signal_type: 'spectral',  // h7 신호 추가 (2026-05-31)
       pick_code: 'A012330',
@@ -314,6 +324,11 @@ async function run() {
     for (let i = 1; i <= 10; i++) {
       stmts.insertTop10.run({
         signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
         rank: i,
         code: `A${100000 + i}`,
         name: `Stock${i}`,
@@ -336,6 +351,11 @@ async function run() {
     // insertTop10은 INSERT OR REPLACE이므로 중복 rank는 업데이트됨
     stmts.insertTop10.run({
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
       rank: 1, // 이미 존재
       code: 'A999999',
       name: 'Updated',
@@ -378,6 +398,11 @@ async function run() {
       rank: 1,
       weight: 0.5,
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
     });
 
     const pos = db.prepare('SELECT * FROM positions WHERE code=? AND status=?')
@@ -408,6 +433,11 @@ async function run() {
       rank: 2,
       weight: 0.5,
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
     });
 
     // trade 기록
@@ -428,6 +458,11 @@ async function run() {
       fee_paid: 500,
       mode: 'paper-self',
       signal_date: '20260601',
+      frozen_date: null,
+      cluster_window: null,
+      cluster_avg_corr: null,
+      cluster_size: null,
+      seed: null,
       cluster_id: 42,
       signal_source: 's16_w20',
       rank: 2,

@@ -86,6 +86,36 @@ function sendError(message) {
   return send(`🚨 **오류**\n${message}`);
 }
 
+// ── 14:30 신호 알림 (APEX#11 — 구현 전엔 ?.호출로 조용히 no-op였음) ──
+// result: strategy.selectClusterLaggard1430Live 반환값 (h7 등 다른 신호원도 방어적으로 처리)
+function sendSignal(result) {
+  if (!result || !Array.isArray(result.picks) || result.picks.length === 0) return Promise.resolve(false);
+  const head = result.shadow
+    ? '🕯️ **14:30 신호 (L1 휴면 — 그림자 추적만, 실매수 없음)**'
+    : '📡 **14:30 신호** — 14:50 매수 예정';
+  const lines = result.picks.map(p => {
+    const lag = p.lag_rank != null ? `lag${p.lag_rank}` : (p.rank != null ? `rank${p.rank}` : '');
+    const dev = p.deviation != null ? ` dev=${Number(p.deviation).toFixed(1)}` : '';
+    const px = p.buy != null ? ` @${Number(p.buy).toLocaleString()}원` : '';
+    return `· ${p.name || p.code}(${p.code}) ${lag}${px}${dev}`;
+  });
+  const corr = result.picks[0]?.cluster_avg_corr;
+  const meta = [
+    result.prev_date ? `얼린서랍 ${result.prev_date}${result.window ? `(W${result.window})` : ''}` : null,
+    corr != null ? `corr=${Number(corr).toFixed(2)}` : null,
+    result.picks[0]?.cluster_size != null ? `size=${result.picks[0].cluster_size}` : null,
+  ].filter(Boolean).join(' · ');
+  const seed = (result.seed || [])
+    .map(s => `${s.name || s.code}(${(s.ret * 100).toFixed(1)}%)`).join(', ');
+  return send([head, ...lines, meta ? `🧊 ${meta}` : null, seed ? `🌱 추종시드: ${seed}` : null]
+    .filter(Boolean).join('\n'));
+}
+
+function sendNoSignal(result) {
+  const reason = result?.excluded?.reason || result?.diag?.reason || '조건 미충족';
+  return send(`🌙 **14:30 신호 없음** — ${reason}`);
+}
+
 function sendBuyBlocked(blockInfo) {
   return send(`⛔ **매수 금지일** — ${blockInfo.desc} (${blockInfo.reason}) / 매수 차단`);
 }
@@ -145,6 +175,7 @@ function sendGuardRelease(info) {
 module.exports = {
   init, send,
   sendBuy, sendSell, sendError,
+  sendSignal, sendNoSignal,
   sendBuyBlocked, sendBuySkipped,
   sendGuardSkip, sendGuardRelease,
 };
