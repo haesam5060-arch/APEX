@@ -669,15 +669,21 @@ function _spawnMorningChange(codesA, signalDate) {
   });
 }
 
-async function selectClusterLaggard1430Live(scanned, signalDate) {
-  const PREFILTER_N = parseInt(process.env.MORNING_PREFILTER_N || '150', 10);
-  // 1) 프리필터: 전일대비 등락률 상위 N → 아침 등락률 수집
-  const cand = scanned.filter(s => s.code && Number.isFinite(s.changeRate))
-    .slice().sort((a, b) => b.changeRate - a.changeRate).slice(0, PREFILTER_N);
-  const morningMap = await _spawnMorningChange(cand.map(s => _withA(s.code)), signalDate);
-  const morning_rets = {};
-  for (const [codeA, m] of Object.entries(morningMap)) {
-    if (m && m.vi_ok && typeof m.ret === 'number') morning_rets[_stripA(codeA)] = m.ret;
+async function selectClusterLaggard1430Live(scanned, signalDate, opts = {}) {
+  let morning_rets;
+  if (opts.morningRets && Object.keys(opts.morningRets).length > 0) {
+    // ★ 09:31 확정 수집분 (APEX#8) — 14:30 재구성 폐기. scheduler가 morning_change 테이블에서 로드.
+    morning_rets = opts.morningRets;
+  } else {
+    // 폴백(레거시): 09:31 수집이 없을 때만 14:30 시점 프리필터 재구성 (신호 발산 가능 — APEX#8)
+    const PREFILTER_N = parseInt(process.env.MORNING_PREFILTER_N || '150', 10);
+    const cand = scanned.filter(s => s.code && Number.isFinite(s.changeRate))
+      .slice().sort((a, b) => b.changeRate - a.changeRate).slice(0, PREFILTER_N);
+    const morningMap = await _spawnMorningChange(cand.map(s => _withA(s.code)), signalDate);
+    morning_rets = {};
+    for (const [codeA, m] of Object.entries(morningMap)) {
+      if (m && m.vi_ok && typeof m.ret === 'number') morning_rets[_stripA(codeA)] = m.ret;
+    }
   }
   if (Object.keys(morning_rets).length === 0) {
     return { picks: [], excluded: { reason: '아침 등락률 수집 실패 → 노매매(안전)' }, diag: {} };
@@ -727,6 +733,7 @@ module.exports = {
   selectGapupPicks,
   selectClusterLaggard1430,
   selectClusterLaggard1430Live,
+  _spawnMorningChange,
   callPythonSignal,
   LIMIT_UP_CUT,
   TOP_N,

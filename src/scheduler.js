@@ -34,7 +34,7 @@ try {
 const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes } = require('./stock-fetcher');
 const { isBuyBlocked } = require('./no-buy-calendar');
 const { isKrxClosed } = require('./krx-calendar');
-const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live } = require('./strategy');
+const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live, _spawnMorningChange, _withA } = require('./strategy');
 const regimeGuard = require('./regime-guard');
 
 // cluster_laggard_1430 라이브: 14:30 신호 → 14:50 매수 (그 사이 픽 보관)
@@ -181,7 +181,41 @@ function _logScanFlow(phase, rows) {
   } catch (e) { /* 기록 실패는 매매에 영향 없음 */ }
 }
 
-// ── 09:31 모닝 스냅샷 (당일 Top10 핫종목 — 14:30 클러스터를 시드하는 종목들) ──
+// ── 09:31 모닝 장중등락률 확정 수집 (APEX#8) ─────────────────────
+//   B안 프리필터: 전일대비 상위 N(400) ∪ 거래대금 상위 M(200) — 14:30 시점 재구성(발산 29%) 대비
+//   발산 3%로 축소 (parquet 119일 시뮬). 수집분은 morning_change 테이블에 저장, 14:30 신호가 사용.
+const MORNING_POLL_N = parseInt(process.env.MORNING_POLL_N || '400', 10);
+const MORNING_POLL_AMT_N = parseInt(process.env.MORNING_POLL_AMT_N || '200', 10);
+
+async function _collectMorningRets(scannedArr, todayYmd) {
+  const valid = scannedArr.filter(s => s && s.code);
+  const byChg = valid.filter(s => Number.isFinite(s.changeRate))
+    .slice().sort((a, b) => b.changeRate - a.changeRate).slice(0, MORNING_POLL_N);
+  const byAmt = valid.filter(s => Number.isFinite(s.tradingValue))
+    .slice().sort((a, b) => b.tradingValue - a.tradingValue).slice(0, MORNING_POLL_AMT_N);
+  const codesA = [...new Set([...byChg, ...byAmt].map(s => _withA(s.code)))];
+  if (codesA.length === 0) { log.warn('SCHED', '09:31 morning_rets — 프리필터 후보 0'); return 0; }
+
+  const map = await _spawnMorningChange(codesA, todayYmd);
+  const rows = Object.entries(map || {}).filter(([, m]) => m && typeof m.ret === 'number');
+  const nowIso = new Date().toISOString();
+  db.transaction(() => {
+    stmts.clearMorningChange.run(todayYmd);
+    for (const [codeA, m] of rows) {
+      stmts.insertMorningChange.run({
+        signal_date: todayYmd, code: codeA.replace(/^A/, ''),
+        ret: m.ret, vi_ok: m.vi_ok ? 1 : 0,
+        first_open: m.first_open ?? null, last_close: m.last_close ?? null,
+        polled_at: nowIso,
+      });
+    }
+  })();
+  const nVi = rows.filter(([, m]) => m.vi_ok).length;
+  log.info('SCHED', `09:31 morning_rets 확정 수집 — 폴 ${codesA.length} / 수집 ${rows.length} / vi_ok ${nVi} (APEX#8)`);
+  return nVi;
+}
+
+// ── 09:31 모닝 스냅샷 (Top10 표시) + morning_rets 확정 수집 ──
 async function runMorningSnapshotJob() {
   const krx = isKrxClosed();
   if (krx.closed) { log.info('SCHED', `[KRX 폐장] 09:31 스냅샷 skip — ${krx.reason}`); return; }
@@ -197,6 +231,15 @@ async function runMorningSnapshotJob() {
       change_rate: s.changeRate, entry_price: s.close,
     })));
     log.info('SCHED', `09:31 스냅샷 기록 — Top${top.length}${top[0] ? ` (1위 ${top[0].name})` : ''}`);
+
+    // ★ morning_rets 확정 수집 (APEX#8) — 실패해도 스냅샷에는 영향 없음 (14:30이 레거시 폴백)
+    if (BUY_MODE === 'cluster_laggard_1430') {
+      try {
+        await _collectMorningRets(arr, todayKstYmd());
+      } catch (e) {
+        log.error('SCHED', `09:31 morning_rets 수집 오류 (14:30 레거시 폴백 예정): ${e.message}`);
+      }
+    }
   } catch (e) {
     log.error('SCHED', `09:31 스냅샷 오류: ${e.message}`);
   }
@@ -698,8 +741,25 @@ async function runLaggardSignal14() {
   log.info('SCHED', `14:30 cluster_laggard 라이브 신호 시작 (date=${todayYmd})`);
   try {
     await _refreshEtfCodes();  // ETF 매수후보 제외 필터용 (실패해도 신호는 진행)
+
+    // ★ 09:31 확정 수집분 로드 (APEX#8). 30종목 미만이면 수집 실패로 보고 레거시 폴백.
+    let morningRets = null;
+    try {
+      const mornRows = stmts.morningChangeByDate.all(todayYmd) || [];
+      const m = {};
+      for (const r of mornRows) if (r.vi_ok) m[r.code] = r.ret;
+      if (Object.keys(m).length >= 30) {
+        morningRets = m;
+        log.info('SCHED', `morning_rets 사용 — 09:31 확정 수집분 ${Object.keys(m).length}종목 (APEX#8)`);
+      } else {
+        log.warn('SCHED', `09:31 수집분 부족(${Object.keys(m).length}) — 14:30 레거시 폴(프리필터 150) 폴백. 신호 발산 가능 (APEX#8)`);
+      }
+    } catch (e) {
+      log.warn('SCHED', `morning_change 로드 실패 — 레거시 폴백: ${e.message}`);
+    }
+
     const scanned = await scanAllStocks();
-    const result = await selectClusterLaggard1430Live(scanned, todayYmd);
+    const result = await selectClusterLaggard1430Live(scanned, todayYmd, { morningRets });
     if (!result.picks || result.picks.length === 0) {
       log.info('SCHED', `14:30 신호 — 없음 (${result.excluded?.reason || '조건 미충족'})`);
       await discord.sendNoSignal?.(result);

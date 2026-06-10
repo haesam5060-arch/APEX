@@ -122,6 +122,21 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_scanflow_date ON scan_flow(signal_date, id);
 
+  -- 09:31 모닝 장중등락률 확정 수집 (APEX#8, 2026-06-10)
+  --   09:31 cron: 전일대비 상위 N ∪ 거래대금 상위 M (B안) 종목의 09:00~09:29 장중등락률을
+  --   poll_morning_change로 확정 계산해 저장. 14:30 신호는 이 저장분만 사용.
+  --   (구 14:30 시점 프리필터 150 재구성은 신호일 29% 발산 — 09:31 수집으로 ~3%)
+  CREATE TABLE IF NOT EXISTS morning_change (
+    signal_date     TEXT NOT NULL,                     -- YYYYMMDD
+    code            TEXT NOT NULL,                     -- 6자리 (A 없음)
+    ret             REAL NOT NULL,                     -- 09:00~09:29 장중 등락률
+    vi_ok           INTEGER NOT NULL DEFAULT 0,        -- 백테 VI 필터 통과 (first<=905, bars>=20)
+    first_open      INTEGER,
+    last_close      INTEGER,
+    polled_at       TEXT,
+    PRIMARY KEY (signal_date, code)
+  );
+
   -- 09:29 Top10 snapshot (사후 분석/리뷰)
   --   매일 09:29 cron: 09:00~09:29 등락률 Top10 저장
   CREATE TABLE IF NOT EXISTS top10_snapshot (
@@ -376,6 +391,14 @@ const stmts = {
   `),
   getScanFlowByDate: db.prepare(`SELECT * FROM scan_flow WHERE signal_date = ? ORDER BY id`),
   clearScanFlowPhase: db.prepare(`DELETE FROM scan_flow WHERE signal_date = ? AND phase = ?`),
+
+  // ── morning_change (09:31 확정 수집, APEX#8) ──
+  insertMorningChange: db.prepare(`
+    INSERT OR REPLACE INTO morning_change (signal_date, code, ret, vi_ok, first_open, last_close, polled_at)
+    VALUES (@signal_date, @code, @ret, @vi_ok, @first_open, @last_close, @polled_at)
+  `),
+  morningChangeByDate: db.prepare(`SELECT * FROM morning_change WHERE signal_date = ?`),
+  clearMorningChange: db.prepare(`DELETE FROM morning_change WHERE signal_date = ?`),
 
   // ── top10_snapshot ──
   insertTop10: db.prepare(`

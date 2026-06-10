@@ -134,9 +134,19 @@ def run_live(payload):
         tc = today_change.get(code[1:]) if code[1:] in today_change else today_change.get(code)
         if tc is None:
             continue
-        closes = [panel.get(code, {}).get(d) for d in win]
-        closes = [c for c in closes if c]
-        if len(closes) < 2:
+        # ★ 백테(ap29/aprev1 compute_dev_raw)와 동일 생존규칙 (APEX#14):
+        #   윈도우 종가가 하나라도 결손이면(신규상장·거래정지) 멤버를 편차 계산에서 제외.
+        #   구버전(결손 허용·압축 누적)은 부분 이력 멤버가 극단 편차로 bottom3을 점거해
+        #   같은 클러스터에서도 백테와 다른 픽이 나왔음 (20260508 재현).
+        closes = []
+        ok = True
+        for d in win:
+            v = panel.get(code, {}).get(d)
+            if not v or v <= 0:
+                ok = False
+                break
+            closes.append(float(v))
+        if not ok or len(closes) < 2:
             continue
         rets = [np.log(closes[k]/closes[k-1]) for k in range(1, len(closes))]
         rets.append(np.log(1.0 + float(tc)))   # 오늘 14:30 (전일대비)
