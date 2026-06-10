@@ -456,13 +456,13 @@
       오후 2시 30분, <span class="hl">강한 동조 그룹에서 가장 덜 오른 1~2종목</span>을 14:50에 사고,<br>
       <span class="hl">다음날 아침 시초가</span>에 판다. <span style="font-size:0.55em;color:#22d3ee;font-weight:700;">🌙 오버나잇 평균회귀(laggard)</span>
       <span style="font-size:0.65em;color:var(--dim);font-weight:600;line-height:1.5;display:block;margin-top:6px;">
-        강한 클러스터의 덜 오른 멤버가 다음날 아침 따라잡기(catch-up) → 알파의 대부분이 오버나잇 갭에서 발생 (레짐ON 매매당 +0.99%, MDD -12.7%)
+        강한 클러스터의 덜 오른 멤버가 다음날 아침 따라잡기(catch-up) → 알파의 대부분이 오버나잇 갭에서 발생 (레짐ON 매매당 +1.12%, MDD -11.8%)
       </span>
     </div>
     <div class="hero-desc">
       <p style="font-size:14px;line-height:1.65;">
-        매일 <strong>오후 14:30</strong>, 아침 등락률 상위권이 속한 <strong>가장 강하게 묶이는 동조 그룹</strong>(spectral cluster, 동조도 ≥ 0.15, 멤버 ≥ 8명)을 찾습니다.
-        그 클러스터 안에서 <strong>14:30까지 가장 덜 오른(편차 최저) 멤버</strong> 중 <strong>진입가 1만~5만원</strong> 종목을 <strong>최대 2개(cap2)</strong> 골라
+        매일 <strong>오전 09:31</strong>에 아침(09:00~09:29) 장중등락률을 확정 수집하고, <strong>오후 14:30</strong>에 그 아침 상위권이 속한 <strong>가장 강하게 묶이는 동조 그룹</strong>(spectral cluster, 동조도 ≥ 0.15, 멤버 ≥ 8명)을 찾습니다.
+        그 클러스터 안에서 <strong>14:30까지 가장 덜 오른(편차 최저) 멤버</strong> 중 <strong>ETF 제외 + 진입가 1만~5만원</strong> 종목을 <strong>최대 2개(cap2)</strong> 골라
         <strong>14:50 종가에 매수</strong>합니다. 같은 그룹의 덜 오른 종목이 다음날 평균으로 따라붙는 통계를 활용.
         <strong>청산 = 다음날(T+1) 첫 분봉 시초가</strong> 시장가 매도. <strong style="color:#22d3ee;">손절 없음</strong> — 손익의 96%가 오버나잇 갭에서 나와 장중 손절이 무의미하기 때문.
         대신 <strong>레짐 가드</strong>(L1 임시휴면 / L2 레짐붕괴 중단)로 하방을 통제.
@@ -493,52 +493,53 @@
         </div>
       </div>
       <div class="why orange">
-        <div class="why-head"><span class="no">④</span>왜 1만~5만원 · 손절 없음?</div>
+        <div class="why-head"><span class="no">④</span>왜 1만~5만원 · ETF 제외 · 손절 없음?</div>
         <div class="why-body">
-          동전주(노이즈)·고가주(자본 문제)를 배제한 <strong>중가주만</strong> 매수.
+          동전주(노이즈)·고가주(자본 문제)를 배제한 <strong>중가주만</strong>, 그리고 <strong>ETF는 후보 제외</strong> —
+          ETF는 지수추종이라 항상 "덜 오른 놈"처럼 보이지만 따라잡기 알파가 없음 (백테 무알파 확인).
           손익의 <strong>96%가 오버나잇 갭</strong>이라 장중 손절은 무의미 → <em>손절 없이</em> 레짐 가드로 통제.
         </div>
       </div>
     </div>
 
-    <!-- 핵심 지표 (레짐ON 2025-09-01~현재, cap2, 가드+0.3%슬립, 2026-06-01) -->
+    <!-- 핵심 지표 (레짐ON 2025-09-01~, aprev2b 운영정의·ETF필터·가드+0.3%, 2026-06-11) -->
     <div class="hero-metrics">
       <div class="hm">
         <div class="hm-label">매매당 평균 (레짐ON)</div>
-        <div class="hm-value pos">+0.99<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">2025-09~현재 132매매 / 수수료 0.3% 차감 / 중앙값 +0.53%</div>
+        <div class="hm-value pos">+1.12<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">2025-09~ 105매매 / 비용 0.3% 차감 / 중앙값 +0.85%</div>
       </div>
       <div class="hm">
         <div class="hm-label">매매 승률 (레짐ON)</div>
-        <div class="hm-value pos">65<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">KOSPI 59 / KOSDAQ 73 (양 시장)</div>
+        <div class="hm-value pos">72<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">최고 +11.5% / 최악 -5.7% (매매당)</div>
       </div>
       <div class="hm">
         <div class="hm-label">누적 (레짐ON~현재)</div>
-        <div class="hm-value pos">+79<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-value pos">+113<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
         <div class="hm-sub">2025-09-01 레짐 전환 이후 (가드 적용)</div>
       </div>
       <div class="hm">
         <div class="hm-label">최대 손실 구간 (MDD)</div>
-        <div class="hm-value warn">−12.7<small style="font-size:13px;font-weight:600;color:var(--yellow);margin-left:2px">%</small></div>
-        <div class="hm-sub">레짐ON 구간 / 가드(L1·L2)로 통제</div>
+        <div class="hm-value warn">−11.8<small style="font-size:13px;font-weight:600;color:var(--yellow);margin-left:2px">%</small></div>
+        <div class="hm-sub">2년 전체 동일 / 가드(L1·L2)로 통제</div>
       </div>
       <div class="hm">
         <div class="hm-label">Sharpe (레짐ON)</div>
-        <div class="hm-value pos">4.4<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px"></small></div>
+        <div class="hm-value pos">5.82<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px"></small></div>
         <div class="hm-sub">⚠️ 레짐피크 — forward 기대 ~1.5~2.0</div>
       </div>
       <div class="hm">
         <div class="hm-label">최근 3M</div>
-        <div class="hm-value pos">+40<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
-        <div class="hm-sub">33매매 / 승률 82% / Sharpe 10.5</div>
+        <div class="hm-value pos">+31<small style="font-size:13px;font-weight:600;color:var(--green);margin-left:2px">%</small></div>
+        <div class="hm-sub">29매매 / 승률 86% / MDD -2.7%</div>
       </div>
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(34,211,238,0.06);border-left:3px solid var(--accent);font-size:11.5px;color:var(--dim2);">
       📅 <strong style="color:var(--accent);">레짐 ON = 2025-09-01</strong>: 이 시점부터 전략이 작동하기 시작(누적 저점 후 지속 상승). 이전 2024-06~2025-08은 횡보·손실 구간이라 <strong>레짐 의존 엔진</strong>으로 분류. 시장범위 = KOSPI+KOSDAQ(BOTH).
     </div>
     <div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(245,158,11,0.06);border-left:3px solid var(--orange);font-size:11.5px;color:var(--dim2);">
-      ⚠️ <strong style="color:var(--orange);">주의 (정직)</strong>: 화려한 수치는 최근 우호 레짐 + 가드 효과. 현실 슬리피지 반영 시 forward 기대 Sharpe ~1.5~2.0. <strong>2024식 레짐 복귀 시 L2 킬스위치(롤링63&lt;-8% OR 드로다운&lt;-15%)가 매매 중단 + 재설계</strong>. paper-self에서 실슬리피지·가드 실작동 실측 중.
+      ⚠️ <strong style="color:var(--orange);">주의 (정직)</strong>: 화려한 수치는 최근 우호 레짐 + 가드 효과. 현실 슬리피지 반영 시 forward 기대 Sharpe ~1.5~2.0 — 비용 민감도: <strong>왕복 0.5%까지는 L2 안전, ~0.8%부터 킬스위치 자멸 위험</strong> (real 전환 게이트 = 실측 슬립 중앙값 ≤0.5%). <strong>2024식 레짐 복귀 시 L2 킬스위치(롤링63&lt;-8% OR 드로다운&lt;-15%)가 매매 중단 + 재설계</strong>. paper-self에서 실슬리피지·가드 실작동 실측 중.
     </div>
 
     <!-- 한 줄 비유 (14:30 클러스터 laggard) -->
@@ -693,7 +694,7 @@
       <div class="note-box" style="margin-top:12px;">
         <strong>📌 96주(2년) 한눈에:</strong>
         강세 13주(14%) · 약강세 20주(21%) · 횡보 <strong>33주(34%, 가장 흔함)</strong> · 약약세 20주(21%) · 약세 10주(10%).
-        이 엔진은 <strong>레짐 의존</strong> — <strong>2025-09 이후</strong> 구간에서 강하게 작동(누적 +79%), 그 이전(2024~2025 중반)은 횡보·손실. 레짐 전환을 가드(L1/L2)로 감지.
+        이 엔진은 <strong>레짐 의존</strong> — <strong>2025-09 이후</strong> 구간에서 강하게 작동(누적 +113%), 그 이전(2024~2025 중반)은 횡보 (가드로 본전 방어). 레짐 전환을 가드(L1/L2)로 감지.
         <br><br>
         ⚡ 매매는 선택적 — 거래일의 약 48%만, 살 땐 1~2종목(cap2). 클러스터+laggard+가격대(1만~5만) 삼중 필터로 고품질 신호만 진입.
       </div>
@@ -873,16 +874,20 @@
         <table>
           <thead><tr><th style="width:90px">시각</th><th style="width:150px">하는 일</th><th>설명</th></tr></thead>
           <tbody>
-            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날(14:50) 매수한 종목을 9시 첫 분봉 시초가로 자동 매도 (T+1 청산, 손절 없음)</td></tr>
+            <tr><td><strong>08:50</strong></td><td>전날 산 종목 매도</td><td>전날(14:50) 매수한 종목을 9시 첫 분봉 시초가로 자동 매도 (T+1 청산, 손절 없음). L1 휴면 중 기록한 <strong>그림자 가상체결도 같은 시초가로 청산</strong>해 가드 시계열에 반영.</td></tr>
+            <tr><td><strong>09:31</strong></td><td>아침 등락률 확정 수집</td><td>
+              전일대비 상위 400 ∪ 거래대금 상위 200 (~560종목)의 <strong>09:00~09:29 장중등락률</strong>을 분봉으로 확정 계산해 DB 저장 (~5초).
+              14:30 신호는 이 저장분만 사용 — 14:30 시점 재구성의 신호 발산(29%)을 3%로 축소.
+            </td></tr>
             <tr class="highlight"><td><strong>14:30</strong></td><td><strong style="color:var(--accent)">★ 오늘 살 종목 결정</strong></td><td>
-              ① 아침 등락률 상위권이 속한 <strong>가장 강한 동조 클러스터</strong> 선택 (avg_corr≥0.15, 멤버≥8)<br>
-              ② 그 클러스터에서 <strong>14:30까지 가장 덜 오른(편차 최저)</strong> 멤버 후보(bottom3)<br>
-              ③ <strong>진입가 1만~5만원</strong> + 상한가잠김 제외 → 최대 <strong>2종목(cap2)</strong> 선정<br>
-              ④ <strong>레짐 가드</strong>(L1 휴면/L2 중단) 통과 시에만 진행
+              ① 아침 등락률 상위권(09:31 수집분)이 속한 <strong>가장 강한 동조 클러스터</strong> 선택 (avg_corr≥0.15, 멤버≥8)<br>
+              ② 그 클러스터에서 <strong>14:30까지 가장 덜 오른(편차 최저)</strong> 멤버 후보(bottom3) — 20일 종가 완전이력 멤버만<br>
+              ③ <strong>ETF 제외</strong> → <strong>진입가 1만~5만원</strong> + 상한가잠김 제외 → 최대 <strong>2종목(cap2)</strong><br>
+              ④ <strong>레짐 가드</strong>: L2(붕괴)면 중단 / <strong>L1(휴면)이면 실매수 없이 그림자 추적만</strong> — 가상 수익이 회복되면 자동 재개
             </td></tr>
             <tr class="highlight"><td><strong>14:50</strong></td><td><strong style="color:#22d3ee">★ 정적 매수</strong></td><td>
-              14:50 종가에 선택한 1~2종목을 <strong>균등 분할 시장가 매수</strong> (슬롯당 10만원).<br>
-              (오후 신호라 동적 polling 없이 종가 진입)
+              14:50 현재가에 선택한 1~2종목을 <strong>균등 분할 시장가 매수</strong> (슬롯당 10만원).<br>
+              (오후 신호라 동적 polling 없이 진입 · 14:25~14:45/14:45~15:10 시간창 밖 수동 트리거는 거부)
             </td></tr>
             <tr><td>15:30 폐장</td><td>오버나잇 보유</td><td><strong>손절 없음</strong> — 알파의 96%가 오버나잇 갭에서 발생하므로 장중 손절 무의미</td></tr>
             <tr class="highlight"><td><strong>다음날 ~09:01</strong></td><td><strong style="color:#22d3ee">★ T+1 시초가 매도</strong></td><td>
@@ -915,8 +920,8 @@
         </div>
         <div class="tf-box">
           <div class="tf-label">3단계</div>
-          <div class="tf-value">중가주 필터</div>
-          <div class="tf-sub">진입가 1만~5만원 + 상한가잠김 제외</div>
+          <div class="tf-value">실격 제외</div>
+          <div class="tf-sub">ETF 제외 + 진입가 1만~5만원 + 상한가잠김 제외</div>
         </div>
         <div class="tf-box pick">
           <div class="tf-label">4단계 ★</div>
@@ -931,6 +936,9 @@
         <br><br>
         <strong>예시:</strong> "2차전지" 클러스터의 대표주가 강세인데, 같은 클러스터의 중가주(2~3만원대)가 14:30까지 그룹 평균보다 덜 올랐다면
         → 그 laggard를 14:50에 매수 (다음날 시초가 회귀 시 수익). <strong>손절 없이</strong> 레짐 가드로 하방 통제.
+        <br><br>
+        <strong style="color:var(--orange);">⚠️ ETF는 왜 빼나?</strong> ETF는 지수 추종이라 급등 클러스터에서 <strong>항상 편차 최저에 깔리지만</strong>(구조적 가짜 laggard),
+        따라잡기 알파가 없음 — 2년 백테에서 ETF laggard 매매당 ~0% vs 개별주 +0.62% (실사례: 2026-06-10 cap2 전부 코스닥액티브 ETF 매수 → 필터 도입).
       </div>
     </div>
   </section>
@@ -964,35 +972,42 @@
             충분히 강하게 묶인 동조 그룹만 매매.
           </div>
         </div>
+        <div class="why" style="border-color:rgba(168,85,247,0.5);background:rgba(168,85,247,0.05);">
+          <div class="why-head"><span class="no" style="background:rgba(168,85,247,0.2);color:#a855f7;">📦</span>④ ETF 매수 제외</div>
+          <div class="why-body">
+            ETF는 지수추종이라 클러스터에서 <strong>항상 편차 최저(가짜 laggard)</strong>로 깔리지만 따라잡기 알파 없음.
+            매수 후보에서 제외 (네이버 ETF 리스트 일 1회 자동 갱신, 2년 백테 Sharpe 개선 검증).
+          </div>
+        </div>
         <div class="why" style="border-color:rgba(244,114,182,0.4);">
-          <div class="why-head"><span class="no" style="background:rgba(244,114,182,0.2);color:#f472b6;">🛑</span>④ 상한가 잠김 제외</div>
+          <div class="why-head"><span class="no" style="background:rgba(244,114,182,0.2);color:#f472b6;">🛑</span>⑤ 상한가 잠김 제외</div>
           <div class="why-body">
             14:50 진입가가 <strong>상한가 근처(전일×1.30×0.995)</strong>면 제외.
             잔량 부족으로 실제 체결이 불가능한 종목을 자동 차단.
           </div>
         </div>
         <div class="why" style="border-color:rgba(34,197,94,0.4);">
-          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>⑤ 중가주 필터 (1만~5만)</div>
+          <div class="why-head"><span class="no" style="background:rgba(34,197,94,0.2);color:var(--green);">🎯</span>⑥ 중가주 필터 (1만~5만)</div>
           <div class="why-body">
             진입가 <strong>10,000~50,000원</strong> 종목만 매수. 동전주(노이즈·슬리피지)와 고가주(자본 1슬롯 10만 한계)를 동시에 배제.
           </div>
         </div>
         <div class="why" style="border-color:rgba(34,211,238,0.5);background:rgba(34,211,238,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🌙</span>⑥ 손절 없음 (구조적)</div>
+          <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🌙</span>⑦ 손절 없음 (구조적)</div>
           <div class="why-body">
             손익의 <strong>96%가 오버나잇 갭</strong>에서 발생 → 장중 손절이 무의미(백테 검증).
             손절 대신 <strong>레짐 가드(L1/L2)</strong>로 하방을 통제.
           </div>
         </div>
         <div class="why" style="border-color:rgba(251,191,36,0.5);background:rgba(251,191,36,0.05);">
-          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">🌡️</span>⑦ 레짐 가드 L1 (임시휴면)</div>
+          <div class="why-head"><span class="no" style="background:rgba(251,191,36,0.2);color:var(--yellow);">🌡️</span>⑧ 레짐 가드 L1 (휴면 + 그림자 추적)</div>
           <div class="why-body">
-            직전 <strong>40매매일 실현누적 &lt; 0</strong>이면 매매 자동 휴면, 누적이 ≥0로 회복되면 자동 재개.
-            일상적 레짐 약화에 대응.
+            직전 <strong>40매매일 누적 &lt; 0</strong>이면(표본 1개부터 — 백테와 동일) 실매수 휴면.
+            휴면 중에도 <strong>신호·가상체결(그림자)을 계속 기록</strong>해 가상 누적이 ≥0로 회복되면 <strong>자동 재개</strong>.
           </div>
         </div>
         <div class="why" style="border-color:rgba(239,68,68,0.5);background:rgba(239,68,68,0.06);">
-          <div class="why-head"><span class="no" style="background:rgba(239,68,68,0.2);color:#f87171;">🛑</span>⑧ 레짐 가드 L2 (레짐붕괴 킬스위치)</div>
+          <div class="why-head"><span class="no" style="background:rgba(239,68,68,0.2);color:#f87171;">🛑</span>⑨ 레짐 가드 L2 (레짐붕괴 킬스위치)</div>
           <div class="why-body">
             <strong>롤링 63매매일 누적 &lt; -8%</strong> 또는 <strong>피크 드로다운 &lt; -15%</strong>면 매매 중단 + 경보 + 재설계 트리거.
             자동 재개 안 함(래치) — 2024식 레짐 복귀를 확실히 차단.
@@ -1007,28 +1022,28 @@
         </div>
         <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑨ 중복 매수 방지</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">🔒</span>⑩ 중복 매수 방지</div>
             <div class="why-body">
               체결 확인 중 같은 종목을 다시 매수 시도하는 것을 차단.
               <strong>자본 2배 사용 위험 0.</strong>
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑩ 잔량 자동 취소</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">✂️</span>⑪ 잔량 자동 취소</div>
             <div class="why-body">
               부분/미체결 시 KIS <code>cancelOrder</code> 자동 호출.
               <strong>DB ↔ KIS 잔고 일치 보장.</strong>
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑪ 분봉 SSoT</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📦</span>⑫ 분봉 SSoT</div>
             <div class="why-body">
               신호·편차 계산을 서랍 클러스터 + <code>backtest/parquet</code>에서만 read.
               <strong>백테와 운영 데이터 출처 일치</strong> (글로벌 §8.4.2).
             </div>
           </div>
           <div class="why" style="border-color:rgba(34,211,238,0.4);">
-            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📅</span>⑫ 매수금지 캘린더</div>
+            <div class="why-head"><span class="no" style="background:rgba(34,211,238,0.2);color:#22d3ee;">📅</span>⑬ 매수금지 캘린더</div>
             <div class="why-body">
               분기말·배당락일 매수 차단(SSoT <code>no_buy_calendar.json</code>).
               <span class="dim">매도는 정상.</span>
@@ -1039,10 +1054,13 @@
       <div class="note-box" style="margin-top:14px;background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
         <strong style="color:#f87171;">🛡️ 손절 대신 레짐 가드 = 이 엔진의 핵심 리스크 관리.</strong>
         장중 손절이 무의미한 구조(손익 96%가 오버나잇 갭)라 <strong>손절을 두지 않는 대신</strong>,
-        전략 자기 자본곡선을 감시해 레짐이 약해지면 <strong>L1(직전 40매매일 누적&lt;0 → 임시휴면)</strong>으로 쉬고,
+        전략 자기 자본곡선을 감시해 레짐이 약해지면 <strong>L1(직전 40매매일 누적&lt;0 → 휴면)</strong>으로 쉬고,
         레짐이 붕괴하면 <strong>L2(롤링 63매매일 &lt;-8% OR 드로다운 &lt;-15% → 매매 중단 + 재설계)</strong>로 차단한다.
         <br><br>
-        <strong>레짐 ON 구간 MDD -12.7%</strong> — 2024식 레짐(누적 손실)이 돌아오면 가드가 자동으로 빠져나온다. 손실을 "막는" 게 아니라 "레짐을 감지해 비켜서는" 방식.
+        <strong style="color:#22d3ee;">🕯️ L1 휴면 = 그림자 추적 모드.</strong> 휴면 중에도 매일 신호를 만들어 "샀다면 얼마였을지"를 가상 기록(shadow) —
+        이 가상 수익이 누적 ≥0로 회복되면 자동으로 실매매를 재개한다 (백테의 가드 동학과 동일).
+        <br><br>
+        <strong>2년 MDD -11.8%</strong> — 2024식 레짐(누적 손실)이 돌아오면 가드가 자동으로 빠져나온다. 손실을 "막는" 게 아니라 "레짐을 감지해 비켜서는" 방식.
       </div>
     </div>
   </section>
@@ -1050,35 +1068,49 @@
   <!-- ─────────────── 백테스트 결과 ─────────────── -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="num-pill">4</span>백테 결과 (레짐ON 기준)</div>
-      <div class="section-meta">레짐 ON 2025-09-01 ~ 현재 · KOSPI+KOSDAQ · cap2 · 가드+0.3% 비용 차감</div>
+      <div class="section-title"><span class="num-pill">4</span>백테 결과 (운영 정의 기준 백테 aprev2b)</div>
+      <div class="section-meta">2024-06 ~ 2026-06 (2년) · KOSPI+KOSDAQ · cap2 · ETF필터 · 가드+0.3% 비용 차감</div>
     </div>
     <div class="section-body">
 
-      <h3 class="sub-h3">14:30 클러스터 laggard 핵심 성과 (레짐ON 2025-09-01~현재, cap2)</h3>
+      <h3 class="sub-h3">14:30 클러스터 laggard 핵심 성과 (aprev2b — 운영과 1:1 정의)</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
-        자본 20만(슬롯 10만×2), <strong>14:50 종가 매수 → T+1 첫 분봉 시초가 매도, 손절 없음</strong> 기준. 비용 0.3% + 레짐 가드 적용.
-        ★ <strong>레짐 ON(2025-09-01)부터</strong> 집계 — 이전 구간은 횡보·손실이라 레짐 의존 엔진.
-        백테 스크립트: <code>analysis/ap22~ap28</code>.
+        자본 20만(슬롯 10만×2), <strong>14:50 매수 → T+1 첫 분봉 시초가 매도, 손절 없음</strong> 기준. 비용 0.3% + 레짐 가드 적용.
+        ★ 백테가 <strong>운영 의미론 3종(마지막 체결가 기준 가격·우선주 시드 제외·ETF 후보 제외)</strong>을 그대로 반영 —
+        라이브 신호와 5개 날짜 편차값 소수점 일치 검증(2026-06-10). 백테 스크립트: <code>analysis/aprev2b_live_def_laggard.py</code>.
       </p>
       <table class="data-table">
-        <thead><tr><th>지표</th><th>값</th><th>설명</th></tr></thead>
+        <thead><tr><th>지표</th><th>2년 전체</th><th>레짐ON (2025-09-01~)</th></tr></thead>
         <tbody>
-          <tr><td>매매 건수</td><td class="pos"><strong>132 매매</strong></td><td>KOSPI 59 / KOSDAQ 73 (양 시장), 86 매매일</td></tr>
-          <tr class="key-row"><td>매매당 평균</td><td class="pos"><strong>+0.99%</strong></td><td>per-trade ret, 중앙값 +0.53%</td></tr>
-          <tr><td>승률 (매매당)</td><td class="pos"><strong>65%</strong></td><td>최고 +12.6% / 최악 -6.0%</td></tr>
-          <tr class="key-row"><td>MDD (최대 손실 구간)</td><td class="warn"><strong>−12.7%</strong></td><td>레짐ON 구간 / 가드(L1·L2)로 통제</td></tr>
-          <tr><td>Sharpe (레짐ON)</td><td class="pos"><strong>4.4</strong></td><td>⚠️ 레짐피크 — forward 기대 ~1.5~2.0</td></tr>
-          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (레짐ON~현재)</strong></td><td class="pos"><strong>+79%</strong></td><td>2025-09-01 레짐 전환 이후 (가드 적용)</td></tr>
-          <tr><td>최근 3M</td><td class="pos"><strong>+40% / 승률 82%</strong></td><td>33매매 / Sharpe 10.5 (최근 우호 레짐)</td></tr>
-          <tr><td>일평균 빈도</td><td>0.7건/거래일</td><td>거래일의 약 48%만 매매 (선택적), 살 땐 1~2종목</td></tr>
+          <tr><td>매매 건수 / 매매일</td><td>211매매 / 144일</td><td class="pos"><strong>105매매 / 73일</strong></td></tr>
+          <tr class="key-row"><td>매매당 평균 (중앙값)</td><td class="pos">+0.63% (+0.48%)</td><td class="pos"><strong>+1.12% (+0.85%)</strong></td></tr>
+          <tr><td>승률 (매매당)</td><td class="pos">64%</td><td class="pos"><strong>72%</strong> (최고 +11.5% / 최악 -5.7%)</td></tr>
+          <tr class="key-row" style="background:rgba(34,197,94,0.05);"><td><strong>누적 (가드 적용)</strong></td><td class="pos"><strong>+121.5%</strong></td><td class="pos"><strong>+113.2%</strong></td></tr>
+          <tr class="key-row"><td>MDD</td><td class="warn"><strong>−11.8%</strong></td><td class="warn">−11.8% (동일 구간)</td></tr>
+          <tr><td>Sharpe</td><td class="pos">3.73</td><td class="pos"><strong>5.82</strong> ⚠️ 레짐피크 — forward ~1.5~2.0</td></tr>
+          <tr><td>연도별 (가드)</td><td colspan="2">2024 <strong>-0%</strong> / 2025 <strong>+38%</strong> / 2026 <strong>+58%</strong> — 배드레짐(2024)은 가드가 본전 방어</td></tr>
+          <tr><td>최근 3M</td><td colspan="2" class="pos"><strong>+31% / 승률 86% / MDD -2.7%</strong> (29매매, 최근 우호 레짐)</td></tr>
+          <tr><td>매매 빈도</td><td colspan="2">거래일의 약 29%만 매매 (선택적), 살 땐 1~2종목</td></tr>
         </tbody>
       </table>
+
+      <h3 class="sub-h3 mt">비용(슬리피지) 민감도 — real 전환 게이트의 근거</h3>
+      <table class="data-table">
+        <thead><tr><th>왕복비용</th><th>2년 누적</th><th>롤링63 최저</th><th>L2 킬스위치</th></tr></thead>
+        <tbody>
+          <tr><td>0.3% (백테 기준)</td><td class="pos">+121.5%</td><td class="pos">+2.7%</td><td class="pos">안전</td></tr>
+          <tr class="key-row"><td><strong>0.5%</strong></td><td class="pos">+62.8%</td><td>-2.7%</td><td class="pos"><strong>안전</strong> (컷 -8%까지 여유)</td></tr>
+          <tr><td>0.8%</td><td class="warn">+27.8%</td><td class="warn">-9.7%</td><td class="warn"><strong>발동 위험</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="dim" style="font-size:12px;line-height:1.6;margin-top:6px;">
+        → <strong>real 전환 게이트: KIS paper에서 실측 왕복슬립 중앙값 ≤ 0.5%</strong> (slippage_log 인프라 가동 중). 0.8% 이상이면 킬스위치가 전략을 자멸시킬 수 있어 보류.
+      </p>
       <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
         <strong style="color:#f87171;">⚠️ 정직한 한계 — 레짐 의존 엔진</strong>
         <br><br>
-        화려한 수치(+79%, Sharpe 4.4)는 <strong>최근 우호 레짐 + 가드 효과</strong>가 큽니다. 같은 전략이 <strong>2024년에는 손실</strong>이었고,
-        가드를 빼고 현실 슬리피지를 넣으면 2년 기준 거의 본전이 됩니다. <strong>올웨더 엣지가 아니라 레짐-타이밍 베팅</strong>입니다.
+        화려한 수치(레짐ON +113%, Sharpe 5.8)는 <strong>최근 우호 레짐 + 가드 효과</strong>가 큽니다. 같은 전략이 <strong>2024년에는 가드로 겨우 본전(-0%)</strong>이었고,
+        왕복비용이 0.8%를 넘으면 L2 킬스위치가 발동할 수 있습니다. <strong>올웨더 엣지가 아니라 레짐-타이밍 베팅</strong>입니다.
         <br><br>
         <strong>→ forward 기대치는 Sharpe ~1.5~2.0로 보수적으로 봐야 하며, 2024식 레짐이 돌아오면 L2 킬스위치가 매매를 중단합니다.</strong>
         paper-self 단계에서 실슬리피지·가드 실작동을 실측 중.
@@ -1086,13 +1118,13 @@
       <div class="note-box" style="background:rgba(168,85,247,0.05);border-color:rgba(168,85,247,0.25);">
         <strong style="color:#a855f7;">✓ 검증 통과 (글로벌 §8.5)</strong>
         <br><br>
-        <strong>✓ 연도별 OOS:</strong> 2024/2025/2026 분리 검증 — 과적합 셀(고Sharpe·중가주 과집중)은 2024 음수로 솎아냄. 채택 셀만 일관 양수 구간 확보.
+        <strong>✓ 연도별 OOS:</strong> 2024/2025/2026 분리 검증 — 과적합 셀(고Sharpe·중가주 과집중)은 2024 음수로 솎아냄. ETF 제외 효과도 3개 연도 일관 (전부 ETF&lt;개별주).
         <br><br>
-        <strong>✓ 슬라이딩 윈도우:</strong> 3M·6M 롤링으로 robust 마진 확인.
+        <strong>✓ 운영-백테 byte 정합:</strong> 라이브 신호(run_live)와 백테 기계를 5개 날짜로 대조 — 클러스터·bottom3·편차값 소수점 4자리 일치 (2026-06-10, 이슈 #8·#14 수정 후).
         <br><br>
-        <strong>✓ 계산모델 정합:</strong> cap2 백테 = 운영 슬롯과 byte-equivalent (h7 무제한↔cap 불일치 함정 회피).
+        <strong>✓ 계산모델 정합:</strong> cap2 백테 = 운영 슬롯과 byte-equivalent (h7 무제한↔cap 불일치 함정 회피). 모닝 등락률도 09:31 확정 수집으로 신호 발산 29%→3%.
         <br><br>
-        <strong>✓ Lookahead 자가검증:</strong> 편차는 D일 14:30까지 5분봉만 / 클러스터는 D-1 스냅샷 / 매수 14:50 close · 매도 T+1 open / 상한가잠김 제외.
+        <strong>✓ Lookahead 자가검증:</strong> 편차는 D일 14:30까지 체결가만 / 클러스터는 D-1 스냅샷 / 매수 14:50 · 매도 T+1 시초가 / 상한가잠김·ETF 제외.
         <br><br>
         <strong>✓ spectral cluster SSoT:</strong> 서랍 <code>out/spectral_clusters.parquet</code> + backtest/parquet (분봉 SSoT, 글로벌 §8.4.2).
       </div>
@@ -1100,7 +1132,7 @@
       <h3 class="sub-h3 mt">시장 분위기별 성과 (96주)</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:10px;">
         이 엔진은 <strong>레짐 의존</strong>이라 "모든 시장에서 작동"하지 않습니다 — 위 96주 막대에서 보듯
-        <strong>2025-09 이후 구간에서 강하게 작동</strong>(누적 +79%), 그 이전(2024~2025 중반)은 횡보·손실이었습니다.
+        <strong>2025-09 이후 구간에서 강하게 작동</strong>(누적 +113%), 그 이전(2024~2025 중반)은 횡보 — 가드가 본전을 방어했습니다.
       </p>
       <div class="note-box">
         <strong>핵심 패턴 (정직):</strong>
@@ -1119,17 +1151,17 @@
       <table class="data-table">
         <thead><tr><th>검증</th><th>결과</th><th>의미</th></tr></thead>
         <tbody>
-          <tr class="key-row"><td>연도별 OOS (2024/25/26)</td><td class="warn">2024 음수 / 2025·26 양수</td><td>레짐 의존 확인 — 과적합 셀은 솎아냄</td></tr>
-          <tr><td>슬라이딩 윈도우 (3M/6M)</td><td class="pos">레짐ON 구간 robust</td><td>최근 구간 일관성</td></tr>
+          <tr class="key-row"><td>연도별 OOS (2024/25/26)</td><td class="warn">2024 -0% / 2025 +38% / 2026 +58%</td><td>레짐 의존 확인 — 배드레짐은 가드가 본전 방어</td></tr>
+          <tr><td>운영-백테 byte 정합</td><td class="pos">5개 날짜 편차 소수점 일치</td><td>last-trade·우선주·ETF 의미론 3종 반영 (#8·#13·#14)</td></tr>
           <tr class="key-row"><td>계산모델 정합 (cap2)</td><td class="pos">운영과 byte-equivalent</td><td>h7 무제한↔cap 불일치 함정 회피</td></tr>
           <tr><td>Lookahead</td><td class="pos">없음</td><td>편차 14:30까지 / 클러스터 D-1 / 매도 T+1</td></tr>
-          <tr class="key-row"><td>레짐ON(2025-09~) 누적 / MDD</td><td class="pos">+79% / -12.7%</td><td>가드 + 0.3% 비용 차감</td></tr>
+          <tr class="key-row"><td>레짐ON(2025-09~) 누적 / MDD</td><td class="pos">+113% / -11.8%</td><td>가드 + 0.3% 비용 차감 (aprev2b)</td></tr>
         </tbody>
       </table>
       <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);">
         <strong style="color:#f87171;">⚠️ 보장 수익이 아닙니다.</strong> 화려한 수치는 최근 우호 레짐 + 가드 효과로, 현실 슬리피지를 넣으면 크게 깎입니다.
         forward 기대 Sharpe는 <strong>~1.5~2.0</strong>로 보수적으로 보고, <strong>2024식 레짐이 돌아오면 L2 킬스위치가 매매를 중단 + 재설계</strong>합니다.
-        시드 일부로 paper-self부터 검증 → 단계적 증액 권장. 상세 수치는 <code>backtest/analysis/out/ap25~ap28</code> 참조.
+        시드 일부로 paper-self부터 검증 → 단계적 증액 권장. 상세 수치는 <code>backtest/analysis/out/aprev2b_live_def_*</code> (공식 기준) 참조.
       </div>
     </div>
   </section>
@@ -1151,7 +1183,7 @@
       </table>
       <div class="note-box">
         <strong>📋 현재 상태:</strong>
-        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>14:50 종가 매수 최대 2종목(cap2) → T+1 시초가 매도 (14:30 클러스터 laggard, 손절 없음, 시장 KOSPI+KOSDAQ)</strong>
+        모드 <code id="cfgMode">paper-self</code> · 자본 <code id="cfgBudget">100,000원</code> · <strong>14:50 매수 최대 2종목(cap2, ETF 제외) → T+1 시초가 매도 (14:30 클러스터 laggard, 손절 없음, 시장 KOSPI+KOSDAQ)</strong>
       </div>
       <div class="note-box" style="background:rgba(34,211,238,0.05);border-color:rgba(34,211,238,0.3);">
         <strong style="color:#22d3ee;">★ 권장 검증 경로</strong>: 레짐 의존 엔진이라 실전 슬리피지·레짐 가드 실작동이 미측정. <strong>paper-self 4주로 백테 vs 실제 체결가 격차 + 가드 동작을 먼저 실측</strong> → paper 2주 → real 소액(25%) → 단계적 증액. NEMESIS(09:29)·POLLUX(09:05)와 시간대(14:30) 분산.
@@ -1183,9 +1215,12 @@
           <tr class="key-row"><td><strong>BOTTOM_N (laggard 후보)</strong></td><td><strong style="color:var(--accent)">3 (편차 최저)</strong></td><td>편차 낮은 순 후보 수집</td></tr>
           <tr class="key-row"><td><strong>APEX_DAILY_CAP</strong></td><td><strong style="color:var(--accent)">2 (하루 최대)</strong></td><td>.env (lag_rank 오름차순 head2 균등분할)</td></tr>
           <tr class="key-row"><td><strong>시장 범위</strong></td><td><strong style="color:var(--green)">KOSPI+KOSDAQ</strong></td><td>서랍 통합 유니버스</td></tr>
-          <tr><td>상한가 잠김 제외</td><td>entry ≥ prev×1.30×0.995 skip</td><td>체결 불가 종목 제외</td></tr>
+          <tr><td>상한가 잠김 제외</td><td>entry ≥ prev×1.30×0.995 skip</td><td>scheduler.selectLaggardBuyList (체결 불가 제외, #7)</td></tr>
+          <tr class="key-row"><td><strong>APEX_ETF_FILTER</strong></td><td><strong style="color:#a855f7">1 (ETF 후보 제외)</strong></td><td>.env · 네이버 etfItemList 일 1회 갱신 (#13)</td></tr>
+          <tr><td><code>MORNING_POLL_N / AMT_N</code></td><td>400 / 200</td><td>.env · 09:31 모닝 수집 프리필터 (전일대비∪거래대금, #8)</td></tr>
+          <tr><td><code>APEX_TIME_GUARD</code></td><td>1 (14:25~14:45 / 14:45~15:10)</td><td>.env · 시간창 밖 수동 트리거 거부 (#11)</td></tr>
           <tr style="background:rgba(34,211,238,0.05);"><td colspan="3" style="font-size:11px;color:#22d3ee;font-weight:600;text-align:center;">— 매수 / 청산 (손절 없음) —</td></tr>
-          <tr class="key-row" style="background:rgba(34,211,238,0.05);"><td><strong>신호 / 매수 시점</strong></td><td><strong style="color:#22d3ee">14:30 / 14:50 close</strong></td><td>scheduler.js (APEX_BUY_CRON, paper-self는 데이터 빌드 후 18:30)</td></tr>
+          <tr class="key-row" style="background:rgba(34,211,238,0.05);"><td><strong>신호 / 매수 시점</strong></td><td><strong style="color:#22d3ee">14:30 / 14:50 close</strong></td><td>scheduler.js (APEX_SIGNAL_CRON / APEX_BUY_CRON — 장중 실시간, 구 18:30 EOD 방식은 폐기)</td></tr>
           <tr class="key-row" style="background:rgba(34,211,238,0.05);"><td><strong>청산</strong></td><td><strong>T+1 첫 분봉 시초가</strong></td><td>scheduler.js 08:50 runMorningSell (손절 없음)</td></tr>
           <tr style="background:rgba(239,68,68,0.05);"><td colspan="3" style="font-size:11px;color:#f87171;font-weight:600;text-align:center;">— 레짐 가드 —</td></tr>
           <tr class="key-row"><td><strong>REGIME_L1_TRAIL_DAYS</strong></td><td><strong style="color:var(--yellow)">40 (누적&lt;0 휴면)</strong></td><td>regime-guard.js (자동 재개)</td></tr>
@@ -1198,8 +1233,9 @@
       <table class="data-table">
         <thead><tr><th style="width:320px">항목</th><th>값 / 위치</th></tr></thead>
         <tbody>
-          <tr><td>전략 백테 / 그리드</td><td><code>backtest/analysis/ap22~ap23</code> (그리드·OOS·슬라이딩)</td></tr>
-          <tr><td>계산모델 정합 / 레짐 스펙</td><td><code>ap26 (cap2)</code> · <code>ap28 (레짐 기록 + 킬스위치)</code></td></tr>
+          <tr class="key-row"><td><strong>★ 공식 기준 백테 (운영 1:1)</strong></td><td><code>backtest/analysis/aprev2b_live_def_laggard.py</code> + <code>out/aprev2b_live_def_*</code></td></tr>
+          <tr><td>ETF 제외 검증 / 정합 검증</td><td><code>aprev1full</code> (ETF 무알파) · run_live↔백테 5날짜 byte 대조 (이슈 #13·#14)</td></tr>
+          <tr><td>이력: 그리드·레짐 스펙</td><td><code>ap22~ap28</code> (정합 전 정의 — 참고용)</td></tr>
           <tr><td>운영 신호 스크립트</td><td><code>scripts/apex_laggard_signal.py</code> (백테 byte 정합)</td></tr>
           <tr><td>분봉 데이터 (SSoT)</td><td><code>backtest/parquet/</code> + <code>parquet_kospi/</code></td></tr>
           <tr><td>spectral cluster</td><td><code>서랍/out/spectral_clusters.parquet</code> + <code>returns_5min.parquet</code></td></tr>
@@ -1207,7 +1243,7 @@
       </table>
       <div class="note-box dim">
         <strong>외부 의존:</strong> 서랍 spectral cluster + returns_5min (read-only) · backtest/parquet (분봉 SSoT) · KIS API(real) · Python venv.
-        <strong>셀 파라미터 변경 시</strong> apex_laggard_signal.py + 백테 <code>ap22</code> 동시 점검 (백테-운영 일치, 글로벌 §8.4.1).
+        <strong>셀 파라미터 변경 시</strong> apex_laggard_signal.py + 기준 백테 <code>aprev2b</code> 동시 재실행 (백테-운영 일치, 글로벌 §8.4.1).
       </div>
       <div class="note-box" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.25);font-size:11.5px;line-height:1.7;">
         <strong style="color:#f87171;">⚠️ 레짐 의존:</strong> 레짐 ON(2025-09-01) 이후 검증. 2024식 레짐 복귀 시 L2 킬스위치가 매매 중단 + 재설계 트리거.
