@@ -19,10 +19,14 @@ test('분기말 (2026Q1 = 2026-03-31) 차단', () => {
   assert(r.reason === 'quarter_end', `reason=quarter_end (실제: ${r.reason})`);
 });
 
-test('2026 배당락일 (12-29) 차단', () => {
+test('2026 배당락일 (12-29) — 규칙 삭제로 통과 (SSoT 2026-06-01 동기화)', () => {
   const r = isBuyBlocked('20261229');
-  assert(r.blocked === true, 'blocked=true 여야 함');
-  assert(r.reason === 'ex_dividend', `reason=ex_dividend (실제: ${r.reason})`);
+  assert(r.blocked === false, 'ex_dividend 규칙 삭제 후 blocked=false 여야 함');
+});
+
+test('ex_dividend 규칙 전체 삭제 확인', () => {
+  const exDiv = Object.values(BLOCK_DATES).filter(v => v.reason === 'ex_dividend');
+  assert(exDiv.length === 0, `ex_dividend ${exDiv.length}건 잔존 — SSoT(quarter_end만)와 불일치`);
 });
 
 test('2026 연말 폐장 (12-30) 차단', () => {
@@ -43,15 +47,15 @@ test('평상일 (2026-10-01) 통과', () => {
 });
 
 // ── BLOCK_DATES 일관성 ──
-test('BLOCK_DATES 2026년 5개 날짜 존재', () => {
-  const expected2026 = ['20260331', '20260630', '20260930', '20261229', '20261230'];
+test('BLOCK_DATES 2026년 4개 날짜 존재 (quarter_end만)', () => {
+  const expected2026 = ['20260331', '20260630', '20260930', '20261230'];
   for (const k of expected2026) {
     assert(BLOCK_DATES[k] !== undefined, `BLOCK_DATES[${k}] 누락`);
   }
 });
 
-test('BLOCK_DATES 2027년 5개 날짜 존재', () => {
-  const expected2027 = ['20270331', '20270630', '20270930', '20271229', '20271230'];
+test('BLOCK_DATES 2027년 4개 날짜 존재 (quarter_end만)', () => {
+  const expected2027 = ['20270331', '20270630', '20270930', '20271230'];
   for (const k of expected2027) {
     assert(BLOCK_DATES[k] !== undefined, `BLOCK_DATES[${k}] 누락`);
   }
