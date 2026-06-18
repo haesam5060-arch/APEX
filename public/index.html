@@ -973,6 +973,20 @@
             <input type="password" id="secEmailPw" placeholder="abcd efgh ijkl mnop" style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
           </div>
         </div>
+        <!-- KIS 실계좌: maint 중앙 계정 선택 (참조만 저장, 실제 키는 서버가 로컬 해석) -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">KIS 실계좌 <span id="secStatusKisAccount" style="color:var(--dim2);margin-left:6px;">○</span></div>
+            <div class="setting-desc">maint 중앙 관리 계정에서 선택. 키는 여기 저장 안 됨(참조만).</div>
+          </div>
+          <div class="setting-control">
+            <select id="secKisAccountRef" onchange="onKisAccountChange()" style="width:222px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;">
+              <option value="">— 직접 입력(수동) —</option>
+            </select>
+          </div>
+        </div>
+        <details id="kisManualBox" style="margin:0;">
+          <summary style="font-size:11px;color:var(--dim);cursor:pointer;padding:6px 0;">수동 입력 (maint 미사용 시 직접 입력)</summary>
         <div class="setting-row">
           <div class="setting-info">
             <div class="setting-name">KIS App Key <span id="secStatusKisKey" style="color:var(--dim2);margin-left:6px;">○</span></div>
@@ -999,6 +1013,7 @@
             <input type="text" id="secKisCano" placeholder="68870931" maxlength="8" style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
           </div>
         </div>
+        </details>
         <div class="setting-row" style="border-top:1px dashed var(--border);padding-top:12px;margin-top:8px;">
           <div class="setting-info">
             <div class="setting-name">저장 즉시 반영</div>

@@ -926,6 +926,34 @@ async function testKisHealth(btn) {
   }
 }
 
+// ── KIS 실계좌 드롭다운 (maint 중앙 계정) ─────────────────────
+let _currentKisRef = '';
+async function loadKisAccounts() {
+  const sel = document.getElementById('secKisAccountRef');
+  if (!sel) return;
+  try {
+    const r = await fetch('/api/maint/accounts');
+    const d = await r.json();
+    const accs = (d && d.accounts) || [];
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— 직접 입력(수동) —</option>'
+      + accs.map(a => {
+          const tail = [a.last4 ? '…' + a.last4 : '', a.cano].filter(Boolean).join(' · ');
+          return `<option value="${a.id}">${a.name}${tail ? ' (' + tail + ')' : ''}</option>`;
+        }).join('');
+    sel.value = cur;
+  } catch {}
+}
+function onKisAccountChange() { syncKisManualBox(); }
+function syncKisManualBox() {
+  const sel = document.getElementById('secKisAccountRef');
+  const box = document.getElementById('kisManualBox');
+  if (!sel || !box) return;
+  const usingMaint = !!sel.value;       // maint 계정 선택 시 수동 입력은 접고 흐리게(폴백)
+  box.open = !usingMaint;
+  box.style.opacity = usingMaint ? '0.5' : '1';
+}
+
 // ── 비밀번호/KIS 키 저장 ─────────────────────────────────────
 async function refreshSecretStatus() {
   if (!document.getElementById('secStatusEmail')) return;
@@ -940,9 +968,22 @@ async function refreshSecretStatus() {
       el.style.color = ok ? 'var(--green)' : 'var(--dim2)';
     };
     setDot('secStatusEmail', d.email);
-    setDot('secStatusKisKey', d.kis_app_key);
-    setDot('secStatusKisSecret', d.kis_app_secret);
-    setDot('secStatusKisCano', d.kis_cano);
+    setDot('secStatusKisKey', d.real?.appKey);
+    setDot('secStatusKisSecret', d.real?.appSecret);
+    setDot('secStatusKisCano', d.real?.cano);
+
+    // KIS 실계좌 출처 (maint 참조 vs 수동) 반영
+    _currentKisRef = d.kisAccountRef || '';
+    const acctSel = document.getElementById('secKisAccountRef');
+    if (acctSel) acctSel.value = _currentKisRef;
+    const fromMaint = (d.kisSource || '').startsWith('maint:');
+    const acctDot = document.getElementById('secStatusKisAccount');
+    if (acctDot) {
+      acctDot.textContent = fromMaint ? '●' : '○';
+      acctDot.style.color = fromMaint ? 'var(--green)' : 'var(--dim2)';
+      acctDot.title = fromMaint ? ('maint: ' + (d.kisAccountName || '')) : (d.kisSource || 'manual');
+    }
+    syncKisManualBox();
 
     const modeBadge = document.getElementById('currentModeBadge');
     if (modeBadge && d.mode) {
@@ -977,6 +1018,10 @@ async function saveSecrets(btn) {
   if (kisKey) body.kisAppKey = kisKey;
   if (kisSecret) body.kisAppSecret = kisSecret;
   if (kisCano) body.kisCano = kisCano;
+
+  // 드롭다운 선택이 바뀌었으면 참조 전송 (빈값='직접입력'으로 해제)
+  const acctSel = document.getElementById('secKisAccountRef');
+  if (acctSel && acctSel.value !== _currentKisRef) body.kisAccountRef = acctSel.value;
 
   if (Object.keys(body).length === 0) {
     btn.textContent = '입력 없음';
@@ -1013,8 +1058,11 @@ async function saveSecrets(btn) {
 document.addEventListener('DOMContentLoaded', () => {
   const settingsModal = document.getElementById('settingsModal');
   if (settingsModal) {
-    const obs = new MutationObserver(() => {
-      if (settingsModal.classList.contains('active')) refreshSecretStatus();
+    const obs = new MutationObserver(async () => {
+      if (settingsModal.classList.contains('active')) {
+        await loadKisAccounts();
+        refreshSecretStatus();
+      }
     });
     obs.observe(settingsModal, { attributes: true, attributeFilter: ['class'] });
   }

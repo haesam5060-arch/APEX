@@ -70,7 +70,13 @@ function _loadSecretsFromDisk() {
   if (!fs.existsSync(SECRETS_PATH)) return;
   try {
     const raw = JSON.parse(fs.readFileSync(SECRETS_PATH, 'utf8'));
-    if (raw.kis)     Object.assign(config.kis, raw.kis);
+    if (raw.kis) {
+      // 빈 문자열 실키는 .env 폴백을 덮어쓰지 않음 (accountRef·acntPrdtCd 등 메타는 그대로 머지)
+      for (const [k, v] of Object.entries(raw.kis)) {
+        if (v === '' && ['appKey', 'appSecret', 'cano'].includes(k)) continue;
+        config.kis[k] = v;
+      }
+    }
     if (raw.email) {
       Object.assign(config.email, raw.email);
       if (raw.email.appPassword) config.email.enabled = true;
@@ -84,13 +90,23 @@ function _loadSecretsFromDisk() {
 function _saveSecretsToDisk() {
   const dataDir = path.dirname(SECRETS_PATH);
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  // maint 참조면 실키는 디스크에 저장하지 않는다(사본 0). accountRef 만 저장.
+  //   → 빈 키를 쓰지 않으려고 키 자체를 누락(_loadSecretsFromDisk 의 Object.assign 이
+  //     .env 폴백값을 빈값으로 덮어쓰지 않게).
+  const fromMaint = !!config.kis.accountRef && String(config.kis._source || '').startsWith('maint:');
+  const kisOut = {
+    accountRef: config.kis.accountRef || '',
+    acntPrdtCd: config.kis.acntPrdtCd,
+    paperAppKey: config.kis.paperAppKey, paperAppSecret: config.kis.paperAppSecret,
+    paperCano: config.kis.paperCano,
+  };
+  if (!fromMaint) {
+    kisOut.appKey = config.kis.appKey;
+    kisOut.appSecret = config.kis.appSecret;
+    kisOut.cano = config.kis.cano;
+  }
   const payload = {
-    kis: {
-      appKey: config.kis.appKey, appSecret: config.kis.appSecret, cano: config.kis.cano,
-      acntPrdtCd: config.kis.acntPrdtCd,
-      paperAppKey: config.kis.paperAppKey, paperAppSecret: config.kis.paperAppSecret,
-      paperCano: config.kis.paperCano,
-    },
+    kis: kisOut,
     email:   { ...config.email },
     discord: { ...config.discord },
     _saved_at: new Date().toISOString(),
@@ -100,6 +116,30 @@ function _saveSecretsToDisk() {
 }
 
 _loadSecretsFromDisk();
+
+// ── maint 계정 참조 해석 (accountRef → 실 KIS 키, 로컬 SSoT) ──────────
+//   config.kis.accountRef 가 있으면 maint 에서 실키를 해석해 채운다.
+//   해석 실패하면 .env / config.json 의 기존 키로 폴백 (운영 중 엔진 안 깨짐).
+const { resolveAccount, listAccounts } = require('./src/maint-account');
+
+function _applyAccountRef() {
+  const ref = config.kis.accountRef;
+  if (!ref) { config.kis._source = config.kis.appKey ? 'manual' : 'none'; return; }
+  const acc = resolveAccount(ref);
+  if (acc && acc.appKey) {
+    config.kis.appKey       = acc.appKey;
+    config.kis.appSecret    = acc.appSecret;
+    config.kis.cano         = acc.cano;
+    config.kis.acntPrdtCd   = acc.acntPrdtCd || config.kis.acntPrdtCd;
+    config.kis._source      = `maint:${acc.name}`;
+    config.kis._accountName = acc.name;
+    console.log(`[CONFIG] KIS 실계좌 = maint "${acc.name}" (ref ${ref}) 해석 OK (…${String(acc.appKey).slice(-4)})`);
+  } else {
+    config.kis._source = config.kis.appKey ? 'manual-fallback' : 'unresolved';
+    console.error(`[CONFIG] ⚠️ accountRef ${ref} 해석 실패 → ${config.kis.appKey ? '.env/config 폴백 사용' : '키 없음'}`);
+  }
+}
+_applyAccountRef();
 
 // ── verifyConfig ─────────────────────────────────────────────
 function verifyConfig() {
@@ -548,6 +588,10 @@ app.get('/api/config/secrets/status', (req, res) => {
     ok:      true,
     real:    { appKey: !!config.kis.appKey, appSecret: !!config.kis.appSecret, cano: !!config.kis.cano, masked: mask(config.kis.appKey) },
     paper:   { appKey: !!config.kis.paperAppKey, appSecret: !!config.kis.paperAppSecret, cano: !!config.kis.paperCano, masked: mask(config.kis.paperAppKey) },
+    // KIS 실계좌 출처: maint:<이름> | manual | manual-fallback | none | unresolved
+    kisSource:      config.kis._source || (config.kis.appKey ? 'manual' : 'none'),
+    kisAccountRef:  config.kis.accountRef || '',
+    kisAccountName: config.kis._accountName || '',
     discord: { configured: !!config.discord.webhookUrl },
     email: {
       appPassword: !!config.email.appPassword,
@@ -562,7 +606,7 @@ app.get('/api/config/secrets/status', (req, res) => {
 // 시크릿 저장
 app.post('/api/config/secrets', express.json(), (req, res) => {
   try {
-    const { emailAppPassword, kisAppKey, kisAppSecret, kisCano } = req.body || {};
+    const { emailAppPassword, kisAppKey, kisAppSecret, kisCano, kisAccountRef } = req.body || {};
     const updated = [];
 
     if (typeof emailAppPassword === 'string' && emailAppPassword.length > 0) {
@@ -570,18 +614,38 @@ app.post('/api/config/secrets', express.json(), (req, res) => {
       config.email.enabled     = true;
       updated.push('email');
     }
-    if (typeof kisAppKey === 'string' && kisAppKey.length > 0) {
-      config.kis.appKey = kisAppKey.trim();
-      updated.push('kis_app_key');
+
+    // ── KIS 실계좌: maint 참조 (드롭다운 선택) ───────────────────
+    if (typeof kisAccountRef === 'string') {
+      if (kisAccountRef === '') {
+        // 참조 해제 → maint 해석 키를 메모리에서도 제거(디스크 유출 방지).
+        //   수동 키를 입력하기 전까지 빈 상태. (.env 폴백은 재시작 시 다시 적용)
+        const wasMaint = String(config.kis._source || '').startsWith('maint:');
+        config.kis.accountRef = '';
+        if (wasMaint) { config.kis.appKey = ''; config.kis.appSecret = ''; config.kis.cano = ''; }
+        config.kis._source = config.kis.appKey ? 'manual' : 'none';
+        config.kis._accountName = '';
+        updated.push('kis_account_cleared');
+      } else {
+        const acc = resolveAccount(kisAccountRef);
+        if (!acc || !acc.appKey)
+          return res.status(400).json({ ok: false, error: `maint 계정 ${kisAccountRef} 해석 실패` });
+        config.kis.accountRef   = kisAccountRef;
+        config.kis.appKey       = acc.appKey;
+        config.kis.appSecret    = acc.appSecret;
+        config.kis.cano         = acc.cano;
+        config.kis.acntPrdtCd   = acc.acntPrdtCd || config.kis.acntPrdtCd;
+        config.kis._source      = `maint:${acc.name}`;
+        config.kis._accountName = acc.name;
+        updated.push('kis_account_ref');
+      }
     }
-    if (typeof kisAppSecret === 'string' && kisAppSecret.length > 0) {
-      config.kis.appSecret = kisAppSecret.trim();
-      updated.push('kis_app_secret');
-    }
-    if (typeof kisCano === 'string' && kisCano.length > 0) {
-      config.kis.cano = kisCano.trim();
-      updated.push('kis_cano');
-    }
+
+    // ── 수동 입력 (입력하면 maint 참조 자동 해제) ────────────────
+    const _manual = (k) => { config.kis.accountRef = ''; config.kis._source = 'manual'; config.kis._accountName = ''; updated.push(k); };
+    if (typeof kisAppKey === 'string' && kisAppKey.length > 0)    { config.kis.appKey = kisAppKey.trim();       _manual('kis_app_key'); }
+    if (typeof kisAppSecret === 'string' && kisAppSecret.length > 0) { config.kis.appSecret = kisAppSecret.trim(); _manual('kis_app_secret'); }
+    if (typeof kisCano === 'string' && kisCano.length > 0)        { config.kis.cano = kisCano.trim();           _manual('kis_cano'); }
 
     if (updated.length === 0)
       return res.status(400).json({ ok: false, error: '변경 사항 없음' });
@@ -589,9 +653,18 @@ app.post('/api/config/secrets', express.json(), (req, res) => {
     _saveSecretsToDisk();
     scheduler.reloadKis(config.kis);
 
-    res.json({ ok: true, updated });
+    res.json({ ok: true, updated, source: config.kis._source || 'manual' });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// maint 계정 목록 (드롭다운용 — 시크릿 없음, [{id,name,type,mode,cano,last4}])
+app.get('/api/maint/accounts', (req, res) => {
+  try {
+    res.json({ ok: true, accounts: listAccounts() });
+  } catch (e) {
+    res.json({ ok: false, accounts: [], error: e.message });
   }
 });
 
