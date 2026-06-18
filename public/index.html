@@ -962,49 +962,20 @@
       <div class="setting-group">
         <div class="setting-group-title">🔐 비밀번호 / API 키</div>
         <div style="font-size:11px;color:var(--dim);margin-bottom:10px;line-height:1.6;">
-          ⚠️ 채팅으로 보내지 말고 여기서 직접 입력하세요. 입력값은 <code style="color:var(--accent);">data/config.json</code>에 저장되며 git에 포함되지 않습니다.
+          ⚠️ KIS 계좌는 maint 중앙관리에서 등록하고, 여기선 계정을 <b style="color:var(--text);">선택만</b> 합니다. 실제 키는 엔진에 저장되지 않고 참조만 저장됩니다.
         </div>
-        <!-- KIS 실계좌: maint 중앙 계정 선택 (참조만 저장, 실제 키는 서버가 로컬 해석) -->
+        <!-- KIS 실계좌: maint 중앙 계정 선택 (앱키·시크릿·계좌번호 한 세트, 참조만 저장) -->
         <div class="setting-row">
           <div class="setting-info">
             <div class="setting-name">KIS 실계좌 <span id="secStatusKisAccount" style="color:var(--dim2);margin-left:6px;">○</span></div>
-            <div class="setting-desc">maint 중앙 관리 계정에서 선택. 키는 여기 저장 안 됨(참조만).</div>
+            <div class="setting-desc">maint 계정 선택 = 앱키·시크릿·계좌번호 한 세트. 새 계정은 maint에서 추가.</div>
           </div>
           <div class="setting-control">
-            <select id="secKisAccountRef" onchange="onKisAccountChange()" style="width:222px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;">
-              <option value="">— 직접 입력(수동) —</option>
+            <select id="secKisAccountRef" style="width:222px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;">
+              <option value="">— 계좌 없음 —</option>
             </select>
           </div>
         </div>
-        <details id="kisManualBox" style="margin:0;">
-          <summary style="font-size:11px;color:var(--dim);cursor:pointer;padding:6px 0;">수동 입력 (maint 미사용 시 직접 입력)</summary>
-        <div class="setting-row">
-          <div class="setting-info">
-            <div class="setting-name">KIS App Key <span id="secStatusKisKey" style="color:var(--dim2);margin-left:6px;">○</span></div>
-            <div class="setting-desc">한국투자증권 OpenAPI 앱 키</div>
-          </div>
-          <div class="setting-control">
-            <input type="password" id="secKisAppKey" placeholder="PSKDA8XR..." style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
-          </div>
-        </div>
-        <div class="setting-row">
-          <div class="setting-info">
-            <div class="setting-name">KIS App Secret <span id="secStatusKisSecret" style="color:var(--dim2);margin-left:6px;">○</span></div>
-          </div>
-          <div class="setting-control">
-            <input type="password" id="secKisAppSecret" placeholder="3MsJG/lV..." style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
-          </div>
-        </div>
-        <div class="setting-row">
-          <div class="setting-info">
-            <div class="setting-name">KIS 계좌번호 <span id="secStatusKisCano" style="color:var(--dim2);margin-left:6px;">○</span></div>
-            <div class="setting-desc">8자리 실전 계좌번호</div>
-          </div>
-          <div class="setting-control">
-            <input type="text" id="secKisCano" placeholder="68870931" maxlength="8" style="width:200px;padding:6px 10px;background:#04080e;border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;">
-          </div>
-        </div>
-        </details>
         <div class="setting-row" style="border-top:1px dashed var(--border);padding-top:12px;margin-top:8px;">
           <div class="setting-info">
             <div class="setting-name">저장 즉시 반영</div>

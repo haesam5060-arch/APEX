@@ -600,7 +600,7 @@ app.get('/api/config/secrets/status', (req, res) => {
 // 시크릿 저장
 app.post('/api/config/secrets', express.json(), (req, res) => {
   try {
-    const { kisAppKey, kisAppSecret, kisCano, kisAccountRef } = req.body || {};
+    const { kisAccountRef } = req.body || {};
     const updated = [];
 
     // ── KIS 실계좌: maint 참조 (드롭다운 선택) ───────────────────
@@ -628,12 +628,6 @@ app.post('/api/config/secrets', express.json(), (req, res) => {
         updated.push('kis_account_ref');
       }
     }
-
-    // ── 수동 입력 (입력하면 maint 참조 자동 해제) ────────────────
-    const _manual = (k) => { config.kis.accountRef = ''; config.kis._source = 'manual'; config.kis._accountName = ''; updated.push(k); };
-    if (typeof kisAppKey === 'string' && kisAppKey.length > 0)    { config.kis.appKey = kisAppKey.trim();       _manual('kis_app_key'); }
-    if (typeof kisAppSecret === 'string' && kisAppSecret.length > 0) { config.kis.appSecret = kisAppSecret.trim(); _manual('kis_app_secret'); }
-    if (typeof kisCano === 'string' && kisCano.length > 0)        { config.kis.cano = kisCano.trim();           _manual('kis_cano'); }
 
     if (updated.length === 0)
       return res.status(400).json({ ok: false, error: '변경 사항 없음' });

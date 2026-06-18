@@ -936,7 +936,7 @@ async function loadKisAccounts() {
     const d = await r.json();
     const accs = (d && d.accounts) || [];
     const cur = sel.value;
-    sel.innerHTML = '<option value="">— 직접 입력(수동) —</option>'
+    sel.innerHTML = '<option value="">— 계좌 없음 —</option>'
       + accs.map(a => {
           const tail = [a.last4 ? '…' + a.last4 : '', a.cano].filter(Boolean).join(' · ');
           return `<option value="${a.id}">${a.name}${tail ? ' (' + tail + ')' : ''}</option>`;
@@ -944,16 +944,6 @@ async function loadKisAccounts() {
     sel.value = cur;
   } catch {}
 }
-function onKisAccountChange() { syncKisManualBox(); }
-function syncKisManualBox() {
-  const sel = document.getElementById('secKisAccountRef');
-  const box = document.getElementById('kisManualBox');
-  if (!sel || !box) return;
-  const usingMaint = !!sel.value;       // maint 계정 선택 시 수동 입력은 접고 흐리게(폴백)
-  box.open = !usingMaint;
-  box.style.opacity = usingMaint ? '0.5' : '1';
-}
-
 // ── 비밀번호/KIS 키 저장 ─────────────────────────────────────
 async function refreshSecretStatus() {
   if (!document.getElementById('secKisAccountRef')) return;
@@ -967,11 +957,7 @@ async function refreshSecretStatus() {
       el.textContent = ok ? '●' : '○';
       el.style.color = ok ? 'var(--green)' : 'var(--dim2)';
     };
-    setDot('secStatusKisKey', d.real?.appKey);
-    setDot('secStatusKisSecret', d.real?.appSecret);
-    setDot('secStatusKisCano', d.real?.cano);
-
-    // KIS 실계좌 출처 (maint 참조 vs 수동) 반영
+    // KIS 실계좌 출처 (maint 참조 vs 없음) 반영
     _currentKisRef = d.kisAccountRef || '';
     const acctSel = document.getElementById('secKisAccountRef');
     if (acctSel) acctSel.value = _currentKisRef;
@@ -980,9 +966,8 @@ async function refreshSecretStatus() {
     if (acctDot) {
       acctDot.textContent = fromMaint ? '●' : '○';
       acctDot.style.color = fromMaint ? 'var(--green)' : 'var(--dim2)';
-      acctDot.title = fromMaint ? ('maint: ' + (d.kisAccountName || '')) : (d.kisSource || 'manual');
+      acctDot.title = fromMaint ? ('maint: ' + (d.kisAccountName || '')) : (d.kisSource || 'none');
     }
-    syncKisManualBox();
 
     const modeBadge = document.getElementById('currentModeBadge');
     if (modeBadge && d.mode) {
@@ -1009,14 +994,8 @@ async function saveSecrets(btn) {
   btn.disabled = true; btn.textContent = '저장 중...';
 
   const body = {};
-  const kisKey = document.getElementById('secKisAppKey')?.value.trim();
-  const kisSecret = document.getElementById('secKisAppSecret')?.value.trim();
-  const kisCano = document.getElementById('secKisCano')?.value.trim();
-  if (kisKey) body.kisAppKey = kisKey;
-  if (kisSecret) body.kisAppSecret = kisSecret;
-  if (kisCano) body.kisCano = kisCano;
 
-  // 드롭다운 선택이 바뀌었으면 참조 전송 (빈값='직접입력'으로 해제)
+  // 드롭다운 선택이 바뀌었으면 참조 전송 (빈값='계좌 없음'으로 해제)
   const acctSel = document.getElementById('secKisAccountRef');
   if (acctSel && acctSel.value !== _currentKisRef) body.kisAccountRef = acctSel.value;
 
@@ -1034,10 +1013,6 @@ async function saveSecrets(btn) {
     });
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || '저장 실패');
-
-    if (document.getElementById('secKisAppKey')) document.getElementById('secKisAppKey').value = '';
-    if (document.getElementById('secKisAppSecret')) document.getElementById('secKisAppSecret').value = '';
-    if (document.getElementById('secKisCano')) document.getElementById('secKisCano').value = '';
 
     btn.textContent = '✅ 저장됨';
     showToast(`저장 완료 (${j.updated.join(', ')})`, 3000);
