@@ -593,12 +593,6 @@ app.get('/api/config/secrets/status', (req, res) => {
     kisAccountRef:  config.kis.accountRef || '',
     kisAccountName: config.kis._accountName || '',
     discord: { configured: !!config.discord.webhookUrl },
-    email: {
-      appPassword: !!config.email.appPassword,
-      enabled:     !!config.email.enabled,
-      to:          config.email.to || null,
-      ready:       !!(config.email.enabled && config.email.appPassword && config.email.to),
-    },
     mode: config.tradingMode,
   });
 });
@@ -606,14 +600,8 @@ app.get('/api/config/secrets/status', (req, res) => {
 // 시크릿 저장
 app.post('/api/config/secrets', express.json(), (req, res) => {
   try {
-    const { emailAppPassword, kisAppKey, kisAppSecret, kisCano, kisAccountRef } = req.body || {};
+    const { kisAppKey, kisAppSecret, kisCano, kisAccountRef } = req.body || {};
     const updated = [];
-
-    if (typeof emailAppPassword === 'string' && emailAppPassword.length > 0) {
-      config.email.appPassword = emailAppPassword.replace(/\s+/g, '');
-      config.email.enabled     = true;
-      updated.push('email');
-    }
 
     // ── KIS 실계좌: maint 참조 (드롭다운 선택) ───────────────────
     if (typeof kisAccountRef === 'string') {

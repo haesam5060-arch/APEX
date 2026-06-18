@@ -956,7 +956,7 @@ function syncKisManualBox() {
 
 // ── 비밀번호/KIS 키 저장 ─────────────────────────────────────
 async function refreshSecretStatus() {
-  if (!document.getElementById('secStatusEmail')) return;
+  if (!document.getElementById('secKisAccountRef')) return;
   try {
     const r = await fetch('/api/config/secrets/status');
     if (!r.ok) return;
@@ -967,7 +967,6 @@ async function refreshSecretStatus() {
       el.textContent = ok ? '●' : '○';
       el.style.color = ok ? 'var(--green)' : 'var(--dim2)';
     };
-    setDot('secStatusEmail', d.email);
     setDot('secStatusKisKey', d.real?.appKey);
     setDot('secStatusKisSecret', d.real?.appSecret);
     setDot('secStatusKisCano', d.real?.cano);
@@ -1010,11 +1009,9 @@ async function saveSecrets(btn) {
   btn.disabled = true; btn.textContent = '저장 중...';
 
   const body = {};
-  const emailPw = document.getElementById('secEmailPw')?.value.trim();
   const kisKey = document.getElementById('secKisAppKey')?.value.trim();
   const kisSecret = document.getElementById('secKisAppSecret')?.value.trim();
   const kisCano = document.getElementById('secKisCano')?.value.trim();
-  if (emailPw) body.emailAppPassword = emailPw;
   if (kisKey) body.kisAppKey = kisKey;
   if (kisSecret) body.kisAppSecret = kisSecret;
   if (kisCano) body.kisCano = kisCano;
@@ -1038,7 +1035,6 @@ async function saveSecrets(btn) {
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || '저장 실패');
 
-    if (document.getElementById('secEmailPw')) document.getElementById('secEmailPw').value = '';
     if (document.getElementById('secKisAppKey')) document.getElementById('secKisAppKey').value = '';
     if (document.getElementById('secKisAppSecret')) document.getElementById('secKisAppSecret').value = '';
     if (document.getElementById('secKisCano')) document.getElementById('secKisCano').value = '';
