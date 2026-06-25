@@ -88,16 +88,37 @@ function sendError(message) {
 
 // ── 14:30 신호 알림 (APEX#11 — 구현 전엔 ?.호출로 조용히 no-op였음) ──
 // result: strategy.selectClusterLaggard1430Live 반환값 (h7 등 다른 신호원도 방어적으로 처리)
-function sendSignal(result) {
-  if (!result || !Array.isArray(result.picks) || result.picks.length === 0) return Promise.resolve(false);
-  const head = result.shadow
-    ? '🕯️ **14:30 신호 (L1 휴면 — 그림자 추적만, 실매수 없음)**'
-    : '📡 **14:30 신호** — 14:50 매수 예정';
+//
+// 14:30 통보는 14:50 가격필터(selectLaggardBuyList)가 적용되기 *전*에 나간다.
+// → result.price_band={lo,hi} 가 주입되면, 14:30 참고가(p.buy)로 밴드 이탈 픽을
+//   '⚠️ 가격필터 예상 제외'로 미리 표기하고, 통과 예상이 0이면 헤더를 '매수 예정 없음'으로 바꾼다.
+//   (동전주가 '매수 예정'으로 통보되고 14:50에 조용히 빠지던 오해 방지 — 2026-06-25 뉴인텍@1,116원 사례)
+//   실제 매수 판정은 14:50 폴가 기준이라 어디까지나 '예상'(경계 근처는 뒤집힐 수 있음).
+//   순수함수로 분리 — tests/signal-preview.test.js 검증.
+function buildSignalMessage(result) {
+  if (!result || !Array.isArray(result.picks) || result.picks.length === 0) return null;
+  const band = result.price_band &&
+    Number.isFinite(result.price_band.lo) && Number.isFinite(result.price_band.hi)
+      ? result.price_band : null;
+  // 밴드 밖(양끝 포함 — selectLaggardBuyList 와 동일 의미론). 가격 미상(null)은 14:50 폴가까지 미정이라 단정 안 함.
+  const outOfBand = (buy) => !!band && buy != null && (buy < band.lo || buy > band.hi);
+  const willBuyCount = result.picks.filter(p => !outOfBand(p.buy)).length;
+
+  let head;
+  if (result.shadow) {
+    head = '🕯️ **14:30 신호 (L1 휴면 — 그림자 추적만, 실매수 없음)**';
+  } else if (band && willBuyCount === 0) {
+    head = `📡 **14:30 신호** — ⚠️ 14:50 매수 예정 없음 (가격필터 ${band.lo.toLocaleString()}~${band.hi.toLocaleString()}원 예상 제외)`;
+  } else {
+    head = '📡 **14:30 신호** — 14:50 매수 예정';
+  }
+
   const lines = result.picks.map(p => {
     const lag = p.lag_rank != null ? `lag${p.lag_rank}` : (p.rank != null ? `rank${p.rank}` : '');
     const dev = p.deviation != null ? ` dev=${Number(p.deviation).toFixed(1)}` : '';
     const px = p.buy != null ? ` @${Number(p.buy).toLocaleString()}원` : '';
-    return `· ${p.name || p.code}(${p.code}) ${lag}${px}${dev}`;
+    const tag = outOfBand(p.buy) ? ' ⚠️ 가격필터 예상 제외' : '';
+    return `· ${p.name || p.code}(${p.code}) ${lag}${px}${dev}${tag}`;
   });
   const corr = result.picks[0]?.cluster_avg_corr;
   const meta = [
@@ -107,8 +128,14 @@ function sendSignal(result) {
   ].filter(Boolean).join(' · ');
   const seed = (result.seed || [])
     .map(s => `${s.name || s.code}(${(s.ret * 100).toFixed(1)}%)`).join(', ');
-  return send([head, ...lines, meta ? `🧊 ${meta}` : null, seed ? `🌱 추종시드: ${seed}` : null]
-    .filter(Boolean).join('\n'));
+  return [head, ...lines, meta ? `🧊 ${meta}` : null, seed ? `🌱 추종시드: ${seed}` : null]
+    .filter(Boolean).join('\n');
+}
+
+function sendSignal(result) {
+  const msg = buildSignalMessage(result);
+  if (!msg) return Promise.resolve(false);
+  return send(msg);
 }
 
 function sendNoSignal(result) {
@@ -175,7 +202,7 @@ function sendGuardRelease(info) {
 module.exports = {
   init, send,
   sendBuy, sendSell, sendError,
-  sendSignal, sendNoSignal,
+  sendSignal, buildSignalMessage, sendNoSignal,
   sendBuyBlocked, sendBuySkipped,
   sendGuardSkip, sendGuardRelease,
 };

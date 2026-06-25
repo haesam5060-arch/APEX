@@ -868,6 +868,9 @@ async function runLaggardSignal14() {
     const seedStr = (result.seed || []).map(s => `${s.name || s.code}(${(s.ret * 100).toFixed(1)}%)`).join(', ') || '없음';
     log.info('SCHED', `14:30 신호 — ${result.picks.length}후보(${shadowMode ? '그림자 추적' : '14:50 매수 대기'}): ${summary} | 얼린서랍 ${result.prev_date}(W${result.window}) 추종시드: ${seedStr}`);
     result.shadow = shadowMode;  // 디스코드 신호 알림에 휴면 표기 (APEX#11)
+    // 14:30 통보는 14:50 가격필터 적용 전 → 알림에 밴드 미리보기 주입해 '매수 예정' 오해 방지
+    // (밴드 밖 픽은 '예상 제외'로 표기, 통과 예상 0이면 헤더 '매수 예정 없음'). 실제 필터는 14:50 폴가 기준.
+    result.price_band = { lo: APEX_PRICE_LO, hi: APEX_PRICE_HI };
     // 대시보드 '당일 스캔 흐름' 기록 (14:30 스캔 후보)
     _logScanFlow('scanned', result.picks.map((p, i) => ({
       rank: (p.lag_rank ?? i) + 1, code: p.code, name: p.name || p.code,
