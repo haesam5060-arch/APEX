@@ -201,6 +201,7 @@ function _logScanFlow(phase, rows) {
 //   발산 3%로 축소 (parquet 119일 시뮬). 수집분은 morning_change 테이블에 저장, 14:30 신호가 사용.
 const MORNING_POLL_N = parseInt(process.env.MORNING_POLL_N || '400', 10);
 const MORNING_POLL_AMT_N = parseInt(process.env.MORNING_POLL_AMT_N || '200', 10);
+const MORNING_MIN = parseInt(process.env.MORNING_MIN || '30', 10);  // 09:31 수집 충분성 임계 (14:30 신호·self-heal 가드 공용, APEX#17)
 
 async function _collectMorningRets(scannedArr, todayYmd) {
   const valid = scannedArr.filter(s => s && s.code);
@@ -258,6 +259,27 @@ async function runMorningSnapshotJob() {
   } catch (e) {
     log.error('SCHED', `09:31 스냅샷 오류: ${e.message}`);
   }
+}
+
+// ── 오늘 morning_change vi_ok 수집 건수 (14:30 신호 충분성 기준과 동일 의미론) ──
+function _countMorningViOk(today) {
+  try {
+    const rows = stmts.morningChangeByDate.all(today) || [];
+    let n = 0;
+    for (const r of rows) if (r.vi_ok) n++;
+    return n;
+  } catch { return 0; }
+}
+
+// ── 09:31 모닝 스냅샷 self-heal 래퍼 (APEX#17) ──────────────────
+//   node-cron 단일 fire 누락 대비 09:31~09:40 매분 발화하되, 이미 충분히 수집(vi_ok≥MORNING_MIN)
+//   됐으면 skip. 작업 자체가 멱등(clearMorningChange 후 재삽입)이라 누락 시 다음 분이 self-heal,
+//   수집 실패(네트워크)도 창 내 재시도. 정상일엔 1회 수집 후 나머지는 skip → 기존 동작과 동일.
+async function runMorningSnapshotJobGuarded() {
+  const today = todayKstYmd();
+  const n = _countMorningViOk(today);
+  if (n >= MORNING_MIN) return;  // 이미 수집 완료 — 다중 fire 멱등 skip (로그 소음 방지: 조용히 종료)
+  await runMorningSnapshotJob();
 }
 
 // ── h7 09:00 갭업 스캔 ─────────────────────
@@ -818,7 +840,7 @@ async function runLaggardSignal14() {
       const mornRows = stmts.morningChangeByDate.all(todayYmd) || [];
       const m = {};
       for (const r of mornRows) if (r.vi_ok) m[r.code] = r.ret;
-      if (Object.keys(m).length >= 30) {
+      if (Object.keys(m).length >= MORNING_MIN) {
         morningRets = m;
         log.info('SCHED', `morning_rets 사용 — 09:31 확정 수집분 ${Object.keys(m).length}종목 (APEX#8)`);
       } else {
@@ -1056,11 +1078,11 @@ function start(config) {
     //   청산: 08:50 runMorningSell(T+1 첫분봉 시초가). 레짐가드 L1/L2는 14:30 신호 단계서 체크.
     const sigCron = process.env.APEX_SIGNAL_CRON || '30 14 * * 1-5';   // 14:30 신호
     const buyCron = process.env.APEX_BUY_CRON || '50 14 * * 1-5';      // 14:50 매수
-    cron.schedule('31 9 * * 1-5', runMorningSnapshotJob, { timezone: 'Asia/Seoul' });  // 09:31 모닝 스냅샷(표시용)
+    cron.schedule('31-40 9 * * 1-5', runMorningSnapshotJobGuarded, { timezone: 'Asia/Seoul' });  // 09:31~40 모닝수집 self-heal (APEX#17: node-cron 단일 fire 누락 대비)
     cron.schedule(sigCron, runLaggardSignal14, { timezone: 'Asia/Seoul' });
     cron.schedule(buyCron, runLaggardBuy1450, { timezone: 'Asia/Seoul' });
     log.info('SCHED',
-      `cron 등록 완료 — 08:50 매도(T+1) / ★ CLUSTER_LAGGARD_1430 (raw·live) ★ 신호[${sigCron}] + 매수[${buyCron}] ` +
+      `cron 등록 완료 — 08:50 매도(T+1) / 모닝수집[31-40 9 self-heal] / ★ CLUSTER_LAGGARD_1430 (raw·live) ★ 신호[${sigCron}] + 매수[${buyCron}] ` +
       `(mode=${config.tradingMode}, 가격 ${APEX_PRICE_LO}~${APEX_PRICE_HI}, cap=${APEX_DAILY_CAP}, ` +
       `레짐가드 L1=${regimeGuard.L1_TRAIL_DAYS}일/L2 롤링${regimeGuard.L2_ROLL_DAYS}<${(regimeGuard.L2_ROLL_CUT*100)}%·DD<${(regimeGuard.L2_DD_CUT*100)}%)`);
 
@@ -1134,6 +1156,9 @@ module.exports = {
   runLaggardSignal14,
   runLaggardBuy1450,
   runMorningSnapshotJob,
+  runMorningSnapshotJobGuarded,
+  _countMorningViOk,
+  MORNING_MIN,
   selectLaggardBuyList,
   runAfternoonScanJob: runLaggardSignal14,  // server.js 수동 엔드포인트 별칭
   runBuy: runLaggardBuy1450,                // server.js 수동 엔드포인트 별칭
