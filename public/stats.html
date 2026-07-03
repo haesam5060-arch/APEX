@@ -313,10 +313,11 @@
           <th class="num">손익</th>
           <th class="num">수익률</th>
           <th class="num">누적</th>
+          <th class="num">낙폭</th>
         </tr>
       </thead>
       <tbody id="pnlTable">
-        <tr><td colspan="6" style="padding:20px;text-align:center;color:var(--dim);font-size:12px;">로딩 중...</td></tr>
+        <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--dim);font-size:12px;">로딩 중...</td></tr>
       </tbody>
     </table>
   </section>
@@ -428,7 +429,7 @@
     const totalPnl = data.total_pnl ?? data.totalPnl ?? 0;
     const pnlBody = document.getElementById('pnlTable');
     if (dailyPnl.length === 0) {
-      pnlBody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--dim);font-size:12px;">아직 거래 내역 없음 — 평일 14:50 매수 → T+1 09:01 매도 사이클 대기</td></tr>';
+      pnlBody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--dim);font-size:12px;">아직 거래 내역 없음 — 평일 14:50 매수 → T+1 09:01 매도 사이클 대기</td></tr>';
       return;
     }
 
@@ -440,6 +441,18 @@
       cumPnl -= dailyPnl[i].pnl || 0;
     }
 
+    // TWR 자본곡선 낙폭(DD%): 자본가중 일수익률 기하연결 → 각 날짜의 고점 대비 낙폭 (최댓값 = MDD)
+    const ddPcts = new Array(dailyPnl.length).fill(0);
+    let _eq = 1, _eqPeak = 1;
+    for (let i = dailyPnl.length - 1; i >= 0; i--) {
+      const r = dailyPnl[i].avgPct != null ? Number(dailyPnl[i].avgPct)
+        : (dailyPnl[i].buyTotal ? dailyPnl[i].pnl / dailyPnl[i].buyTotal * 100 : 0);
+      _eq *= 1 + (r || 0) / 100;
+      if (_eq > _eqPeak) _eqPeak = _eq;
+      ddPcts[i] = _eqPeak > 0 ? (_eqPeak - _eq) / _eqPeak * 100 : 0;
+    }
+    const _maxDd = ddPcts.length ? Math.max(...ddPcts) : 0;
+
     pnlBody.innerHTML = dailyPnl.map((p, i) => {
       const cum = cumPnls[i];
       const dayPct = p.avgPct != null
@@ -448,6 +461,10 @@
       const stoppedBadge = p.n_stopped
         ? `<span class="badge badge-stopLoss" style="margin-left:6px;">손절 ${p.n_stopped}</span>`
         : '';
+      const dd = ddPcts[i];
+      const ddCell = dd > 0.005
+        ? `<span style="color:var(--orange);font-weight:600;">-${dd.toFixed(2)}%</span>${dd === _maxDd ? ' <span class="badge" style="background:rgba(251,146,60,.18);color:var(--orange);margin-left:4px;">MDD</span>' : ''}`
+        : '<span style="color:var(--dim);">0%</span>';
       return `
       <tr class="pnl-row" data-date="${p.date}" onclick="toggleDailyDetail(this, '${p.date}')">
         <td>${p.date}</td>
@@ -456,6 +473,7 @@
         <td class="num ${p.pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${p.pnl > 0 ? '+' : ''}${Math.round(p.pnl || 0).toLocaleString()}원</td>
         <td class="num ${p.pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}" style="font-size:11px;">${p.pnl > 0 && dayPct !== '-' ? '+' : ''}${dayPct}${dayPct !== '-' ? '%' : ''}</td>
         <td class="num ${cum >= 0 ? 'pnl-pos' : 'pnl-neg'}" style="font-size:11px;">${cum > 0 ? '+' : ''}${Math.round(cum).toLocaleString()}원</td>
+        <td class="num" style="font-size:11px;">${ddCell}</td>
       </tr>`;
     }).join('');
 
@@ -504,7 +522,7 @@
 
     const thStyle = 'padding:6px 10px;font-size:10px;color:var(--dim);border-bottom:1px solid var(--border);font-weight:600;';
     const tdStyle = "padding:5px 10px;font-size:11.5px;font-family:'SF Mono',monospace;";
-    let html = '<td colspan="6" style="max-width:0;"><div style="padding:10px 14px;background:rgba(0,0,0,0.25);border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+    let html = '<td colspan="7" style="max-width:0;"><div style="padding:10px 14px;background:rgba(0,0,0,0.25);border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;">';
     html += '<table style="width:100%;border-collapse:collapse;">';
     html += `<thead><tr style="background:rgba(0,0,0,0.3);">
       <th style="${thStyle}text-align:left;">종목</th>
