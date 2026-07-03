@@ -402,10 +402,18 @@ app.get('/api/stats', (req, res) => {
     ? +(pnls.reduce((s, p) => s + (p.n_trades || 0), 0) / totalDays).toFixed(1) : 0;
 
   let peak = 0, maxDD = 0, cumPnl = 0;
+  // TWR MDD%: 자본가중 일수익률(avg_pct)을 기하연결한 자본곡선의 고점→저점 낙폭 (시드·입출금 무관)
+  let eq = 1, eqPeak = 1, maxDDPct = 0;
   for (let i = pnls.length - 1; i >= 0; i--) {
     cumPnl += pnls[i].pnl || 0;
     if (cumPnl > peak) peak = cumPnl;
     if (peak - cumPnl > maxDD) maxDD = peak - cumPnl;
+    eq *= 1 + (pnls[i].avg_pct || 0) / 100;
+    if (eq > eqPeak) eqPeak = eq;
+    if (eqPeak > 0) {
+      const ddPct = (eqPeak - eq) / eqPeak * 100;
+      if (ddPct > maxDDPct) maxDDPct = ddPct;
+    }
   }
 
   let maxProfitPct = 0, maxLossPct = 0, stockWins = 0, profitSum = 0, lossSum = 0, avgReturnPct = 0;
@@ -443,7 +451,7 @@ app.get('/api/stats', (req, res) => {
     avgReturnPct, avgDailyReturnPct, avgStocksPerDay,
     winRate: stockWinRate,
     maxProfitPct: +maxProfitPct.toFixed(2), maxLossPct: +maxLossPct.toFixed(2),
-    cumReturnCompoundPct, maxDD: Math.round(maxDD), profitFactor,
+    cumReturnCompoundPct, maxDD: Math.round(maxDD), maxDDPct: +maxDDPct.toFixed(2), profitFactor,
     currentLossStreak, maxLossStreak, todayRealized: Math.round(todayRealized),
     n_trades: trades.length, n_days: totalDays,
     total_pnl: Math.round(totalPnl), win_rate: stockWinRate / 100, avg_pct: avgReturnPct,

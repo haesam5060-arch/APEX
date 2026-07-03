@@ -537,6 +537,8 @@ async function refreshStats() {
     mddEl.textContent = mdd > 0 ? `-${mdd.toLocaleString()}원` : '0원';
     mddEl.className = `stat-value ${mdd > 0 ? 'negative' : ''}`;
   }
+  const mddPct = data.maxDDPct || 0;
+  setSub('maxDDSub', mddPct > 0 ? `고점 대비 -${mddPct}% · TWR` : '고점 대비');
 
   const losses = data.currentLossStreak || 0;
   const lossMax = data.maxLossStreak || 0;
