@@ -16,6 +16,8 @@ const fs = require('fs');
 const scheduler = require('./src/scheduler');
 const { db, log, stmts } = require('./src/db');
 const { isBuyBlocked, todayYmd } = require('./src/no-buy-calendar');
+const { isKrxClosed } = require('./src/krx-calendar');
+const regimeGuard = require('./src/regime-guard');
 const { pollPrices } = require('./src/stock-fetcher');
 
 const PORT           = parseInt(process.env.PORT) || 3100;
@@ -398,8 +400,25 @@ app.get('/api/stats', (req, res) => {
   const avgPnl    = totalDays > 0 ? totalPnl / totalDays : 0;
   const avgDailyReturnPct = totalDays > 0
     ? +(pnls.reduce((s, p) => s + (p.avg_pct || 0), 0) / totalDays).toFixed(2) : 0;
-  const avgStocksPerDay = totalDays > 0
-    ? +(pnls.reduce((s, p) => s + (p.n_trades || 0), 0) / totalDays).toFixed(1) : 0;
+  // 가동 거래일수 — 엔진 최초 활동일부터 오늘까지 KRX 거래일(주말·휴장 제외)
+  // signal_log 우선, 없으면(옛 데이터·미로깅) daily_pnl 최초 정산일로 폴백
+  let firstYmdRaw = db.prepare('SELECT MIN(signal_date) AS d FROM signal_log').get()?.d || null;
+  if (!firstYmdRaw) firstYmdRaw = db.prepare('SELECT MIN(sell_date) AS d FROM daily_pnl').get()?.d || null;
+  const firstSigYmd = firstYmdRaw ? firstYmdRaw.replace(/-/g, '') : null;
+  let activeTradingDays = 0;
+  if (firstSigYmd) {
+    const todayY = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+    let cur = new Date(Date.UTC(+firstSigYmd.slice(0, 4), +firstSigYmd.slice(4, 6) - 1, +firstSigYmd.slice(6, 8)));
+    for (let gd = 0; gd < 3000; gd++) {
+      const ymd = cur.toISOString().slice(0, 10).replace(/-/g, '');
+      if (ymd > todayY) break;
+      if (!isKrxClosed(ymd).closed) activeTradingDays++;
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+  }
+  // 일평균 매수 = 총 매수 종목수 ÷ 가동 거래일수 (매매 발생일이 아니라 엔진 가동 전체 거래일 기준)
+  const totalStocksBought = pnls.reduce((s, p) => s + (p.n_trades || 0), 0);
+  const avgStocksPerDay = activeTradingDays > 0 ? +(totalStocksBought / activeTradingDays).toFixed(2) : 0;
 
   let peak = 0, maxDD = 0, cumPnl = 0;
   // TWR MDD%: 자본가중 일수익률(avg_pct)을 기하연결한 자본곡선의 고점→저점 낙폭 (시드·입출금 무관)
@@ -445,11 +464,22 @@ app.get('/api/stats', (req, res) => {
   let maxLossStreak = 0, cur = 0;
   for (const p of pnls) { if (p.pnl < 0) { cur++; if (cur > maxLossStreak) maxLossStreak = cur; } else cur = 0; }
 
+  // 매수 슬리피지 — slippage_log(side='buy')의 slip_bp 평균 (bp→%, +는 비싸게 삼)
+  let avgBuySlippagePct = null, nSlip = 0;
+  try {
+    const sr = db.prepare("SELECT AVG(slip_bp) AS a, COUNT(slip_bp) AS n FROM slippage_log WHERE side='buy' AND slip_bp IS NOT NULL").get();
+    nSlip = sr?.n || 0;
+    if (nSlip > 0 && sr.a != null) avgBuySlippagePct = +(sr.a / 100).toFixed(3);
+  } catch (e) { /* slippage_log 미존재 시 무시 */ }
+  // 가드 = 레짐 정지(regime halt). L1 휴면은 그림자모드라 별도 표기(현재 미노출)
+  let guard = null;
+  try { guard = { type: 'regime', halted: !!regimeGuard.isHalted() }; } catch (e) { /* 무시 */ }
+
   res.json({
     ok: true, totalDays, wins, losses, draws: totalDays - wins - losses,
     totalPnl: Math.round(totalPnl), avgPnl: Math.round(avgPnl),
-    avgReturnPct, avgDailyReturnPct, avgStocksPerDay,
-    winRate: stockWinRate,
+    avgReturnPct, avgDailyReturnPct, avgStocksPerDay, activeTradingDays, firstSigYmd,
+    winRate: stockWinRate, avgBuySlippagePct, nSlip, guard,
     maxProfitPct: +maxProfitPct.toFixed(2), maxLossPct: +maxLossPct.toFixed(2),
     cumReturnCompoundPct, maxDD: Math.round(maxDD), maxDDPct: +maxDDPct.toFixed(2), profitFactor,
     currentLossStreak, maxLossStreak, todayRealized: Math.round(todayRealized),

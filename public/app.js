@@ -4,6 +4,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 const API = '';
+// ── 백테(APEX 가드40·비용0.3%·ETF필터, CLAUDE.md SSoT) 참조치 — 라이브 대비 기준선 ──
+// 갱신 시 이 상수만 수정 (표시 전용)
+const BACKTEST = {
+  mddPct: 11.8,      // 최대 낙폭
+  winRatePct: 64,    // 승률 (개별주)
+  // 손익비·최대손실 백테치는 SSoT 미문서 → 병기 생략
+};
 let refreshInterval = null;
 let countdown = 30;
 let currentMode = 'paper-self';
@@ -493,34 +500,17 @@ async function refreshStats() {
   };
   const setSub = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
-  setSub('totalPnlSub', data.totalDays > 0 ? `${data.totalDays}거래일 · 승일 ${data.wins} / 패일 ${data.losses}` : '거래 없음');
-
-  const avgR = data.avgReturnPct;
-  const avgEl = document.getElementById('avgReturn');
-  if (avgEl) {
-    avgEl.textContent = avgR != null ? `${sign(avgR)}${avgR}%` : '--%';
-    avgEl.className = `stat-value ${cls(avgR)}`;
-  }
-  setSub('avgReturnSub', data.totalDays > 0 ? `종목 평균 · 승률 ${data.winRate}%` : '종목 평균');
-
-  const avgPnl = data.avgPnl;
-  const avgPnlEl = document.getElementById('avgPnl');
-  if (avgPnlEl) {
-    avgPnlEl.textContent = data.totalDays > 0 ? `${sign(avgPnl)}${avgPnl.toLocaleString()}원` : '--';
-    avgPnlEl.className = `stat-value ${cls(avgPnl)}`;
-  }
-  const avgDR = data.avgDailyReturnPct;
-  const avgDREl = document.getElementById('avgDailyReturn');
-  if (avgDREl) {
-    avgDREl.textContent = data.totalDays > 0 ? `${sign(avgDR)}${avgDR}%` : '--%';
-  }
+  setSub('totalPnlSub', data.totalDays > 0
+    ? `가동 ${data.activeTradingDays}거래일 · 매매 ${data.totalDays}일 · 승 ${data.wins} / 패 ${data.losses}`
+    : (data.activeTradingDays > 0 ? `가동 ${data.activeTradingDays}거래일 · 매매 0일` : '거래 없음'));
 
   const cr = data.cumReturnCompoundPct;
   set('cumReturnCompound',
     (cr === null || cr === undefined) ? '--%' : `${cr >= 0 ? '+' : ''}${cr}%`,
-    `stat-value ${cr > 0 ? 'positive' : cr < 0 ? 'negative' : ''}`);
+    `kpi-value ${cr > 0 ? 'positive' : cr < 0 ? 'negative' : ''}`);
   set('maxLoss', data.maxLossPct != null && data.maxLossPct !== 0 ? `${data.maxLossPct}%` : '--%',
     `stat-value ${data.maxLossPct < 0 ? 'negative' : ''}`);
+  setSub('maxLossSub', '일 최악');
 
   const pf = data.profitFactor;
   const pfEl = document.getElementById('profitFactor');
@@ -531,14 +521,24 @@ async function refreshStats() {
   }
   setSub('profitFactorSub', pf >= 1.5 ? '건전 (≥1.5)' : pf >= 1.0 ? '유지 (≥1.0)' : pf > 0 ? '주의 (<1.0)' : '이익÷손실');
 
-  const mdd = data.maxDD || 0;
+  // MDD: %를 메인, 금액을 sub로 + 백테 병기 (상단 kpi 스트립)
+  const mddPct = data.maxDDPct || 0;
   const mddEl = document.getElementById('maxDD');
   if (mddEl) {
-    mddEl.textContent = mdd > 0 ? `-${mdd.toLocaleString()}원` : '0원';
-    mddEl.className = `stat-value ${mdd > 0 ? 'negative' : ''}`;
+    mddEl.textContent = mddPct > 0 ? `-${mddPct}%` : '0%';
+    mddEl.className = `kpi-value ${mddPct > 0 ? 'negative' : ''}`;
   }
-  const mddPct = data.maxDDPct || 0;
-  setSub('maxDDSub', mddPct > 0 ? `고점 대비 -${mddPct}% · TWR` : '고점 대비');
+  const mdd = data.maxDD || 0;
+  setSub('maxDDSub', mdd > 0
+    ? `고점 -${Math.round(mdd).toLocaleString()}원 · 백테 -${BACKTEST.mddPct}%`
+    : `백테 -${BACKTEST.mddPct}%`);
+
+  // 승률 (매매 단위) — 백테 병기
+  const wr = data.winRate;
+  set('winRateHero',
+    (data.n_trades > 0 && wr != null) ? `${wr}%` : '--%',
+    `kpi-value ${wr >= 55 ? 'positive' : wr >= 45 ? '' : wr > 0 ? 'warn' : ''}`);
+  setSub('winRateHeroSub', data.n_trades > 0 ? `백테 ${BACKTEST.winRatePct}% · ${data.n_trades}건` : `백테 ${BACKTEST.winRatePct}%`);
 
   const losses = data.currentLossStreak || 0;
   const lossMax = data.maxLossStreak || 0;
@@ -547,13 +547,31 @@ async function refreshStats() {
     lossEl.textContent = losses > 0 ? `${losses}일` : '0일';
     lossEl.className = `stat-value ${losses >= 3 ? 'negative' : losses >= 2 ? 'warn' : ''}`;
   }
-  setSub('lossStreakSub', lossMax > 0 ? `역대 최장 ${lossMax}일` : '역대 최장 0일');
+  // APEX 가드 = 레짐 정지(regime halt) + L1 휴면. 상태 표시 (연속손실 카드)
+  const g = data.guard || {};
+  const lsSub = document.getElementById('lossStreakSub');
+  if (lsSub) {
+    if (g.halted) {
+      lsSub.innerHTML = `<span style="color:var(--accent);font-weight:700;">🛡 레짐 매수정지</span>`;
+    } else if (g.dormant) {
+      lsSub.innerHTML = `<span style="color:var(--yellow);">🕯 L1 휴면 (그림자추적)</span>`;
+    } else {
+      lsSub.textContent = lossMax > 0 ? `역대 최장 ${lossMax}일 · 가드 정상` : '가드 정상';
+    }
+  }
 
-  set('tradingDays', `${data.totalDays}일`);
-  setSub('winRate', `승률 ${data.winRate}%`);
+  // 매수 슬리피지 — 의도가 대비 실체결 (백테 미반영)
+  const slip = data.avgBuySlippagePct;
+  const slipEl = document.getElementById('buySlippage');
+  if (slipEl) {
+    slipEl.textContent = (slip != null) ? `${slip > 0 ? '+' : ''}${slip}%` : '--';
+    slipEl.className = `stat-value ${slip == null ? '' : slip > 0.1 ? 'warn' : slip <= 0 ? 'positive' : ''}`;
+  }
+  setSub('buySlippageSub', data.nSlip > 0 ? `${data.nSlip}건 · 의도가 대비` : '의도가 대비');
 
+  set('activeDaysSpan', `${data.activeTradingDays ?? '--'}`);
   const avgStocks = data.avgStocksPerDay;
-  set('avgStocks', data.totalDays > 0 && avgStocks != null ? `${avgStocks}종목` : '--');
+  set('avgStocks', data.activeTradingDays > 0 && avgStocks != null ? `${avgStocks}종목` : '--');
 
   // 스파크라인
   const dailyPnl = window._dailyPnl || [];
