@@ -293,6 +293,19 @@
 
 <div class="container">
 
+  <!-- 누적 자본 곡선 (일별 TWR 기하연결, 시드 100) -->
+  <section class="panel" id="eqCurvePanel" style="display:none;">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span class="live-dot"></span>
+        누적 자본 곡선
+        <span class="count">TWR · 시드 100</span>
+      </div>
+      <span class="panel-meta" id="eqCurveMeta" style="font-size:11px;color:var(--dim);flex:1 1 auto;min-width:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:12px;"></span>
+    </div>
+    <div id="eqCurveWrap" style="padding:14px 16px 10px;"></div>
+  </section>
+
   <!-- 일별 손익 패널 -->
   <section class="panel">
     <div class="panel-header">
@@ -386,6 +399,94 @@
   }
   updateClock(); setInterval(updateClock, 1000);
 
+  // ── 누적 자본 곡선 렌더 (일별 TWR 기하연결, 시드 100) — 인라인 SVG ────────────
+  //   곡선 끝점·낙폭 = 일별손익 낙폭(DD) 컬럼과 동일한 avgPct 기하연결이라 표와 일치.
+  function renderEquityCurve(eqCurve) {
+    const panel = document.getElementById('eqCurvePanel');
+    const host = document.getElementById('eqCurveWrap');
+    const metaEl = document.getElementById('eqCurveMeta');
+    if (!host || !panel) return;
+    if (!eqCurve || eqCurve.length < 3) { panel.style.display = 'none'; return; }  // 시드+2거래일 이상
+    panel.style.display = '';
+
+    // 데이터 불변이면 재렌더 건너뜀 (30초 폴링 중 호버/크로스헤어 선택 유지)
+    const last = eqCurve[eqCurve.length - 1];
+    const sig = `${eqCurve.length}|${last.date}|${last.eq.toFixed(2)}`;
+    if (host.dataset.sig === sig) return;
+    host.dataset.sig = sig;
+
+    const W = 1000, H = 200, PAD = 10;
+    const eqs = eqCurve.map(p => p.eq);
+    const maxEq = Math.max(...eqs), minEq = Math.min(...eqs);
+    const x = i => PAD + (i / (eqCurve.length - 1)) * (W - 2 * PAD);
+    const y = v => (H - PAD) - ((v - minEq) / ((maxEq - minEq) || 1)) * (H - 2 * PAD);
+
+    // 최대낙폭 구간(진행 고점 → 저점) 탐지
+    let rp = eqs[0], rpIdx = 0, mddPeakIdx = 0, mddTroughIdx = 0, mdd = 0;
+    for (let i = 0; i < eqs.length; i++) {
+      if (eqs[i] > rp) { rp = eqs[i]; rpIdx = i; }
+      const dd = rp > 0 ? (rp - eqs[i]) / rp : 0;
+      if (dd > mdd) { mdd = dd; mddPeakIdx = rpIdx; mddTroughIdx = i; }
+    }
+    const line = eqCurve.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.eq).toFixed(1)}`).join(' ');
+    const area = `${line} L${x(eqCurve.length - 1).toFixed(1)},${H - PAD} L${x(0).toFixed(1)},${H - PAD} Z`;
+    const ddSeg = mdd > 0.0001
+      ? eqCurve.slice(mddPeakIdx, mddTroughIdx + 1).map((p, j) => `${j === 0 ? 'M' : 'L'}${x(mddPeakIdx + j).toFixed(1)},${y(p.eq).toFixed(1)}`).join(' ')
+      : '';
+    const lastEq = eqs[eqs.length - 1];
+    const cumRet = lastEq - 100;
+    const lastIdx = eqCurve.length - 1;
+
+    host.innerHTML =
+      `<svg id="eqcSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block;width:100%;height:200px;cursor:crosshair;" role="img" aria-label="누적 자본 곡선. 시드 100 기준 최종 ${lastEq.toFixed(1)} (${cumRet >= 0 ? '+' : ''}${cumRet.toFixed(1)}%), 최대낙폭 ${(mdd * 100).toFixed(1)}%. 그래프를 클릭·호버하면 일자별 상세.">
+        <defs><linearGradient id="eqcFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(34,211,238,0.28)"/><stop offset="100%" stop-color="rgba(34,211,238,0)"/></linearGradient></defs>
+        <line x1="${PAD}" y1="${y(100).toFixed(1)}" x2="${W - PAD}" y2="${y(100).toFixed(1)}" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="3 3"/>
+        <path d="${area}" fill="url(#eqcFill)"/>
+        <path d="${line}" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linejoin="round"/>
+        ${ddSeg ? `<path d="${ddSeg}" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linejoin="round"/>` : ''}
+        <line id="eqcCross" x1="0" y1="${PAD}" x2="0" y2="${H - PAD}" stroke="rgba(255,255,255,0.45)" stroke-width="1" style="opacity:0;"/>
+        <circle id="eqcHl" r="4" fill="#0d0a10" stroke="#22d3ee" stroke-width="2" style="opacity:0;"/>
+        <circle cx="${x(eqCurve.length - 1).toFixed(1)}" cy="${y(lastEq).toFixed(1)}" r="3.5" fill="#22d3ee"/>
+      </svg>`;
+    // ── 상단 고정영역에 그날 상세 (기본=마지막 날, 호버=해당 날) ──
+    const svg = document.getElementById('eqcSvg');
+    const cross = document.getElementById('eqcCross');
+    const hl = document.getElementById('eqcHl');
+    if (!svg || !cross || !hl) return;
+    const setInfo = (idx) => {
+      if (!metaEl) return;
+      idx = Math.max(0, Math.min(lastIdx, idx));
+      const p = eqCurve[idx];
+      if (idx === 0) { metaEl.innerHTML = `<strong style="color:#e2e8f0;">시작</strong> · 자본 100.0 (누적 0%)`; return; }
+      const ret = p.eq - 100;
+      const pctStr = p.pct != null ? `${p.pct >= 0 ? '+' : ''}${Number(p.pct).toFixed(2)}%` : '-';
+      const pnlStr = p.pnl != null ? ` (${p.pnl >= 0 ? '+' : ''}${Math.round(p.pnl).toLocaleString()}원)` : '';
+      const stkStr = p.stocks != null ? ` · ${p.stocks}종목` : '';
+      const dayCol = (p.pct != null && p.pct < 0) ? 'var(--accent)' : 'var(--green)';
+      const cumCol = ret < 0 ? 'var(--accent)' : 'var(--green)';
+      metaEl.innerHTML = `<strong style="color:#e2e8f0;">${p.date}</strong> · 자본 ${p.eq.toFixed(1)} (누적 <strong style="color:${cumCol};">${ret >= 0 ? '+' : ''}${ret.toFixed(1)}%</strong>) · 그날 <strong style="color:${dayCol};">${pctStr}</strong>${pnlStr}${stkStr}`;
+    };
+    const showAt = (idx) => {
+      idx = Math.max(0, Math.min(lastIdx, idx));
+      const p = eqCurve[idx];
+      const px = x(idx), py = y(p.eq);
+      cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.style.opacity = '1';
+      hl.setAttribute('cx', px); hl.setAttribute('cy', py); hl.style.opacity = '1';
+      setInfo(idx);
+    };
+    const idxFromEvent = (ev) => {
+      const r = svg.getBoundingClientRect();
+      return Math.round(((ev.clientX - r.left) / (r.width || 1)) * lastIdx);
+    };
+    svg.addEventListener('mousemove', ev => showAt(idxFromEvent(ev)));
+    svg.addEventListener('click', ev => showAt(idxFromEvent(ev)));
+    svg.addEventListener('mouseleave', () => {
+      cross.style.opacity = '0'; hl.style.opacity = '0';
+      setInfo(lastIdx);
+    });
+    setInfo(lastIdx);   // 기본값: 마지막 날 데이터
+  }
+
   // ── 일별 손익 렌더링 ────────────────────────────────
   let _openDetailDate = null;
   let _cachedScanLog = [];
@@ -452,6 +553,17 @@
       ddPcts[i] = _eqPeak > 0 ? (_eqPeak - _eq) / _eqPeak * 100 : 0;
     }
     const _maxDd = ddPcts.length ? Math.max(...ddPcts) : 0;
+
+    // 누적 자본 곡선 시리즈 (avgPct 기하 TWR, 낙폭 컬럼과 동일 기준) — 오래된→최신, 시드 100
+    const eqCurve = [{ date: '시작', eq: 100, pct: null }];
+    let _eqC = 1;
+    for (let i = dailyPnl.length - 1; i >= 0; i--) {
+      const r = dailyPnl[i].avgPct != null ? Number(dailyPnl[i].avgPct)
+        : (dailyPnl[i].buyTotal ? dailyPnl[i].pnl / dailyPnl[i].buyTotal * 100 : 0);
+      _eqC *= 1 + (r || 0) / 100;
+      eqCurve.push({ date: dailyPnl[i].date, eq: _eqC * 100, pct: r, pnl: dailyPnl[i].pnl, stocks: dailyPnl[i].stocks });
+    }
+    renderEquityCurve(eqCurve);
 
     pnlBody.innerHTML = dailyPnl.map((p, i) => {
       const cum = cumPnls[i];
