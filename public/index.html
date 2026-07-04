@@ -162,39 +162,40 @@
     }
     .icon-btn:hover { color: var(--text); border-color: var(--accent); background: rgba(34,211,238,0.08); }
 
-    .container { padding: 8px 14px; max-width: 100%; }
+    .container { padding: 8px 12px; max-width: 100%; }
 
     /* KPI 스트립 (6칸) */
     .kpi-strip {
-      display: grid; grid-template-columns: repeat(5, 1fr);
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 1px; background: var(--border);
       border: 1px solid var(--border);
       border-radius: 10px; overflow: hidden;
       margin-bottom: 12px;
     }
     .kpi {
-      background: var(--bg2); padding: 15px 18px;
-      display: flex; flex-direction: column; gap: 5px;
+      background: var(--bg2); padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 3px;
       min-width: 0; transition: background 0.15s;
     }
     .kpi:hover { background: var(--card); }
     .kpi-label {
-      font-size: 12px; color: var(--dim);
+      font-size: 11px; color: var(--dim);
       font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .kpi-value {
-      font-size: 25px; font-weight: 700; line-height: 1.1;
+      font-size: 19px; font-weight: 700; line-height: 1.1;
       letter-spacing: -0.4px;
       font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .kpi-value small { font-size: 12px; font-weight: 600; color: var(--dim); margin-left: 3px; }
+    .kpi-value small { font-size: 11px; font-weight: 600; color: var(--dim); margin-left: 3px; }
     .kpi-value.positive, .kpi-value.pos { color: var(--green); }
     .kpi-value.negative, .kpi-value.neg { color: var(--accent); }
     .kpi-value.accent { color: var(--accent); }
     .kpi-value.warn { color: var(--yellow); }
     .kpi-sub {
-      font-size: 12px; color: var(--dim);
+      font-size: 11px; color: var(--dim);
       display: flex; align-items: center; gap: 6px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
@@ -205,30 +206,31 @@
 
     /* 누적 지표 스트립 */
     .stat-strip {
-      display: grid; grid-template-columns: repeat(5, 1fr);
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 1px; background: var(--border);
       border: 1px solid var(--border);
       border-radius: 10px; overflow: hidden;
       margin-bottom: 12px;
     }
     .stat {
-      background: var(--bg2); padding: 13px 16px;
-      display: flex; flex-direction: column; gap: 4px;
+      background: var(--bg2); padding: 8px 13px;
+      display: flex; flex-direction: column; gap: 2px;
     }
     .stat-label {
-      font-size: 11px; color: var(--dim); text-transform: uppercase;
+      font-size: 10px; color: var(--dim); text-transform: uppercase;
       letter-spacing: 0.4px; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .stat-value {
-      font-size: 19px; font-weight: 700;
+      font-size: 15px; font-weight: 700;
       font-family: 'SF Mono', monospace; font-variant-numeric: tabular-nums;
       letter-spacing: -0.2px; line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .stat-value.positive, .stat-value.pos { color: var(--green); }
     .stat-value.negative, .stat-value.neg { color: var(--accent); }
     .stat-value.warn { color: var(--yellow); }
-    .stat-sub { font-size: 11px; color: var(--dim); white-space: nowrap; }
+    .stat-sub { font-size: 10.5px; color: var(--dim); white-space: nowrap; }
 
     /* 섹션 타이틀 */
     .section-title-h {
@@ -652,7 +654,6 @@
       <div class="kpi-label">누적 손익</div>
       <div class="kpi-value" id="totalPnl">0원</div>
       <div class="kpi-sub" id="totalPnlSub">--</div>
-      <div id="sparkPnl" style="margin-top:4px;height:24px;"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">누적 수익률 (복리)</div>
