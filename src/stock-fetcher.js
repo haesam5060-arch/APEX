@@ -163,6 +163,39 @@ async function pollPrice(code) {
   };
 }
 
+// ── 당일 확정 시초가 (stale 전일값 방지, APEX#18) ──────────────
+// 09:00 직후엔 naver openPrice가 아직 null인 순간이 있어, 기존 morning-sell이
+// `open || close`로 폴백하며 "전일 종가"를 시초가로 오기록 → 진짜 시가 대비 +2~4.8% 뻥튀김.
+// 여기서는 "당일자(localTradedAt=오늘) & open>0"만 채택하고, close 폴백을 금지한다.
+// _selectTodayOpen: 순수함수(테스트용). 후보를 우선순위대로 받아 첫 유효값 반환.
+function _selectTodayOpen(candidates, todayYmd) {
+  for (const c of candidates) {
+    if (c && c.open > 0 && String(c.date || '').slice(0, 10) === todayYmd) {
+      return { open: c.open, source: c.source };
+    }
+  }
+  return null; // 아직 미확정 (호출측이 재시도)
+}
+
+// fetchOpeningPrice: 실시간 basic → 일봉 data[0] 순으로 당일 확정 시초가 조회.
+// todayYmd: 'YYYY-MM-DD' (KST). 미확정이면 null.
+async function fetchOpeningPrice(code, todayYmd) {
+  const candidates = [];
+  // 1) 실시간 basic (openPrice가 장중 갱신되는 스냅샷)
+  try {
+    const b = await fetchJsonRetry(`${PRICE_URL}/${code}/basic`);
+    candidates.push({ open: parseNum(b?.openPrice), date: b?.localTradedAt, source: 'basic' });
+  } catch (e) { /* 다음 소스로 */ }
+  // 2) 일봉 최신 캔들 data[0]
+  try {
+    const arr = await fetchJsonRetry(`${PRICE_URL}/${code}/price`);
+    if (Array.isArray(arr) && arr[0]) {
+      candidates.push({ open: parseNum(arr[0].openPrice), date: arr[0].localTradedAt, source: 'price' });
+    }
+  } catch (e) { /* 후보 없음 */ }
+  return _selectTodayOpen(candidates, todayYmd);
+}
+
 // 여러 종목 polling (보유 포지션은 보통 2종목, batch 5로 안전하게)
 async function pollPrices(codes, batchSize = 5) {
   const out = {};
@@ -256,6 +289,8 @@ module.exports = {
   fetchStockDetail,
   fetchOrderbook,
   estimateFillPrice,
+  fetchOpeningPrice,
+  _selectTodayOpen,
   pollPrice,
   pollPrices,
   fetchEtfCodes,

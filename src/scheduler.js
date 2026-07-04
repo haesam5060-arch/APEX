@@ -31,7 +31,7 @@ try {
 } catch (e) {
   // real-broker 없음 (paper-self 모드에서는 사용 안 함)
 }
-const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes } = require('./stock-fetcher');
+const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes, fetchOpeningPrice } = require('./stock-fetcher');
 const { isBuyBlocked } = require('./no-buy-calendar');
 const { isKrxClosed } = require('./krx-calendar');
 const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live, _spawnMorningChange, _withA } = require('./strategy');
@@ -599,6 +599,21 @@ async function runSignalScan() {
   }
 }
 
+// 당일 확정 시초가 재시도 폴 (stale 전일값 방지, APEX#18).
+//   naver openPrice가 09:00 직후 잠깐 null인 순간 → 즉시 폴백하지 않고 재시도.
+//   끝내 미확정이면 null → 호출측이 매도를 보류(다음 사이클 재시도)하도록 한다.
+async function _pollTodayOpen(code, { retries = 6, delayMs = 3000 } = {}) {
+  const today = todayKstDate(); // 'YYYY-MM-DD' (KST)
+  for (let i = 0; i < retries; i++) {
+    try {
+      const r = await fetchOpeningPrice(code, today);
+      if (r && r.open > 0) return r.open;
+    } catch (e) { /* 재시도 */ }
+    if (i < retries - 1) await new Promise(res => setTimeout(res, delayMs));
+  }
+  return null;
+}
+
 // ── 08:50 D+1 시초가 매도 ─────────────────────
 async function runMorningSell() {
   const krx = isKrxClosed();
@@ -644,12 +659,14 @@ async function runMorningSell() {
       if (_isRealMode()) {
         closed = await realBroker.closePositionReal(pos, _config.strategy, _kisCfg(), 'next_day_open');
       } else {
-        // paper-self: 09:00:30까지 대기 후 첫 시세
+        // paper-self: 09:00:30까지 대기 후 당일 확정 시초가 폴.
+        //   ★ APEX#18: 예전엔 `detail.open || detail.close`로 폴백하며 open이 아직 null이면
+        //   전일 종가(close)를 시초가로 오기록 → 진짜 시가 대비 +2~4.8% 뻥튀김.
+        //   이제 "당일자 & open>0"만 채택하고 재시도한다 (백테/실전=parquet 시가와 정합).
         const waitMs = _waitUntilKst(9, 0, 30);
         if (waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
-        const detail = await fetchStockDetail(pos.code);
-        const sellPrice = detail?.open || detail?.close;
-        if (!sellPrice) throw new Error('매도가 폴 실패');
+        const sellPrice = await _pollTodayOpen(pos.code);
+        if (!sellPrice) throw new Error(`당일 시초가 미확정 (${pos.code}) — stale 방지 매도 보류, 다음 사이클 재시도 (APEX#18)`);
         closed = paperBroker.closePosition(pos, sellPrice, _config.strategy.feeRoundTrip || 0.003, 'next_day_open');
       }
       // 슬리피지 계측 (체결가 기록 — paper-self는 폴가, KIS는 체결가)
@@ -672,9 +689,9 @@ async function runMorningSell() {
       const bySig = {};
       for (const sh of shadows) {
         try {
-          const detail = await fetchStockDetail(sh.code);
-          const exitPx = detail?.open || detail?.close;
-          if (!exitPx) { log.warn('SCHED', `[그림자] ${sh.code} 청산가 폴 실패 — 내일 재시도`); continue; }
+          // ★ APEX#18: 실매도와 동일하게 당일 확정 시초가만 채택 (전일종가 폴백 금지)
+          const exitPx = await _pollTodayOpen(sh.code);
+          if (!exitPx) { log.warn('SCHED', `[그림자] ${sh.code} 당일 시초가 미확정 — 내일 재시도 (APEX#18)`); continue; }
           const ret = exitPx / sh.entry - 1 - fee;
           stmts.closeShadowTrade.run({ id: sh.id, exit: exitPx, ret, closed_at: new Date().toISOString() });
           (bySig[sh.signal_date] = bySig[sh.signal_date] || []).push(ret);
