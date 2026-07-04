@@ -31,7 +31,8 @@ try {
 } catch (e) {
   // real-broker 없음 (paper-self 모드에서는 사용 안 함)
 }
-const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes, fetchOpeningPrice } = require('./stock-fetcher');
+const { fetchStockDetail, scanAllStocks, pollPrices, fetchEtfCodes, fetchOpeningPrice,
+        fetchOrderbook, estimateFillPrice, estimateSellFill } = require('./stock-fetcher');
 const { isBuyBlocked } = require('./no-buy-calendar');
 const { isKrxClosed } = require('./krx-calendar');
 const { PRICE_GUARD_PCT, selectClusterLaggard1430, selectClusterLaggard1430Live, _spawnMorningChange, _withA } = require('./strategy');
@@ -174,6 +175,60 @@ function _logSlip({ code, side, refPrice, fillPrice, qty, signalDate }) {
       qty: qty || null,
     });
   } catch (e) { /* 계측 실패는 매매에 영향 없음 (무시) */ }
+}
+
+// ── 매수 슬리피지 프로브 (APEX#18, 계측 전용 — 실제 체결가 불변) ──────
+//   14:50 매수 시점에 네이버 호가(/askingPrice)로 "시장가 매수 시 추정 체결가"를 계산.
+//   ref(폴가=페이퍼 실체결) 대비 얼마 더 드는지 = 페이퍼가 숨기는 진짜 매수 슬리피지.
+//   slippage_probe(buy_only)에 적재 → T+1 매도 시 _probeSellComplete로 완성 → /api/slippage 게이트.
+const SLIP_PROBE_ON = process.env.APEX_SLIP_PROBE !== '0';
+async function _probeBuySlippage(pick, orderAmount, dateYmd) {
+  if (!SLIP_PROBE_ON || !orderAmount || orderAmount <= 0) return;
+  try {
+    const ob = await fetchOrderbook(pick.code);
+    if (!ob || !ob.asks || ob.asks.length === 0) return;
+    const ref = (pick.entry && pick.entry > 0) ? pick.entry : ob.best_ask;
+    const est = estimateFillPrice(ob.asks, orderAmount) || ob.best_ask;
+    const slipBp = ref > 0 ? Math.round((est / ref - 1) * 1e6) / 100 : 0;
+    stmts.insertSlippageBuy.run({
+      date: dateYmd, code: String(pick.code).replace(/^A/, ''), name: pick.name || pick.code,
+      ref_price: Math.round(ref), best_ask: ob.best_ask, est_fill_price: est,
+      order_amount: Math.round(orderAmount), buy_slip_bps: slipBp,
+      ask_depth_json: JSON.stringify(ob.asks.slice(0, 5)),
+      bought_at: new Date().toISOString(),
+    });
+    log.info('SCHED', `[slip-probe] 매수 ${pick.code} ref=${ref} est=${est} (+${slipBp}bp, ${Math.round(orderAmount).toLocaleString()}원)`);
+  } catch (e) { /* 계측 실패는 매매 무관 (무시) */ }
+}
+
+// ── 매도 슬리피지 프로브 완성 (T+1, 계측 전용) ──────────────────────
+//   보유 qty를 bid 호가에 시장가 매도 시 추정가 vs 실제 시초가 → sell_slip.
+//   왕복비용 = buy_slip − sell_slip (매수는 위로+, 매도는 아래로−가 각각 비용).
+async function _probeSellComplete(pos, sellOpen) {
+  if (!SLIP_PROBE_ON || !sellOpen || sellOpen <= 0) return;
+  try {
+    const dateYmd = String(pos.buy_date || '').replace(/-/g, '');
+    const code = String(pos.code).replace(/^A/, '');
+    if (!dateYmd) return;
+    const buyRow = stmts.getSlippageAll.all()
+      .find(r => r.date === dateYmd && r.code === code && r.status === 'buy_only');
+    if (!buyRow) return; // 매수 프로브 없으면 완성 대상 아님
+    let sellSlip = 0;
+    try {
+      const ob = await fetchOrderbook(pos.code);
+      if (ob && ob.bids && ob.bids.length > 0) {
+        const estSell = estimateSellFill(ob.bids, pos.qty) || sellOpen;
+        sellSlip = Math.round((estSell / sellOpen - 1) * 1e6) / 100;
+      }
+    } catch (e) { /* bids 미확보 → sell_slip 0 */ }
+    const roundtrip = Math.round(((buyRow.buy_slip_bps || 0) - sellSlip) * 100) / 100;
+    stmts.updateSlippageSell.run({
+      date: dateYmd, code,
+      buy_price: Math.round(pos.buy_price), sell_open: Math.round(sellOpen),
+      sell_slip_bps: sellSlip, roundtrip_bps: roundtrip,
+      sold_at: new Date().toISOString(),
+    });
+  } catch (e) { /* 계측 실패는 매매 무관 (무시) */ }
 }
 
 // ── 당일 스캔 흐름 기록 (대시보드 패널용, 2026-06-04, 표시 전용·try/catch) ──
@@ -671,6 +726,8 @@ async function runMorningSell() {
       }
       // 슬리피지 계측 (체결가 기록 — paper-self는 폴가, KIS는 체결가)
       _logSlip({ code: pos.code, side: 'sell', refPrice: closed?.sell_price, fillPrice: closed?.sell_price, qty: pos.qty, signalDate: pos.signal_date });
+      // 매수 프로브 완성 (호가기반 왕복 슬리피지 → /api/slippage 게이트, APEX#18)
+      await _probeSellComplete(pos, closed?.sell_price);
       // sendSell(trade, mode) — trade에 sell_price/pnl/return_pct 필요 (close 반환값 사용)
       await discord.sendSell?.(closed || { ...pos }, _config.tradingMode);
     } catch (e) {
@@ -1037,6 +1094,7 @@ async function runLaggardBuy1450() {
             { rank: p.rank, weight }, capital, _config.strategy, _kisCfg(), 'cluster_laggard_1430');
           if (r.success) {
             _logSlip({ code: p.code, side: 'buy', refPrice: p.entry, fillPrice: r.price, qty: r.qty, signalDate: todayYmd });
+            await _probeBuySlippage(p, capital, todayYmd);
             log.info('SCHED', `  [KIS] 매수 ${p.code} @${r.price}`);
             await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, { qty: r.qty ?? 0, buy_price: r.price ?? 0 }, _config.tradingMode);
           } else { log.error('SCHED', `  [KIS] 매수 실패 ${p.code}: ${r.error}`); }
@@ -1053,6 +1111,7 @@ async function runLaggardBuy1450() {
             seed: _laggardPending.seed ? JSON.stringify(_laggardPending.seed) : null,
           }, capital);
           _logSlip({ code: p.code, side: 'buy', refPrice: p.entry, fillPrice: opened?.buy_price, qty: opened?.qty, signalDate: todayYmd });
+          await _probeBuySlippage(p, capital, todayYmd);
           log.info('SCHED', `  [paper] 매수 ${p.code} @${p.entry} (lag${p.lag_rank}, 자본=${capital})`);
           await discord.sendBuy?.({ code: p.code, name: p.name || p.code, theme: 'laggard1430' }, opened, _config.tradingMode);
         }

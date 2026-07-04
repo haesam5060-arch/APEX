@@ -234,36 +234,29 @@ async function fetchEtfCodes() {
 }
 
 // ── 네이버 호가 (슬리피지 측정용) ────────────────────────────────
-// API: /api/stock/{code}/orderbook
-// ask1~ask5 호가 + 잔량을 반환. 5단계만 사용 (보통 14:50 KOSDAQ 소형주 충분).
+// API: /api/stock/{code}/askingPrice  (구 `/orderbook`은 죽은 경로 — 404 HTML, APEX#18)
+// 응답: { lastClosePrice, sellInfo:[{price,count,rate}×5], buyInfos:[…×5] }
+//   sellInfo = 매도호가(ask), buyInfos = 매수호가(bid). price/count는 "312,000" 콤마 문자열.
+//   ★ sellInfo는 고가→저가(5호가→1호가) 순이라, 매수 체결은 best_ask(최저 ask)부터 소진해야
+//   하므로 asks를 오름차순 정렬해 반환한다.
 async function fetchOrderbook(code) {
-  const data = await fetchJsonRetry(`${PRICE_URL}/${code}/orderbook`);
+  const data = await fetchJsonRetry(`${PRICE_URL}/${code}/askingPrice`);
   if (!data) return null;
 
-  // 네이버 orderbook 스키마: { asks: [{price, volume},...], bids: [...] }
-  // 실제 응답 형태가 다를 수 있어 두 가지 경로 모두 처리
-  const raw = data;
-  const asks = [];
-  const bids = [];
+  const sell = Array.isArray(data.sellInfo) ? data.sellInfo : [];
+  const buy  = Array.isArray(data.buyInfos) ? data.buyInfos : [];
 
-  if (Array.isArray(raw.asks)) {
-    for (const a of raw.asks.slice(0, 5))
-      asks.push({ price: parseNum(a.price), qty: parseNum(a.volume || a.qty || 0) });
-  } else {
-    // 대안: askp1~askp5 플랫 구조
-    for (let i = 1; i <= 5; i++) {
-      const p = parseNum(raw[`askp${i}`] || raw[`ask${i}Price`] || 0);
-      const q = parseNum(raw[`askp_rsqn${i}`] || raw[`ask${i}Volume`] || raw[`ask${i}Qty`] || 0);
-      if (p > 0) asks.push({ price: p, qty: q });
-    }
-  }
-  if (Array.isArray(raw.bids)) {
-    for (const b of raw.bids.slice(0, 5))
-      bids.push({ price: parseNum(b.price), qty: parseNum(b.volume || b.qty || 0) });
-  }
+  const asks = sell
+    .map(a => ({ price: parseNum(a.price), qty: parseNum(a.count) }))
+    .filter(a => a.price > 0)
+    .sort((x, y) => x.price - y.price);   // best ask(최저) 먼저 — 매수 소진 순서
+  const bids = buy
+    .map(b => ({ price: parseNum(b.price), qty: parseNum(b.count) }))
+    .filter(b => b.price > 0)
+    .sort((x, y) => y.price - x.price);   // best bid(최고) 먼저
 
   if (asks.length === 0) return null;
-  return { code, asks, bids, best_ask: asks[0]?.price ?? 0, best_bid: bids[0]?.price ?? 0 };
+  return { code, asks, bids, best_ask: asks[0].price, best_bid: bids[0]?.price ?? 0 };
 }
 
 // 주문 규모(amount원)를 ask 호가에서 체결 시 추정 가중평균가
@@ -284,11 +277,27 @@ function estimateFillPrice(asks, amount) {
   return totalQty > 0 ? Math.round(totalCost / totalQty) : null;
 }
 
+// 보유 qty주를 bid 호가에 시장가 매도 시 추정 가중평균가 (매도 슬리피지 측정용)
+function estimateSellFill(bids, qty) {
+  if (!bids || bids.length === 0 || qty <= 0) return null;
+  let remaining = qty, totalCost = 0, totalQty = 0;
+  for (const { price, qty: bq } of bids) {
+    if (price <= 0 || remaining <= 0) break;
+    const filled = Math.min(remaining, bq);
+    if (filled <= 0) continue;
+    totalCost += price * filled;
+    totalQty  += filled;
+    remaining -= filled;
+  }
+  return totalQty > 0 ? Math.round(totalCost / totalQty) : null;
+}
+
 module.exports = {
   scanAllStocks,
   fetchStockDetail,
   fetchOrderbook,
   estimateFillPrice,
+  estimateSellFill,
   fetchOpeningPrice,
   _selectTodayOpen,
   pollPrice,
